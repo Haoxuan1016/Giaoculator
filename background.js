@@ -1,3 +1,5 @@
+let EXTENSION_VERSION = [4,5,3]
+
 let processingUrls = {};    
 let categoryCache = {};
 var his_range = 1;
