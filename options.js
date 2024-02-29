@@ -51,6 +51,8 @@ function saveOptions() {
         }
     });
 
+    
+
 }
 
 document.getElementById('autoHide_Condition').addEventListener('input', function() {

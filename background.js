@@ -64,6 +64,20 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
                 usr_setting = data.user_preference;
             } else {
                 console.log('No preferences found.');
+                var langSet = navigator.language || navigator.userLanguage; 
+                if(langSet == 'cn'){
+                    defaultwelcomeMsg = "前往设置以定义Giaoculator的更多功能！"
+                }else{
+                    defaultwelcomeMsg = "Go to settings to costumize your Giaoculator!"
+                }
+                var user_preference = {
+                    calcRange: parseInt(1, 10),
+                    welcomeMsg: defaultwelcomeMsg,
+                    autoHide: false,
+                    autoHide_Condition: parseInt(0, 10)
+                };
+                chrome.storage.local.set({user_preference: user_preference});
+                usr_setting = user_preference;
             }
         });
         
@@ -1086,7 +1100,7 @@ async function fetchOriginalRequest(smsId) {
 async function sendLoginMessage() {
     rand_num = Math.floor(Math.random() * 3) + 1;
     var msg;
-    if(rand_num == 1){
+    if(rand_num == 1 || usr_setting.welcomeMsg.includes("Giaoculator")){
         msg = usr_setting.welcomeMsg;
     }
     else if(rand_num == 2){
