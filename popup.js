@@ -34,7 +34,11 @@ function onclickButton(){
 
 document.addEventListener('DOMContentLoaded', function() {
   var myButton = document.getElementById('toggle-button');
+  var mySettings = document.getElementsByClassName('footer')[0];
   myButton.addEventListener('click', function() {
       onclickButton();
+  });
+  mySettings.addEventListener('click', function() {
+    chrome.runtime.openOptionsPage();
   });
 });
