@@ -2,6 +2,7 @@ let processingUrls = {};
 let categoryCache = {};
 var his_range = 1;
 var usr_setting = {};
+var enable_state = true;
 var did_autocalcall = false;
 var working_sms = 24699;
 var working_sms_sequenceId = 1;
@@ -109,11 +110,6 @@ chrome.webRequest.onBeforeRequest.addListener(
         const GiaoculatorClassUrlPattern = "https://tsinglanstudent.schoolis.cn/api/DynamicScore/GetDynamicScoreDetail?classId=gcalc";
         const InfoPagePattern = "https://tsinglanstudent.schoolis.cn/api/DynamicScore/GetDynamicScoreDetail?classId";
         const PresentAssignmentPattern = "https://tsinglanstudent.schoolis.cn/api/LearningTask/GetList?"
-        chrome.storage.local.get('enable_state', function(result) {
-            if (result.enable_state === false) {
-                return;
-            }
-        });
 
         if (details.url.startsWith(InfoPagePattern)) {
             setTimeout(() => {
@@ -134,125 +130,129 @@ chrome.webRequest.onBeforeRequest.addListener(
         }
 
         if (details.url.startsWith(detailsUrlPattern)) {
-            if(usr_setting.autoHide){
-                send_str_msg("rc_hidescore",usr_setting.autoHide_Condition,0);
-            }
-            targsms = details.url.split('?semesterId=')[1];
-            working_sms = targsms;
-            if(isFetchOriginal == true){
-                console.log("PartA:IsFetchingOriginal=True, do nothing!");
-                return null;
-            }else{
-                console.log("PartA:IsFetchingOriginal=false");
-                setTimeout(() => {
-                    send_short_msg("replace_context",0);
-                    setTimeout(() => {
-                        send_short_msg("replace_context",0);
+            chrome.storage.local.get('enable_state', function(result) {
+                if (result.enable_state === true) {
+                    if(usr_setting.autoHide){
+                        send_str_msg("rc_hidescore",usr_setting.autoHide_Condition,0);
+                    }
+                    targsms = details.url.split('?semesterId=')[1];
+                    working_sms = targsms;
+                    if(isFetchOriginal == true){
+                        console.log("PartA:IsFetchingOriginal=True, do nothing!");
+                        return null;
+                    }else{
+                        console.log("PartA:IsFetchingOriginal=false");
                         setTimeout(() => {
                             send_short_msg("replace_context",0);
-                        }, 50);
-                    }, 15);
-                }, 15);
-                
-            }
-            
-            if(smsCalcStat[targsms] == -1){
-                send_str_msg("tip_alert","请稍后，该学期的数据仍在计算中",0);
-                return null;
-            }
-
-            let totalCourse = [];
-            let template = {"grade":null,"classType":2,"classId":"gcalc","className":"GPA Calculator","classEName":"GPA Calculator","subjectId":100628,"subjectName":"Giaoculator","subjectEName":"Giaoculator","isInGrade":true,"subjectScore":100,"scoreMappingId":4517,"updateDate":"\/Date(0000000000000+0800)\/","subjectTotalScore":100.0,"scoreType":1,"levelString":"A+"};
-
-            // 获取所有的course
-            let courseInfoList = getAllCourseInfo(targsms);
-            if(usr_setting.autoHide){
-                send_str_msg("rc_hidescore",usr_setting.autoHide_Condition,0);
-            }
-            if (courseInfoList.length < 1) {
-                console.log("PartA:courseInfoList.length < 1,do nothing");
-                return null;
-            }else{
-                console.log("courseInfoList is not empty",courseInfoList);
-            }
-            //Pushing and Form the new ScoreLists
-            let add_count = 0;
-            for (let courseInfo of courseInfoList) {
-                let course = JSON.parse(JSON.stringify(template));
-                console.log("courseInfo:",courseInfo);
-                if(courseInfo.source == "original"){
-                    course.className = courseInfo.className;
-                    course.classEName = courseInfo.classEName;
-                    course.classId = courseInfo.classId;
-                    course.subjectId = courseInfo.subjectId;
-                    course.subjectName = courseInfo.subjectName;
-                    course.subjectEName = courseInfo.subjectEName;
-                    course.subjectScore = courseInfo.subjectScore;
-                    course.updateDate = courseInfo.updateDate;
-                    course.isInGrade = courseInfo.isInGrade;
-                    course.classType = 2;
-                    course.updateDate = courseInfo.updateDate;
-                    if(courseInfo.classType == 1){
-                        course.className = "行政班";
-                        course.classEName = "Homeroom";
+                            setTimeout(() => {
+                                send_short_msg("replace_context",0);
+                                setTimeout(() => {
+                                    send_short_msg("replace_context",0);
+                                }, 50);
+                            }, 15);
+                        }, 15);
+                        
                     }
-                    totalCourse.push(course);
-                    console.log("Pushed!TypeORIGINALdata:",course.subjectEName);
-                    add_count+=1;
+                    
+                    if(smsCalcStat[targsms] == -1){
+                        send_str_msg("tip_alert","请稍后，该学期的数据仍在计算中",0);
+                        return null;
+                    }
+        
+                    let totalCourse = [];
+                    let template = {"grade":null,"classType":2,"classId":"gcalc","className":"GPA Calculator","classEName":"GPA Calculator","subjectId":100628,"subjectName":"Giaoculator","subjectEName":"Giaoculator","isInGrade":true,"subjectScore":100,"scoreMappingId":4517,"updateDate":"\/Date(0000000000000+0800)\/","subjectTotalScore":100.0,"scoreType":1,"levelString":"A+"};
+        
+                    // 获取所有的course
+                    let courseInfoList = getAllCourseInfo(targsms);
+                    if(usr_setting.autoHide){
+                        send_str_msg("rc_hidescore",usr_setting.autoHide_Condition,0);
+                    }
+                    if (courseInfoList.length < 1) {
+                        console.log("PartA:courseInfoList.length < 1,do nothing");
+                        return null;
+                    }else{
+                        console.log("courseInfoList is not empty",courseInfoList);
+                    }
+                    //Pushing and Form the new ScoreLists
+                    let add_count = 0;
+                    for (let courseInfo of courseInfoList) {
+                        let course = JSON.parse(JSON.stringify(template));
+                        console.log("courseInfo:",courseInfo);
+                        if(courseInfo.source == "original"){
+                            course.className = courseInfo.className;
+                            course.classEName = courseInfo.classEName;
+                            course.classId = courseInfo.classId;
+                            course.subjectId = courseInfo.subjectId;
+                            course.subjectName = courseInfo.subjectName;
+                            course.subjectEName = courseInfo.subjectEName;
+                            course.subjectScore = courseInfo.subjectScore;
+                            course.updateDate = courseInfo.updateDate;
+                            course.isInGrade = courseInfo.isInGrade;
+                            course.classType = 2;
+                            course.updateDate = courseInfo.updateDate;
+                            if(courseInfo.classType == 1){
+                                course.className = "行政班";
+                                course.classEName = "Homeroom";
+                            }
+                            totalCourse.push(course);
+                            console.log("Pushed!TypeORIGINALdata:",course.subjectEName);
+                            add_count+=1;
+                        }
+                    }
+                    for (let courseInfo of courseInfoList) {
+                        let course = JSON.parse(JSON.stringify(template));
+                        if(courseInfo.source == "calc" && courseInfo.gpa >= 0){
+                            course.className = courseInfo.ename;
+                            course.classEName = courseInfo.ename;
+                            course.subjectName = courseInfo.ename;
+                            course.subjectEName = courseInfo.ename;
+                            course.subjectId = courseInfo.subjectId;
+                            course.subjectScore = courseInfo.gpa;
+                            totalCourse.push(course);
+                            console.log("Pushed!TypeCALCdata:",courseInfo.ename);
+                            add_count+=1;
+                        }
+                        
+                    }
+        
+                   
+                    
+        
+                    if (add_count < 1){
+                        let course = JSON.parse(JSON.stringify(template));
+                        course.className = "该学期暂无任何信息";
+                        course.classEName = "Empty Smester";
+                        course.subjectName = "未获取到信息";
+                        course.subjectEName = "Info Not Found";
+                        course.subjectScore = "0";
+                        totalCourse.push(course);
+                    }
+                    setTimeout(() => {
+                        send_short_msg("replace_context",0);
+                    }, 200);
+                    
+        
+                    courseInfoList += {"grade":null,"classType":2,"classId":277851,"className":"GPA Calculator","classEName":"GPA Calculator","subjectId":100628,"subjectName":"Giaoculator","subjectEName":"Giaoculator","isInGrade":true,"subjectScore":100,"scoreMappingId":4517,"updateDate":"\/Date(0000000000000+0800)\/","subjectTotalScore":100.0,"scoreType":1,"levelString":"A+"}
+                    if (courseInfoList.length > 1) {
+                        return {
+                            redirectUrl: "data:application/json," + encodeURIComponent(JSON.stringify({
+                                data: {
+                                    studentSemesterDynamicScoreBasicDtos: totalCourse,
+                                    "scoreMappingList": [
+                                        {"scoresMappingId":4517,"isUseGpa":true,"scoreMappingConfigs":[{"displayName":"A+","minValue":97.00,"maxValue":9999.90,"isContainMin":true,"isContainMax":true,"sort":0,"gpa":4.30},{"displayName":"A","minValue":93.00,"maxValue":96.90,"isContainMin":true,"isContainMax":true,"sort":1,"gpa":4.00},{"displayName":"A-","minValue":90.00,"maxValue":92.90,"isContainMin":true,"isContainMax":true,"sort":2,"gpa":3.70},{"displayName":"B+","minValue":87.00,"maxValue":89.90,"isContainMin":true,"isContainMax":true,"sort":3,"gpa":3.30},{"displayName":"B","minValue":83.00,"maxValue":86.90,"isContainMin":true,"isContainMax":true,"sort":4,"gpa":3.00},{"displayName":"B-","minValue":80.00,"maxValue":82.90,"isContainMin":true,"isContainMax":true,"sort":5,"gpa":2.70},{"displayName":"C+","minValue":77.00,"maxValue":79.90,"isContainMin":true,"isContainMax":true,"sort":6,"gpa":2.30},{"displayName":"C","minValue":73.00,"maxValue":76.90,"isContainMin":true,"isContainMax":true,"sort":7,"gpa":2.00},{"displayName":"C-","minValue":70.00,"maxValue":72.90,"isContainMin":true,"isContainMax":true,"sort":8,"gpa":1.70},{"displayName":"D+","minValue":67.00,"maxValue":69.90,"isContainMin":true,"isContainMax":true,"sort":9,"gpa":1.30},{"displayName":"D","minValue":63.00,"maxValue":66.90,"isContainMin":true,"isContainMax":true,"sort":10,"gpa":1.00},{"displayName":"D-","minValue":60.00,"maxValue":62.90,"isContainMin":true,"isContainMax":true,"sort":11,"gpa":0.70},{"displayName":"F","minValue":0.00,"maxValue":59.90,"isContainMin":true,"isContainMax":true,"sort":12,"gpa":0.00}]}
+                                    ],
+                                },
+                                msgCN: null,
+                                msgEN: null,
+                                state: 0,
+                                msg: null
+                            }))
+                        };
+                    }else{
+                        return null;
+                    }
                 }
-            }
-            for (let courseInfo of courseInfoList) {
-                let course = JSON.parse(JSON.stringify(template));
-                if(courseInfo.source == "calc" && courseInfo.gpa >= 0){
-                    course.className = courseInfo.ename;
-                    course.classEName = courseInfo.ename;
-                    course.subjectName = courseInfo.ename;
-                    course.subjectEName = courseInfo.ename;
-                    course.subjectId = courseInfo.subjectId;
-                    course.subjectScore = courseInfo.gpa;
-                    totalCourse.push(course);
-                    console.log("Pushed!TypeCALCdata:",courseInfo.ename);
-                    add_count+=1;
-                }
-                
-            }
-
-           
-            
-
-            if (add_count < 1){
-                let course = JSON.parse(JSON.stringify(template));
-                course.className = "该学期暂无任何信息";
-                course.classEName = "Empty Smester";
-                course.subjectName = "未获取到信息";
-                course.subjectEName = "Info Not Found";
-                course.subjectScore = "0";
-                totalCourse.push(course);
-            }
-            setTimeout(() => {
-                send_short_msg("replace_context",0);
-            }, 200);
-            
-
-            courseInfoList += {"grade":null,"classType":2,"classId":277851,"className":"GPA Calculator","classEName":"GPA Calculator","subjectId":100628,"subjectName":"Giaoculator","subjectEName":"Giaoculator","isInGrade":true,"subjectScore":100,"scoreMappingId":4517,"updateDate":"\/Date(0000000000000+0800)\/","subjectTotalScore":100.0,"scoreType":1,"levelString":"A+"}
-            if (courseInfoList.length > 1) {
-                return {
-                    redirectUrl: "data:application/json," + encodeURIComponent(JSON.stringify({
-                        data: {
-                            studentSemesterDynamicScoreBasicDtos: totalCourse,
-                            "scoreMappingList": [
-                                {"scoresMappingId":4517,"isUseGpa":true,"scoreMappingConfigs":[{"displayName":"A+","minValue":97.00,"maxValue":9999.90,"isContainMin":true,"isContainMax":true,"sort":0,"gpa":4.30},{"displayName":"A","minValue":93.00,"maxValue":96.90,"isContainMin":true,"isContainMax":true,"sort":1,"gpa":4.00},{"displayName":"A-","minValue":90.00,"maxValue":92.90,"isContainMin":true,"isContainMax":true,"sort":2,"gpa":3.70},{"displayName":"B+","minValue":87.00,"maxValue":89.90,"isContainMin":true,"isContainMax":true,"sort":3,"gpa":3.30},{"displayName":"B","minValue":83.00,"maxValue":86.90,"isContainMin":true,"isContainMax":true,"sort":4,"gpa":3.00},{"displayName":"B-","minValue":80.00,"maxValue":82.90,"isContainMin":true,"isContainMax":true,"sort":5,"gpa":2.70},{"displayName":"C+","minValue":77.00,"maxValue":79.90,"isContainMin":true,"isContainMax":true,"sort":6,"gpa":2.30},{"displayName":"C","minValue":73.00,"maxValue":76.90,"isContainMin":true,"isContainMax":true,"sort":7,"gpa":2.00},{"displayName":"C-","minValue":70.00,"maxValue":72.90,"isContainMin":true,"isContainMax":true,"sort":8,"gpa":1.70},{"displayName":"D+","minValue":67.00,"maxValue":69.90,"isContainMin":true,"isContainMax":true,"sort":9,"gpa":1.30},{"displayName":"D","minValue":63.00,"maxValue":66.90,"isContainMin":true,"isContainMax":true,"sort":10,"gpa":1.00},{"displayName":"D-","minValue":60.00,"maxValue":62.90,"isContainMin":true,"isContainMax":true,"sort":11,"gpa":0.70},{"displayName":"F","minValue":0.00,"maxValue":59.90,"isContainMin":true,"isContainMax":true,"sort":12,"gpa":0.00}]}
-                            ],
-                        },
-                        msgCN: null,
-                        msgEN: null,
-                        state: 0,
-                        msg: null
-                    }))
-                };
-            }else{
-                return null;
-            }
+            });
             
         }/* else if (details.url.startsWith(GPAUrlPattern)) {
             // gpa = getFromLocalStorage(0).gpa => number;
