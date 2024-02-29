@@ -1,60 +1,56 @@
 console.log("Giaoculator is Running");
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-    var disable_autologin = false;
-
-    //console.log("Rec:",message.type);
-    let type = message.type
-    let data = message.data
-    if (type == "load") {
-        console.log("Rec_Do_Load");
-        if (data.show == true){
-            const targetElement = document.querySelector('[class*="stu-common-stu-loading"]');
-
-            if (targetElement) {
-                targetElement.style.display = "table"
+    chrome.storage.local.get('enable_state', function(result) {
+        if (result.enable_state === true) {
+            let type = message.type
+            let data = message.data
+            if (type == "load") {
+                console.log("Rec_Do_Load");
+                if (data.show == true){
+                    const targetElement = document.querySelector('[class*="stu-common-stu-loading"]');
+                    if (targetElement) {
+                        targetElement.style.display = "table"
+                    }
+                }else{
+                    const targetElement = document.querySelector('[class*="stu-common-stu-loading"]');
+                    if (targetElement) {
+                        targetElement.style.display = "none";
+                    }
+                }
+            } else if (type == "refresh"){
+                location.reload();
+            } else if (type == "refresh-click"){
+                simulateClickRefresh(data.sequnce);
+            } else if (type == "replace_context"){
+                updateContent();
+            } else if (type == "sim_login"){
+                if(disable_autologin == false){
+                    simulateClickLogin();
+                    setTimeout(() => {
+                        simulateClickLogin();
+                    }, 1000);
+                    sendSeccesstip("自动登录成功");
+                    disable_autologin = true;
+                }
+            }  else if (type == "tip_suc"){
+                sendSeccesstip(data.cont);
+            }  else if (type == "tip_err"){
+                sendErrortip(data.cont);
+            }  else if (type == "tip_info"){
+                sendInfotip(data.cont);
+            }  else if (type == "tip_alert"){
+                sendAlerttip(data.cont);
+            }  else if (type == "rc_infopage"){
+                updateContent_DetailPage();
+            }  else if (type == "rc_hidescore"){
+                hideScoresRepeatedly(data,10,1500)
+            }   else if (type == "rc_hideasm"){
+                hideAssignments(data.cont);
+                hideAseRepeatedly(data,10,1500)
             }
-
-        }else{
-            const targetElement = document.querySelector('[class*="stu-common-stu-loading"]');
-            if (targetElement) {
-                targetElement.style.display = "none";
-            }
-
         }
-        
-        
-    } else if (type == "refresh"){
-        location.reload();
-    } else if (type == "refresh-click"){
-        simulateClickRefresh(data.sequnce);
-    } else if (type == "replace_context"){
-        updateContent();
-    } else if (type == "sim_login"){
-        if(disable_autologin == false){
-            simulateClickLogin();
-            setTimeout(() => {
-                simulateClickLogin();
-            }, 1000);
-            sendSeccesstip("自动登录成功");
-            disable_autologin = true;
-        }
-    }  else if (type == "tip_suc"){
-        sendSeccesstip(data.cont);
-    }  else if (type == "tip_err"){
-        sendErrortip(data.cont);
-    }  else if (type == "tip_info"){
-        sendInfotip(data.cont);
-    }  else if (type == "tip_alert"){
-        sendAlerttip(data.cont);
-    }  else if (type == "rc_infopage"){
-        updateContent_DetailPage();
-    }  else if (type == "rc_hidescore"){
-        hideScoresRepeatedly(data,10,1500)
-    }   else if (type == "rc_hideasm"){
-        hideAssignments(data.cont);
-        hideAseRepeatedly(data,10,1500)
-    }
+    });
 });
 
 function updateContent() {

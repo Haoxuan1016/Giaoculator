@@ -87,7 +87,11 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
                 did_autocalcall = true;
                 console.log("Do autocalc");
                 console.log("[HPPattern] Do autocalc");
-                AutoCalcAll();
+                chrome.storage.local.get('enable_state', function(result) {
+                    if (result.enable_state === true) {
+                        AutoCalcAll();
+                    }
+                });
             }
         }else{
             console.log("[HPPattern] LS>2, not autocalc");
@@ -105,6 +109,11 @@ chrome.webRequest.onBeforeRequest.addListener(
         const GiaoculatorClassUrlPattern = "https://tsinglanstudent.schoolis.cn/api/DynamicScore/GetDynamicScoreDetail?classId=gcalc";
         const InfoPagePattern = "https://tsinglanstudent.schoolis.cn/api/DynamicScore/GetDynamicScoreDetail?classId";
         const PresentAssignmentPattern = "https://tsinglanstudent.schoolis.cn/api/LearningTask/GetList?"
+        chrome.storage.local.get('enable_state', function(result) {
+            if (result.enable_state === false) {
+                return;
+            }
+        });
 
         if (details.url.startsWith(InfoPagePattern)) {
             setTimeout(() => {
@@ -245,7 +254,7 @@ chrome.webRequest.onBeforeRequest.addListener(
                 return null;
             }
             
-        } else if (details.url.startsWith(GPAUrlPattern)) {
+        }/* else if (details.url.startsWith(GPAUrlPattern)) {
             // gpa = getFromLocalStorage(0).gpa => number;
             let totalGPA = 0;
             let scores = getAllGPAValues();
@@ -277,7 +286,7 @@ chrome.webRequest.onBeforeRequest.addListener(
                 }))
             }
             
-        }else if (details.url.startsWith(GiaoculatorClassUrlPattern)) {
+        }*/else if (details.url.startsWith(GiaoculatorClassUrlPattern)) {
             const urlParams = new URLSearchParams(new URL(details.url).search);
             let req_subjectId = urlParams.get('subjectId');
             let req_semesterId = urlParams.get('semesterId');

@@ -22,6 +22,7 @@ function updateButton(){
 
 function onclickButton(){
   enable = !enable;
+  chrome.storage.local.set({enable_state: enable});
   updateButton();
 }
 
@@ -33,6 +34,10 @@ function onclickButton(){
 // });
 
 document.addEventListener('DOMContentLoaded', function() {
+  chrome.storage.local.get('enable_state', function(result) {
+    enable = result.enable_state;
+    updateButton();
+  });
   var myButton = document.getElementById('toggle-button');
   var mySettings = document.getElementsByClassName('footer')[0];
   myButton.addEventListener('click', function() {
