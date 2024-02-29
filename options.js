@@ -104,29 +104,32 @@ function setLanguage() {
     var userLang = navigator.language || navigator.userLanguage; 
     var texts = {
         'en': {
-            'settingsHeader': 'Basic Settings General',
+            'main_header': 'General',
             'calcRangeLabel': 'Auto-Calc Range',
             'welcomeMsgLabel': 'Custom Welcome Message',
             'autoHideGradesLabel': 'Auto-Hide Unsatisfactory Grades',
             'enableLabel': 'Enable',
-            'scoreBelowLabel': 'When score is below',
-            'saveButton': 'Save'
+            'autoHide_Condition_Label': 'When score is below',
+            'save': 'Save'
         },
         'zh': {
-            'settingsHeader': '基本设置 General',
-            'calcRangeLabel': '自动计算范围 Auto-Calc Range',
-            'welcomeMsgLabel': '自定义欢迎语 Custom WelcomeMsg',
-            'autoHideGradesLabel': '自动隐藏不满意的成绩 Auto-Hide Unsatisfactory Grades',
-            'enableLabel': '启用 Enable',
-            'scoreBelowLabel': '当分数低于',
-            'saveButton': '保存 Save'
+            'main_header': '基本设置',
+            'calcRangeLabel': '自动计算范围',
+            'welcomeMsgLabel': '自定义欢迎语',
+            'autoHideGradesLabel': '自动隐藏不满意的成绩',
+            'enableLabel': '启用',
+            'autoHide_Condition_Label': '当分数低于',
+            'save': '保存'
         }
     };
     
 
     var langKey = userLang.startsWith('zh') ? 'zh' : 'en'; // Default to English if not Chinese
-
-    // Update text content for each element based on the browser language
-    document.getElementById('welcomeMsgLabel').textContent = texts[langKey]['welcomeMsgLabel'];
-    document.getElementById('autoHideLabel').textContent = texts[langKey]['autoHideLabel'];
+    var data = texts[langKey];
+    for (id in data) {
+        var element = document.getElementById(id);
+        if (element) {
+            element.textContent = data[id];
+        }
+    }
 }
