@@ -1,8 +1,12 @@
 console.log("Giaoculator is Running");
 
+console.log("Giaoculator is Running");
+
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+    // 尝试结合两个版本的功能：使用chrome.storage.local来检查enable_state，并保留disable_autologin逻辑。
     chrome.storage.local.get('enable_state', function(result) {
-        if (result.enable_state === true) {
+        if (result.enable_state === true || !result.hasOwnProperty('enable_state')) { // 如果enable_state为true或未设置，则继续。
+            var disable_autologin = false;
             let type = message.type
             let data = message.data
             if (type == "load") {
@@ -10,9 +14,9 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 if (data.show == true){
                     const targetElement = document.querySelector('[class*="stu-common-stu-loading"]');
                     if (targetElement) {
-                        targetElement.style.display = "table"
+                        targetElement.style.display = "table";
                     }
-                }else{
+                } else {
                     const targetElement = document.querySelector('[class*="stu-common-stu-loading"]');
                     if (targetElement) {
                         targetElement.style.display = "none";
@@ -33,25 +37,35 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                     sendSeccesstip("自动登录成功");
                     disable_autologin = true;
                 }
-            }  else if (type == "tip_suc"){
+            } else if (type == "tip_suc"){
                 sendSeccesstip(data.cont);
-            }  else if (type == "tip_err"){
+            } else if (type == "tip_err"){
                 sendErrortip(data.cont);
-            }  else if (type == "tip_info"){
+            } else if (type == "tip_info"){ // 合并tip_info和tip_info_long的处理
                 sendInfotip(data.cont);
-            }  else if (type == "tip_alert"){
+            } else if (type == "tip_info_long"){ // 合并tip_info和tip_info_long的处理
+                sendInfotipLong(data.cont);
+            } else if (type == "tip_alert"){
                 sendAlerttip(data.cont);
-            }  else if (type == "rc_infopage"){
+            } else if (type == "rc_infopage"){
                 updateContent_DetailPage();
-            }  else if (type == "rc_hidescore"){
-                hideScoresRepeatedly(data,10,1500)
-            }   else if (type == "rc_hideasm"){
+            } else if (type == "rc_hidescore"){
+                hideScoresRepeatedly(data,10,1500);
+            } else if (type == "rc_hideasm"){
                 hideAssignments(data.cont);
-                hideAseRepeatedly(data,10,1500)
+                hideAseRepeatedly(data,10,1500);
             }
         }
     });
 });
+
+
+function editPageText(){
+    changeBarname(0, " (1)")
+    changeBarname(1, " (2)")
+    changeBarname(2, " (3)")
+    changeBarname(3, " (4)")
+}
 
 function updateContent() {
     const targetElement = document.getElementsByClassName('ng-binding fe-components-stu-app-realtime-list-__updateTime--3zHR7bQeuvOr3Nr0IlpZGI');
@@ -181,6 +195,18 @@ function simulateClickBar(keyNum) {
         }
     }
 }
+
+function changeBarname(keyNum, prefix) {
+    if(true){
+        try{
+            var name = document.getElementsByClassName("ng-binding ng-scope fe-components-stu-business-topbar-__profileItem--342GOGLPiXlh4W0BfctRIF")[keyNum].innerText;
+            document.getElementsByClassName("ng-binding ng-scope fe-components-stu-business-topbar-__profileItem--342GOGLPiXlh4W0BfctRIF")[keyNum].innerText = name + prefix;
+        }catch{
+    
+        }
+    }
+}
+
 function simulateClickLogout() {
     if(window.location.href === "https://tsinglanstudent.schoolis.cn/Home#!/task/list/detail"){
         document.getElementsByClassName("ng-binding ng-scope fe-components-xb-location-__router--nsd2ZgXX2cpKLO-r5y7lv")[0].click();
@@ -259,6 +285,29 @@ function sendInfotip(cont){
     notyf.open({
         type: 'info',
         duration: 2500,
+        position: {
+          x: 'right',
+          y: 'top',
+        },
+        dismissible: true,
+        message : cont
+    })
+}
+
+function sendInfotipLong(cont){
+    const notyf = new Notyf({
+        types: [
+          {
+            type: 'info',
+            background: "#2884E8",
+            icon: false
+          }
+        ]
+      });
+
+    notyf.open({
+        type: 'info',
+        duration: 6000,
         position: {
           x: 'right',
           y: 'top',

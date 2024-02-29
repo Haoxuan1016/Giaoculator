@@ -1,4 +1,4 @@
-let EXTENSION_VERSION = [4,5,3]
+let EXTENSION_VERSION = [4,5,2]
 
 let processingUrls = {};    
 let categoryCache = {};
@@ -29,13 +29,16 @@ const gpaRules = [
 ];
 
 
-
+// ========================================================
+// 主函数入口
+// ========================================================
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    // 定义监听的地址
     const LoginPattern = "https://tsinglanstudent.schoolis.cn/";
     const HomepagePattern = "https://tsinglanstudent.schoolis.cn/Home#!/task/list";
-    // 当URL变化时，重新注入内容脚本
-    if (changeInfo.url && tab.url.includes("https://tsinglanstudent.schoolis.cn/Home#!/task/stat")) {
 
+    // 当URL变化时，重新注入内容脚本（上古时期的代码了，反正能跑）
+    if (changeInfo.url && tab.url.includes("https://tsinglanstudent.schoolis.cn/Home#!/task/stat")) {
         // 清除先前的content.js实例
         chrome.tabs.executeScript(tabId, {
             code: `
@@ -53,10 +56,11 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         });
     } else if (changeInfo.url && tab.url.includes("https://tsinglanstudent.schoolis.cn/Home#!/realtime/list")) {
         setTimeout(() => {
-            send_short_msg("replace_context",0);
+            send_short_msg("replace_context",0); // 等待200ms后向content.js发送消息
         }, 200);
         
     } else if (tab.url === LoginPattern) {
+        // 如果用户第一次安装插件
         did_autocalcall = false;
         smsCalcStat = [];
         localStorage.clear();
@@ -503,6 +507,52 @@ chrome.webRequest.onCompleted.addListener(
     { urls: ["https://tsinglanstudent.schoolis.cn/*"] }
 );
 
+
+// =========================================================
+// 函数定义
+// =========================================================
+
+// 获取最新版本号并进行比较
+async function checkVersion(){
+    var back = await fetch("https://lanbinshijie.github.io/giaoculator.json")
+    var data = await back.json()
+    console.log(data)
+
+    var versions = data.version
+    var newest = true
+    // versions是一个数组，包含了最新版本的版本号，使用for循环比较新旧
+    setTimeout(() => {
+        for (var i = 0; i < versions.length; i++) {
+            if (versions[i] > EXTENSION_VERSION[i]) {
+                // 如果有新版本，发送消息给content.js
+                // TODO
+                console.log("New version found: " + versions[i]);
+                text = "<h3>Giaoculator有新版本！</h3><br><div>"+data.updateLog[0]+"<ul>"
+                flag = false
+                console.log("JSHDJS",data);
+                for (texta in data.updateLog) {
+                    if (flag) {
+                        text += "<li> · " + data.updateLog[texta] + "</li>"
+                    }
+                    flag = true
+                    // text += "<li>" + text + "</li>"
+                }
+                text += "</ul>前往“设置”页面去更新！或点击<a href='"+data.url+"' style='color:#fff; text-decoration: underline'>这里体验新版本！</a></div>"
+                send_str_msg("tip_info_long",text,0);
+                newest = false
+                break;
+            }
+        }
+        // if (newest) {
+        //     console.log("Giaoculator已是最新版本！");
+        //     send_str_msg("tip_info","Giaoculator已是最新版本！",0);
+        // }
+    }, 3000);
+    
+    console.log(data)
+}
+
+// 函数作用写在这里
 function fetchCategoryAndProportion(taskId, dataItem, callback) {
     var xhr = new XMLHttpRequest();
     xhr.open("GET", `https://tsinglanstudent.schoolis.cn/api/LearningTask/GetDetail?learningTaskId=${taskId}`, true);
@@ -1156,6 +1206,8 @@ async function sendLoginMessage() {
           }
     }
     send_str_msg("tip_info", msg, 0);
+    checkVersion(); // 更新检查
+
     
   }
   
