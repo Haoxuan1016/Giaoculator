@@ -21,7 +21,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
             } else if (type == "refresh"){
                 location.reload();
             } else if (type == "refresh-click"){
-                simulateClickRefresh(data.sequnce);
+                simulateClickRefresh();
             } else if (type == "replace_context"){
                 updateContent();
             } else if (type == "sim_login"){
@@ -197,11 +197,16 @@ function simulateClickLogout() {
         }
     }
 }
-function simulateClickRefresh(sequence) {
-    console.log("Did:",sequence)
+function simulateClickRefresh() {
+    var targtext = document.getElementsByClassName("fe-components-xb-pull-btn-__input--3TWoIfVMNo-eszvg3cnXCa")[0].value
     try{
-        document.getElementsByClassName("ng-isolate-scope fe-components-xb-pull-btn-__t_overflow--3OZPYj_1Z20EZZbQur_fl9")[sequence+0].click();
-        
+        targlists = document.getElementsByClassName("ng-isolate-scope fe-components-xb-pull-btn-__t_overflow--3OZPYj_1Z20EZZbQur_fl9");
+        for(targ in targlists){
+            if(targlists[targ].getAttribute('xb-title') == targtext){
+                targlists[targ].click();
+                continue;
+            }
+        } 
         setTimeout(() => { 
             updateContent();
             setTimeout(() => { 

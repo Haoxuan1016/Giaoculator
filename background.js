@@ -92,6 +92,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
                 console.log("[HPPattern] Do autocalc");
                 chrome.storage.local.get('enable_state', function(result) {
                     if (result.enable_state === true) {
+                        changeEnabled(true);
                         AutoCalcAll();
                     }
                 });
@@ -122,6 +123,17 @@ chrome.webRequest.onBeforeRequest.addListener(
         }
 
         if (details.url.startsWith(PresentAssignmentPattern)&&usr_setting.autoHide) {
+            chrome.storage.local.get('enable_state', function(result) {
+                if(result.enable_state != enable_state){
+                    console.log("enSchangeed");
+                    changeEnabled(result.enable_state);
+                    send_short_msg("refresh-click",0);
+                    setTimeout(() => {
+                        send_short_msg("refresh-click",0);
+                    }, 1000);
+                }
+                
+            });
             setTimeout(() => {
                 send_str_msg("rc_hideasm",usr_setting.autoHide_Condition,0);
                 setTimeout(() => {
@@ -132,6 +144,17 @@ chrome.webRequest.onBeforeRequest.addListener(
         }
 
         if (details.url.startsWith(detailsUrlPattern)) {
+            chrome.storage.local.get('enable_state', function(result) {
+                if(result.enable_state != enable_state){
+                    console.log("enSchangeed");
+                    changeEnabled(result.enable_state);
+                    send_short_msg("refresh-click",0);
+                    setTimeout(() => {
+                        send_short_msg("refresh-click",0);
+                    }, 1000);
+                }
+                
+            });
             if(usr_setting.autoHide){
                 send_str_msg("rc_hidescore",usr_setting.autoHide_Condition,0);
             }
@@ -140,9 +163,6 @@ chrome.webRequest.onBeforeRequest.addListener(
             if(isFetchOriginal == true || enable_state == false){
                 return null;
             }else{
-                chrome.storage.local.get('enable_state', function(result) {
-                    enable_state = result.enable_state;
-                });
                 setTimeout(() => {
                     send_short_msg("replace_context",0);
                     setTimeout(() => {
@@ -911,9 +931,6 @@ function refresh_realtime(redotimes){
         chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
             let message = {
                 type: "refresh-click",
-                data: {
-                    sequence: working_sms_sequenceId
-                }
             };
             try{
                 chrome.tabs.sendMessage(tabs[0].id, message);
@@ -1217,4 +1234,8 @@ function parseDateInfo(dateInfo) {
 
     // 提取时间戳
     
+}
+
+function changeEnabled(state) {
+    enable_state = state;
 }
