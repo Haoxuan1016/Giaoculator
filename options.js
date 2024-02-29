@@ -1,3 +1,5 @@
+var langSet = navigator.language || navigator.userLanguage; 
+
 document.addEventListener('DOMContentLoaded', function() {
     loadOptions();
     setLanguage();
@@ -8,11 +10,21 @@ document.getElementById('save').addEventListener('click', saveOptions);
 // Update display for calcRange slider dynamically
 document.getElementById('calcRange').addEventListener('input', function() {
     if(document.getElementById('calcRange').value == 1){
-        document.getElementById('calcRangeValue').textContent = "仅计算现学期的数据"
+        if(langSet == 'cn'){
+            document.getElementById('calcRangeValue').textContent = "仅计算当前学期的数据";
+        }
+        else{
+            document.getElementById('calcRangeValue').textContent = "Calculate the Current Semester Only";
+        }
     }else{
-        document.getElementById('calcRangeValue').textContent =  "计算最近 " + document.getElementById('calcRange').value + " 个学期的数据";
+        if(langSet == 'cn'){
+            document.getElementById('calcRangeValue').textContent =  "计算最近 " + document.getElementById('calcRange').value + " 个学期的数据";
+        }
+        else{
+            document.getElementById('calcRangeValue').textContent =  "Calculate Last" + document.getElementById('calcRange').value + " Semesters' Scores";
+
+        }
     }
-    
 });
 
 function saveOptions() {
@@ -31,7 +43,12 @@ function saveOptions() {
     // Use chrome.storage.local to save the user preferences
     chrome.storage.local.set({user_preference: user_preference}, function() {
         console.log('Preferences saved');
-        document.getElementById('showReloadTip').innerText = "设置已保存，重新登录平台后生效";
+        if(langSet == 'cn'){
+            document.getElementById('showReloadTip').innerText = "设置已保存，重新登录平台后生效";
+        }
+        else{
+            document.getElementById('showReloadTip').innerText = "Saved, re-login to apply changes.";
+        }
     });
 
 }
