@@ -4,6 +4,7 @@ let processingUrls = {};
 let categoryCache = {};
 var his_range = 1;
 var usr_setting = {};
+var enable_state = true;
 var did_autocalcall = false;
 var working_sms = 24699;
 var working_sms_sequenceId = 1;
@@ -93,7 +94,11 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
                 did_autocalcall = true;
                 console.log("Do autocalc");
                 console.log("[HPPattern] Do autocalc");
-                AutoCalcAll();
+                chrome.storage.local.get('enable_state', function(result) {
+                    if (result.enable_state === true) {
+                        AutoCalcAll();
+                    }
+                });
             }
         }else{
             console.log("[HPPattern] LS>2, not autocalc");
@@ -136,11 +141,12 @@ chrome.webRequest.onBeforeRequest.addListener(
             }
             targsms = details.url.split('?semesterId=')[1];
             working_sms = targsms;
-            if(isFetchOriginal == true){
-                console.log("PartA:IsFetchingOriginal=True, do nothing!");
+            if(isFetchOriginal == true || enable_state == false){
                 return null;
             }else{
-                console.log("PartA:IsFetchingOriginal=false");
+                chrome.storage.local.get('enable_state', function(result) {
+                    enable_state = result.enable_state;
+                });
                 setTimeout(() => {
                     send_short_msg("replace_context",0);
                     setTimeout(() => {
@@ -150,7 +156,6 @@ chrome.webRequest.onBeforeRequest.addListener(
                         }, 50);
                     }, 15);
                 }, 15);
-                
             }
             
             if(smsCalcStat[targsms] == -1){
@@ -232,6 +237,7 @@ chrome.webRequest.onBeforeRequest.addListener(
             
 
             courseInfoList += {"grade":null,"classType":2,"classId":277851,"className":"GPA Calculator","classEName":"GPA Calculator","subjectId":100628,"subjectName":"Giaoculator","subjectEName":"Giaoculator","isInGrade":true,"subjectScore":100,"scoreMappingId":4517,"updateDate":"\/Date(0000000000000+0800)\/","subjectTotalScore":100.0,"scoreType":1,"levelString":"A+"}
+
             if (courseInfoList.length > 1) {
                 return {
                     redirectUrl: "data:application/json," + encodeURIComponent(JSON.stringify({
@@ -251,7 +257,7 @@ chrome.webRequest.onBeforeRequest.addListener(
                 return null;
             }
             
-        } else if (details.url.startsWith(GPAUrlPattern)) {
+        }/* else if (details.url.startsWith(GPAUrlPattern)) {
             // gpa = getFromLocalStorage(0).gpa => number;
             let totalGPA = 0;
             let scores = getAllGPAValues();
@@ -283,7 +289,7 @@ chrome.webRequest.onBeforeRequest.addListener(
                 }))
             }
             
-        }else if (details.url.startsWith(GiaoculatorClassUrlPattern)) {
+        }*/else if (details.url.startsWith(GiaoculatorClassUrlPattern)) {
             const urlParams = new URLSearchParams(new URL(details.url).search);
             let req_subjectId = urlParams.get('subjectId');
             let req_semesterId = urlParams.get('semesterId');
