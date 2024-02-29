@@ -137,11 +137,9 @@ chrome.webRequest.onBeforeRequest.addListener(
             }
             targsms = details.url.split('?semesterId=')[1];
             working_sms = targsms;
-            if(isFetchOriginal == true){
-                console.log("PartA:IsFetchingOriginal=True, do nothing!");
+            if(isFetchOriginal == true || enable_state == false){
                 return null;
             }else{
-                console.log("PartA:IsFetchingOriginal=false");
                 setTimeout(() => {
                     send_short_msg("replace_context",0);
                     setTimeout(() => {
