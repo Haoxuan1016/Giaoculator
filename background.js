@@ -65,10 +65,10 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
             } else {
                 console.log('No preferences found.');
                 var langSet = navigator.language || navigator.userLanguage; 
-                if(langSet == 'cn'){
-                    defaultwelcomeMsg = "前往设置以定义Giaoculator的更多功能！"
+                if(langSet.includes('CN')){
+                    defaultwelcomeMsg = "欢迎使用Giaoculator！<br>请前往设置以定义Giaoculator的更多功能！"
                 }else{
-                    defaultwelcomeMsg = "Go to settings to costumize your Giaoculator!"
+                    defaultwelcomeMsg = "Welcome!<br>Go to settings to costumize your Giaoculator!"
                 }
                 var user_preference = {
                     calcRange: parseInt(1, 10),
@@ -1104,7 +1104,7 @@ async function sendLoginMessage() {
         msg = usr_setting.welcomeMsg;
     }
     else if(rand_num == 2){
-        const tips = ["按下Esc可快速关闭当前页面或退出登录！", "在登录界面可以按下Enter快速登录！", "Giaoculator的数据均为自行计算！", "Giaoculator暂无法获取期末考试的成绩"];
+        const tips = ["按下Esc可快速关闭当前页面或退出登录！", "使用数字键1~4以快速在“我的任务”“我的考试”“日程”和“动态成绩”之间切换！", "在登录界面可以按下Enter快速登录！", "Giaoculator的数据均为自行计算！", "Giaoculator暂无法获取期末考试的成绩"];
         const index = Math.floor(Math.random() * tips.length);
         msg = "你知道吗：" + tips[index];
     }else{

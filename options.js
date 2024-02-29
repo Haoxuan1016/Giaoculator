@@ -1,4 +1,4 @@
-var langSet = navigator.language || navigator.userLanguage; 
+var langSet = (navigator.language || navigator.userLanguage).startsWith('zh') ? 'cn' : 'en';
 
 document.addEventListener('DOMContentLoaded', function() {
     loadOptions();
@@ -21,7 +21,7 @@ document.getElementById('calcRange').addEventListener('input', function() {
             document.getElementById('calcRangeValue').textContent =  "计算最近 " + document.getElementById('calcRange').value + " 个学期的数据";
         }
         else{
-            document.getElementById('calcRangeValue').textContent =  "Calculate Last" + document.getElementById('calcRange').value + " Semesters' Scores";
+            document.getElementById('calcRangeValue').textContent =  "Calculate Last " + document.getElementById('calcRange').value + " Semesters' Scores";
 
         }
     }
