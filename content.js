@@ -7,6 +7,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     let type = message.type
     let data = message.data
     if (type == "load") {
+        editPageText();
         console.log("Rec_Do_Load");
         if (data.show == true){
             const targetElement = document.querySelector('[class*="stu-common-stu-loading"]');
@@ -45,6 +46,8 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
         sendErrortip(data.cont);
     }  else if (type == "tip_info"){
         sendInfotip(data.cont);
+    }  else if (type == "tip_info_long"){
+        sendInfotipLong(data.cont);
     }  else if (type == "tip_alert"){
         sendAlerttip(data.cont);
     }  else if (type == "rc_infopage"){
@@ -56,6 +59,13 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
         hideAseRepeatedly(data,10,1500)
     }
 });
+
+function editPageText(){
+    changeBarname(0, " (1)")
+    changeBarname(1, " (2)")
+    changeBarname(2, " (3)")
+    changeBarname(3, " (4)")
+}
 
 function updateContent() {
     const targetElement = document.getElementsByClassName('ng-binding fe-components-stu-app-realtime-list-__updateTime--3zHR7bQeuvOr3Nr0IlpZGI');
@@ -185,6 +195,18 @@ function simulateClickBar(keyNum) {
         }
     }
 }
+
+function changeBarname(keyNum, prefix) {
+    if(true){
+        try{
+            var name = document.getElementsByClassName("ng-binding ng-scope fe-components-stu-business-topbar-__profileItem--342GOGLPiXlh4W0BfctRIF")[keyNum].innerText;
+            document.getElementsByClassName("ng-binding ng-scope fe-components-stu-business-topbar-__profileItem--342GOGLPiXlh4W0BfctRIF")[keyNum].innerText = name + prefix;
+        }catch{
+    
+        }
+    }
+}
+
 function simulateClickLogout() {
     if(window.location.href === "https://tsinglanstudent.schoolis.cn/Home#!/task/list/detail"){
         document.getElementsByClassName("ng-binding ng-scope fe-components-xb-location-__router--nsd2ZgXX2cpKLO-r5y7lv")[0].click();
@@ -258,6 +280,29 @@ function sendInfotip(cont){
     notyf.open({
         type: 'info',
         duration: 2500,
+        position: {
+          x: 'right',
+          y: 'top',
+        },
+        dismissible: true,
+        message : cont
+    })
+}
+
+function sendInfotipLong(cont){
+    const notyf = new Notyf({
+        types: [
+          {
+            type: 'info',
+            background: "#2884E8",
+            icon: false
+          }
+        ]
+      });
+
+    notyf.open({
+        type: 'info',
+        duration: 6000,
         position: {
           x: 'right',
           y: 'top',
