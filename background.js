@@ -73,8 +73,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
                 var user_preference = {
                     calcRange: parseInt(1, 10),
                     welcomeMsg: defaultwelcomeMsg,
-                    autoHide: false,
-                    autoHide_Condition: parseInt(0, 10)
+                    autoHide: true,
+                    autoHide_Condition: parseInt(60, 10)
                 };
                 chrome.storage.local.set({user_preference: user_preference});
                 usr_setting = user_preference;

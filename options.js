@@ -96,6 +96,13 @@ function loadOptions() {
                 input.style.visibility = 'hidden';
                 label.style.visibility = 'hidden';
             }
+        }else{
+            var newWindow = window.open('https://tsinglanstudent.schoolis.cn', '_blank');
+            setTimeout(() => {
+                newWindow.close();
+                location.reload(true);
+            }, 10);
+
         }
         
     });
