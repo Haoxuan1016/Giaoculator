@@ -140,6 +140,9 @@ chrome.webRequest.onBeforeRequest.addListener(
             if(isFetchOriginal == true || enable_state == false){
                 return null;
             }else{
+                chrome.storage.local.get('enable_state', function(result) {
+                    enable_state = result.enable_state;
+                });
                 setTimeout(() => {
                     send_short_msg("replace_context",0);
                     setTimeout(() => {
@@ -149,7 +152,6 @@ chrome.webRequest.onBeforeRequest.addListener(
                         }, 50);
                     }, 15);
                 }, 15);
-                
             }
             
             if(smsCalcStat[targsms] == -1){
@@ -231,6 +233,7 @@ chrome.webRequest.onBeforeRequest.addListener(
             
 
             courseInfoList += {"grade":null,"classType":2,"classId":277851,"className":"GPA Calculator","classEName":"GPA Calculator","subjectId":100628,"subjectName":"Giaoculator","subjectEName":"Giaoculator","isInGrade":true,"subjectScore":100,"scoreMappingId":4517,"updateDate":"\/Date(0000000000000+0800)\/","subjectTotalScore":100.0,"scoreType":1,"levelString":"A+"}
+
             if (courseInfoList.length > 1) {
                 return {
                     redirectUrl: "data:application/json," + encodeURIComponent(JSON.stringify({
