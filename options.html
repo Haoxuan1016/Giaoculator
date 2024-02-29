@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Options Page</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="options.css">
+    </style>
+</head>
+<body>
+    <div id="pageIcon"></div>
+    <div class="settings-modal">
+        <div class="container">
+            <h2 id="main_header">基本设置 General</h2>
+            <hr><br>
+            <div>
+                <label for="calcRange" class="subtitle">自动计算范围 Auto-Calc Range</label><br><br>
+                <input type="range" id="calcRange" min="1" max="6" step="1">
+                <span id="calcRangeValue" class="normal_text">-</span><br><br>
+            </div>
+            <div>
+                <label for="welcomeMsg" class="subtitle">自定义欢迎语 Custom WelcomeMsg</label><br><br>
+                <input type="text" id="welcomeMsg"><br><br>
+            </div>
+            <p class="subtitle">自动隐藏不满意的成绩 Auto-Hide Unsatisfactory Grades</p>
+            <div id="autoHide_SettingBox" style="padding-top: 13px;">
+                <label for="autoHide" class="normal_text" style="margin-left: -3.5px;">启用 Enable</label>
+                <input type="checkbox" id="autoHide">
+                <label for="autoHide_Condition" style="visibility: hidden;padding-left: 32px;" id="autoHide_Condition_Label" class="normal_text">当分数低于</label>
+                <input type="number" id="autoHide_Condition" min="1" max="100">
+                
+            </div>
+            <br>
+            <p id="showReloadTip" style="color: red;"></p>
+            <button id="save">保存 Save</button>
+        </div>
+    </div>
+
+    <script src="options.js"></script>
+</body>
+</html>

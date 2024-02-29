@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Popup Window</title>
+  <style>
+    body {
+      width: 250px;
+      padding: 10px;
+      font-family: Arial, sans-serif;
+    }
+
+    h2 {
+      color: #333;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #555;
+    }
+
+    select {
+      width: 100%;
+      padding: 5px;
+      margin-bottom: 10px;
+    }
+
+    input[type="radio"] {
+      margin-right: 5px;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 8px 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+  <script src="popup.js"></script>
+</head>
+<body>
+  <h2>设置</h2>
+  <label for="options">选择自动计算的范围</label>
+  <select id="options">
+    <option value="" disabled selected>--------------------------------</option>
+    <option value="1">仅计算当前学期的数据</option>
+    <option value="2">计算最近2个学期的数据</option>
+    <option value="3">计算最近3个学期的数据</option>
+    <option value="4">计算最近4个学期的数据</option>
+    <option value="5">计算最近5个学期的数据</option>
+    <option value="6">计算最近6个学期的数据</option>
+  </select>
+  <p id="showWaitTip" style="color: red;"> </p>
+  <button id="saveButton">Save</button>
+</body>
+</html>
