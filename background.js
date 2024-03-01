@@ -96,7 +96,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
                 console.log("[HPPattern] Do autocalc");
                 chrome.storage.local.get('enable_state', function(result) {
                     if (result.enable_state === true) {
-                        changeEnabled(true);
                         AutoCalcAll();
                     }
                 });
@@ -127,17 +126,6 @@ chrome.webRequest.onBeforeRequest.addListener(
         }
 
         if (details.url.startsWith(PresentAssignmentPattern)&&usr_setting.autoHide) {
-            chrome.storage.local.get('enable_state', function(result) {
-                if(result.enable_state != enable_state){
-                    console.log("enSchangeed");
-                    changeEnabled(result.enable_state);
-                    send_short_msg("refresh-click",0);
-                    setTimeout(() => {
-                        send_short_msg("refresh-click",0);
-                    }, 1000);
-                }
-                
-            });
             setTimeout(() => {
                 send_str_msg("rc_hideasm",usr_setting.autoHide_Condition,0);
                 setTimeout(() => {
@@ -148,17 +136,6 @@ chrome.webRequest.onBeforeRequest.addListener(
         }
 
         if (details.url.startsWith(detailsUrlPattern)) {
-            chrome.storage.local.get('enable_state', function(result) {
-                if(result.enable_state != enable_state){
-                    console.log("enSchangeed");
-                    changeEnabled(result.enable_state);
-                    send_short_msg("refresh-click",0);
-                    setTimeout(() => {
-                        send_short_msg("refresh-click",0);
-                    }, 1000);
-                }
-                
-            });
             if(usr_setting.autoHide){
                 send_str_msg("rc_hidescore",usr_setting.autoHide_Condition,0);
             }
@@ -1288,6 +1265,20 @@ function parseDateInfo(dateInfo) {
     
 }
 
-function changeEnabled(state) {
-    enable_state = state;
-}
+chrome.runtime.onMessage.addListener(
+    function(message, sender, sendResponse) {
+        if (message.type === "enable_change") {
+            chrome.storage.local.get('enable_state', function(result) {
+                enable_state = result.enable_state;
+                console.log(enable_state)
+                setTimeout(() => {
+                    refresh_realtime(0);
+                    if(did_autocalcall == false && enable_state == true){
+                        AutoCalcAll();
+                    }
+                }, 20);
+            });
+            
+        }
+    }
+);

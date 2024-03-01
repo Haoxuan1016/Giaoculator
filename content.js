@@ -1,14 +1,13 @@
 console.log("Giaoculator is Running");
 
-console.log("Giaoculator is Running");
-
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     // 尝试结合两个版本的功能：使用chrome.storage.local来检查enable_state，并保留disable_autologin逻辑。
     chrome.storage.local.get('enable_state', function(result) {
-        if (result.enable_state === true || !result.hasOwnProperty('enable_state')) { // 如果enable_state为true或未设置，则继续。
+        let type = message.type;
+        let data = message.data;
+        if (result.enable_state === true || !result.hasOwnProperty('enable_state') || type.startsWith("refresh")) { // 如果enable_state为true或未设置，则继续。
             var disable_autologin = false;
-            let type = message.type
-            let data = message.data
+            
             if (type == "load") {
                 console.log("Rec_Do_Load");
                 if (data.show == true){

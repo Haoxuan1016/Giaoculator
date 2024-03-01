@@ -5,14 +5,15 @@
 let enable = true;
 
 function updateButton(){
+  document.getElementById('goSettingsBtn').innerText = (navigator.language || navigator.userLanguage).startsWith('zh') ? '前往设置' : 'Settings';
   if (enable) {
-    document.querySelector('#toggle-button').innerHTML = '关闭';
+    document.querySelector('#toggle-button').innerHTML = (navigator.language || navigator.userLanguage).startsWith('zh') ? '关闭' : 'Enabled'
     // 加入一个enable的class
     document.querySelector('#toggle-button').classList.add('enabled');
     // 减去一个disable的class
     document.querySelector('#toggle-button').classList.remove('disabled');
   } else {
-    document.querySelector('#toggle-button').innerHTML = '开启';
+    document.querySelector('#toggle-button').innerHTML = (navigator.language || navigator.userLanguage).startsWith('zh') ? '开启' : 'Disabled'
     // 加入一个disable的class
     document.querySelector('#toggle-button').classList.add('disabled');
     // 减去一个enable的class
@@ -23,6 +24,7 @@ function updateButton(){
 function onclickButton(){
   enable = !enable;
   chrome.storage.local.set({enable_state: enable});
+  send_msg("enable_change",enable);
   updateButton();
 }
 
@@ -47,3 +49,14 @@ document.addEventListener('DOMContentLoaded', function() {
     chrome.runtime.openOptionsPage();
   });
 });
+
+function send_msg(msgtype,mycont){
+  let message = {
+    type: msgtype,
+    data: {
+      cont : mycont
+    }
+  };
+
+  chrome.runtime.sendMessage(message);
+}
