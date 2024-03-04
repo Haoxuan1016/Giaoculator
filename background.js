@@ -468,9 +468,9 @@ chrome.webRequest.onCompleted.addListener(
                             if  (pendingRequests === 0){
                                 console.log(extracted_data);
                                 let gpa = calculateOverallScore(extracted_data);
-                                printCategorySummary(subjectId,extracted_data);  // If you also want to print the summary
+                                saveCategorySummary(subjectId,extracted_data,semesterId);  // If you also want to print the summary
                                 console.log("SUBJECT", subjectInfo)
-                                saveSubjectInfo(subjectId, extracted_data, subjectInfo, gpa)
+                                saveSubjectInfo(subjectId, extracted_data, subjectInfo, gpa, semesterId)
 
                             }
                         });
@@ -480,9 +480,9 @@ chrome.webRequest.onCompleted.addListener(
                         console.log(extracted_data);
                         let gpa = calculateOverallScore(extracted_data);
 
-                        saveSubjectInfo(subjectId, extracted_data, subjectInfo, gpa)
+                        saveSubjectInfo(subjectId, extracted_data, subjectInfo, gpa, semesterId)
 
-                        printCategorySummary(subjectId,extracted_data);  // 新增这一行来调用新函数
+                        saveCategorySummary(subjectId,extracted_data,semesterId);  // 新增这一行来调用新函数
                     }
                     
                     // Once processed, remove the URL from the processing list
@@ -598,7 +598,7 @@ async function fetchUsrInfo() {
     });
 }
 
-function printCategorySummary(subId,data) {
+function saveCategorySummary(subId,data,semesterId) {
     let categorySummary = {};
     // 0. 分割线
     console.log('=============================================')
@@ -632,7 +632,7 @@ function printCategorySummary(subId,data) {
         console.log('-------------------');
         */
     }
-    saveToLocalStorage('I'+subId,categorySummary)
+    saveToLocalStorage(semesterId+'|I'+subId,categorySummary)
     overallScore = calculateOverallScore(data);
     var gpaInfo = calculateGPA(overallScore);
     //console.log(`*** GPA: ${gpaInfo.gpa.toFixed(2)} / ${gpaInfo.displayName} ***`);
@@ -757,24 +757,24 @@ async function fetchSubjectEName(semesterId, subjectId) {
 }
 
 
-function saveSubjectInfo(subjectId, dataCollect, dataInfo, gpa){
+function saveSubjectInfo(subjectId, dataCollect, dataInfo, gpa, semesterId){
     let data = {
         gpaInfo: dataInfo,
         gpa: gpa,
         subjectId: subjectId,
-        smsId: working_sms,
+        smsId: semesterId,
         tasksInfo: dataCollect,
         isOriginal: false,
         source: "calc"
     }
-    saveToLocalStorage(subjectId, data);
+    saveToLocalStorage(semesterId+'|'+subjectId, data);
 }
 
 // 将对象保存到localStorage的函数
 function saveToLocalStorage(keyName, obj) {
     try {
         const jsonString = JSON.stringify(obj);
-        localStorage.setItem(working_sms+'|'+keyName, jsonString);
+        localStorage.setItem(keyName, jsonString);
         console.log("已存入"+keyName+"的data!");
     } catch (error) {
         console.error('Error saving to localStorage:', error);
@@ -1078,9 +1078,9 @@ async function RequestSubjectAvg(url) {
                     if  (pendingRequests === 0){
                         console.log(extracted_data);
                         let gpa = calculateOverallScore(extracted_data);
-                        printCategorySummary(subjectId,extracted_data);  // If you also want to print the summary
+                        saveCategorySummary(subjectId,extracted_data,semesterId); 
                         console.log("SUBJECT", subjectInfo)
-                        saveSubjectInfo(subjectId, extracted_data, subjectInfo, gpa)
+                        saveSubjectInfo(subjectId, extracted_data, subjectInfo, gpa, semesterId);
 
                     }
                 });
@@ -1090,9 +1090,9 @@ async function RequestSubjectAvg(url) {
                 console.log(extracted_data);
                 let gpa = calculateOverallScore(extracted_data);
 
-                saveSubjectInfo(subjectId, extracted_data, subjectInfo, gpa)
+                saveSubjectInfo(subjectId, extracted_data, subjectInfo, gpa,semesterId);
 
-                printCategorySummary(subjectId,extracted_data);  // 新增这一行来调用新函数
+                saveCategorySummary(subjectId,extracted_data,semesterId);  
             }
             
             // Once processed, remove the URL from the processing list
@@ -1148,7 +1148,7 @@ async function fetchOriginalRequest(smsId) {
                 isOriginal : true,
                 source : "original"
             }
-            saveToLocalStorage(courseInfo.subjectId, course);
+            saveToLocalStorage(smsId+'|'+courseInfo.subjectId, course);
         }
     }catch (error) {
         console.error('Error fetching subject data:', error);
