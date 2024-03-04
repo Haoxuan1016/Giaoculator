@@ -60,16 +60,17 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         }, 200);
         
     } else if (tab.url === LoginPattern) {
-        // 如果用户第一次安装插件
+        //当用户打开登录界面（代表着用户退出了登录，即重置所有设置）
         did_autocalcall = false;
         smsCalcStat = [];
         localStorage.clear();
-        console.log("localStorageCLeared");
+        console.log("LocalStorageCleared");
         chrome.storage.local.get('user_preference', function(data) {
             if (data.user_preference) {
                 console.log('Loaded preferences:', data.user_preference);
                 usr_setting = data.user_preference;
             } else {
+                // 如果用户第一次安装插件
                 console.log('No preferences found.');
                 var langSet = navigator.language || navigator.userLanguage; 
                 if(langSet.includes('CN')){
@@ -87,7 +88,17 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
                 usr_setting = user_preference;
             }
         });
-        
+        chrome.storage.local.get('enable_state', function(data) {
+            if (data.enable_state != undefined) {
+                console.log('Loaded EState:', data.enable_state);
+                enable_state = data.enable_state;
+            } else {
+                // 如果用户第一次安装插件
+                console.log('No Estate found, set to true.');
+                chrome.storage.local.set({enable_state: true});
+                enable_state = true;
+            }
+        });
     } else if (tab.url === HomepagePattern) {
         if(localStorage.length < 2){
             if(!did_autocalcall){
@@ -1154,8 +1165,7 @@ async function sendLoginMessage() {
     var msg;
     if(rand_num == 1 || usr_setting.welcomeMsg.includes("Giaoculator")){
         msg = usr_setting.welcomeMsg;
-    }
-    else if(rand_num == 2){
+    }else if(rand_num == 2){
         const tips = ["按下Esc可快速关闭当前页面或退出登录！", "使用数字键1~4以快速在“我的任务”“我的考试”“日程”和“动态成绩”之间切换！", "在登录界面可以按下Enter快速登录！", "Giaoculator的数据均为自行计算！", "Giaoculator暂无法获取期末考试的成绩"];
         const index = Math.floor(Math.random() * tips.length);
         msg = "你知道吗：" + tips[index];
