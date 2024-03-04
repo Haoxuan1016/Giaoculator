@@ -24,7 +24,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
             } else if (type == "refresh"){
                 location.reload();
             } else if (type == "refresh-click"){
-                simulateClickRefresh();
+                simulateClickRefresh(0);
             } else if (type == "replace_context"){
                 updateContent();
             } else if (type == "sim_login"){
@@ -165,14 +165,22 @@ document.onkeydown = function(e) {
         return;
     }
 
+    var currentWindow = window.location.href;
+
     if(e.key === 'Escape'){
         simulateClickLogout();
     } else if(e.key >= '1' && e.key <= '4'){
         simulateClickBar(e.key.charCodeAt(0) - 49);
-    } else if(e.key == 'ArrowLeft' && window.location.href === "https://tsinglanstudent.schoolis.cn/Home#!/task/list"){
+    } else if(e.key == 'ArrowLeft' && currentWindow === "https://tsinglanstudent.schoolis.cn/Home#!/task/list" || currentWindow === "https://tsinglanstudent.schoolis.cn/Home#!/schedule"){
+        try{document.getElementsByClassName("fc-prev-button fc-button fc-state-default fc-corner-left fc-corner-right")[0].click();}catch{}
         try{document.getElementsByClassName("ng-scope fe-components-xb-pagination-__pageNumber--1VqmLfGo3J_SMKjULyiFzU fe-components-xb-pagination-__leftIcon--1xTQmlKB0ldX-7LWrTevD4")[0].click();}catch{}
-    } else if(e.key == 'ArrowRight' && window.location.href === "https://tsinglanstudent.schoolis.cn/Home#!/task/list"){
+    } else if(e.key == 'ArrowRight' && currentWindow === "https://tsinglanstudent.schoolis.cn/Home#!/task/list" || currentWindow === "https://tsinglanstudent.schoolis.cn/Home#!/schedule"){
+        try{document.getElementsByClassName("fc-next-button fc-button fc-state-default fc-corner-left fc-corner-right")[0].click();}catch{console.log("Notfound")}  
         try{document.getElementsByClassName("ng-scope fe-components-xb-pagination-__pageNumber--1VqmLfGo3J_SMKjULyiFzU fe-components-xb-pagination-__rightIcon--ZSZeXHkbdqtWaqpsNXVn-")[0].click();}catch{}
+    } else if(e.key == 'ArrowDown' && currentWindow === "https://tsinglanstudent.schoolis.cn/Home#!/realtime/list"){
+        simulateClickRefresh(1);
+    } else if(e.key == 'ArrowUp' && currentWindow === "https://tsinglanstudent.schoolis.cn/Home#!/realtime/list"){
+        simulateClickRefresh(-1);
     }
 };
 
@@ -222,13 +230,13 @@ function simulateClickLogout() {
         }
     }
 }
-function simulateClickRefresh() {
+function simulateClickRefresh(posChange) {
     var targtext = document.getElementsByClassName("fe-components-xb-pull-btn-__input--3TWoIfVMNo-eszvg3cnXCa")[0].value
     try{
         targlists = document.getElementsByClassName("ng-isolate-scope fe-components-xb-pull-btn-__t_overflow--3OZPYj_1Z20EZZbQur_fl9");
         for(targ in targlists){
             if(targlists[targ].getAttribute('xb-title') == targtext){
-                targlists[targ].click();
+                targlists[targ*1.0 +posChange].click();
                 continue;
             }
         } 
@@ -239,8 +247,7 @@ function simulateClickRefresh() {
             }, 60);
         }, 25);
         updateContent();
-    }catch{
-        
+    }catch(e){
     }
 }
 
