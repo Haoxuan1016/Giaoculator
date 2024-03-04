@@ -5,7 +5,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     chrome.storage.local.get('enable_state', function(result) {
         let type = message.type;
         let data = message.data;
-        if (result.enable_state === true || !result.hasOwnProperty('enable_state') || type.startsWith("refresh")) { // 如果enable_state为true或未设置，则继续。
+        if (result.enable_state === true || !result.hasOwnProperty('enable_state') || type.startsWith("refresh-click")) { // 如果enable_state为true或未设置，则继续。
             var disable_autologin = false;
             
             if (type == "load") {
@@ -352,7 +352,11 @@ function hideScoresRepeatedly(data, interval, duration) {
 
     for (let i = 0; i <= times; i++) {
         setTimeout(() => {
-            hideScores(data.cont);
+            chrome.storage.local.get('enable_state', function(result) {
+                if(result.enable_state){
+                    hideScores(data.cont);
+                }
+            });//该实现方式有待优化，可考虑在检测为false时continue
         }, i * interval);
     }
 }
@@ -361,8 +365,12 @@ function hideAseRepeatedly(data, interval, duration) {
     const times = Math.floor(duration / interval);
 
     for (let i = 0; i <= times; i++) {
-        setTimeout(() => {
-            hideAssignments(data.cont);
+        setTimeout(() => {  
+            chrome.storage.local.get('enable_state', function(result) {
+                if(result.enable_state){
+                    hideAssignments(data.cont);
+                }
+            });//该实现方式有待优化，可考虑在检测为false时continue
         }, i * interval);
     }
 }
