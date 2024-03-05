@@ -1,48 +1,39 @@
+// document.addEventListener('DOMContentLoaded', function() {
+//   chrome.runtime.openOptionsPage();
+// });
+
 let enable = true;
-let stat = 1; // 1: enabled, 0: disabled, 2: half enabled
 
 function updateButton(){
   document.getElementById('goSettingsBtn').innerText = (navigator.language || navigator.userLanguage).startsWith('zh') ? '前往设置' : 'Settings';
-  if (stat == 1) {
-    document.querySelector('#toggle-button').innerHTML = (navigator.language || navigator.userLanguage).startsWith('zh') ? '开启' : 'Enabled'
+  if (enable) {
+    document.querySelector('#toggle-button').innerHTML = (navigator.language || navigator.userLanguage).startsWith('zh') ? '关闭' : 'Enabled'
+    // 加入一个enable的class
     document.querySelector('#toggle-button').classList.add('enabled');
+    // 减去一个disable的class
     document.querySelector('#toggle-button').classList.remove('disabled');
-    document.querySelector('#toggle-button').classList.remove('partial');
-  }
-  else if (stat == 0) {
-    document.querySelector('#toggle-button').innerHTML = (navigator.language || navigator.userLanguage).startsWith('zh') ? '关闭' : 'Disabled'
+  } else {
+    document.querySelector('#toggle-button').innerHTML = (navigator.language || navigator.userLanguage).startsWith('zh') ? '开启' : 'Disabled'
+    // 加入一个disable的class
     document.querySelector('#toggle-button').classList.add('disabled');
+    // 减去一个enable的class
     document.querySelector('#toggle-button').classList.remove('enabled');
-    document.querySelector('#toggle-button').classList.remove('partial');
-  }
-  else if (stat == 2) {
-    document.querySelector('#toggle-button').innerHTML = (navigator.language || navigator.userLanguage).startsWith('zh') ? '部分功能' : 'Part Enabled'
-    document.querySelector('#toggle-button').classList.add('partial');
-    document.querySelector('#toggle-button').classList.remove('enabled');
-    document.querySelector('#toggle-button').classList.remove('disabled');
   }
 }
 
 function onclickButton(){
-  // enable = !enable;
-  if (stat == 1) {
-    stat = 2;
-  }
-  else if (stat == 2) {
-    stat = 0;
-    enable = false;
-  }
-  else if (stat == 0) {
-    stat = 1;
-    enable = true;
-  }
-  
+  enable = !enable;
   chrome.storage.local.set({enable_state: enable});
-  chrome.storage.local.set({partial_state: stat}); 
   send_msg("enable_change",enable);
   updateButton();
 }
 
+// updateButton();
+
+// document.querySelector('#toggle-button').addEventListener('click', function() {
+  // enable = !enable;
+  // updateButton();
+// });
 
 document.addEventListener('DOMContentLoaded', function() {
   chrome.storage.local.get('enable_state', function(result) {
