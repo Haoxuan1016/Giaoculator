@@ -544,7 +544,7 @@ async function checkVersion(){
                     //     // text += "<li>" + text + "</li>"
                     // }
                     text += "</ul>前往“设置”页面去更新！或点击<a href='"+data.url+"' style='color:#fff; text-decoration: underline'>这里体验新版本！</a></div>"
-                    send_str_msg("tip_warning_long",text,0);
+                    send_str_msg("tip_alert_long",text,0);
                     newest = false
                     break;
                 }

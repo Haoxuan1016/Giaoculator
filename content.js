@@ -331,7 +331,7 @@ function sendAlerttipLong(cont){
         types: [
           {
             type: 'warning',
-            background: "#2884E8",
+            background: "orange",
             icon: false
           }
         ]
