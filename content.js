@@ -417,6 +417,10 @@ function showStateAtLoginPageMain(tmp,estate) {
             content = 'Auto-Hide Scores Disabled';
         }
     }
+    var containerG = document.getElementById('autoHideState');
+    if(containerG){
+        containerG.remove();
+    }
     var container = document.createElement('div');
     container.id = 'autoHideState';
     container.style.display = 'flex';
