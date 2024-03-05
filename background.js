@@ -101,7 +101,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
             }
         });
     } else if (tab.url === HomepagePattern) {
-        if(localStorage.length < 2){
+        if(localStorage.length < 2 && enable_state === true){
             if(!did_autocalcall){
                 did_autocalcall = true;
                 console.log("Do autocalc");
@@ -1222,6 +1222,7 @@ async function sendLoginMessage() {
   
 
 async function AutoCalcAll() {
+    did_autocalcall = true;
     const response = await fetch("https://tsinglanstudent.schoolis.cn/api/School/GetSchoolSemesters");
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -1261,6 +1262,8 @@ async function AutoCalcAll() {
             }else{
                 await delay(2000);
                 send_str_msg("tip_err",`自动计算被异常打断，请重新登录平台`,0);
+                localStorage.clear();
+                did_autocalcall = false;
                 console.log("[Autocalc]Error stoped!")
                 return;
             }
