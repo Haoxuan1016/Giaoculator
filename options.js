@@ -1,4 +1,4 @@
-let EXTENSION_VERSION = [4,6,1]
+let EXTENSION_VERSION = [4,5,5]
 
 var langSet = (navigator.language || navigator.userLanguage).startsWith('zh') ? 'cn' : 'en';
 
