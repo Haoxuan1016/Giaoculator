@@ -1,4 +1,4 @@
-let EXTENSION_VERSION = [4,5,2]
+let EXTENSION_VERSION = [4,6,1]
 
 let processingUrls = {};    
 let categoryCache = {};
