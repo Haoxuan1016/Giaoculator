@@ -326,6 +326,29 @@ function sendInfotipLong(cont){
     })
 }
 
+function sendAlerttipLong(cont){
+    const notyf = new Notyf({
+        types: [
+          {
+            type: 'warning',
+            background: "#2884E8",
+            icon: false
+          }
+        ]
+      });
+
+    notyf.open({
+        type: 'warning',
+        duration: 6000,
+        position: {
+          x: 'right',
+          y: 'top',
+        },
+        dismissible: true,
+        message : cont
+    })
+}
+
 function sendAlerttip(cont){
     const notyf = new Notyf({
         types: [
