@@ -1279,6 +1279,7 @@ function parseDateInfo(dateInfo) {
 chrome.runtime.onMessage.addListener(
     function(message, sender, sendResponse) {
         if (message.type === "enable_change") {
+            send_short_msg("bp-logpageState",0);
             chrome.storage.local.get('enable_state', function(result) {
                 enable_state = result.enable_state;
                 console.log(enable_state)

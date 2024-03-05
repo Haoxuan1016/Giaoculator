@@ -7,7 +7,6 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
         let data = message.data;
         if (result.enable_state === true || !result.hasOwnProperty('enable_state') || type.startsWith("bp")) { // 如果enable_state为true或未设置，则继续。
             var disable_autologin = false;
-            
             if (type == "load") {
                 console.log("Rec_Do_Load");
                 if (data.show == true){
@@ -416,8 +415,8 @@ function showStateAtLoginPageMain(tmp,estate) {
             content = 'Auto-Hide Scores Disabled';
         }
     }
-
     var container = document.createElement('div');
+    container.id = 'autoHideState';
     container.style.display = 'flex';
     container.style.alignItems = 'center';
     container.style.justifyContent = 'flex-start';
@@ -442,6 +441,8 @@ function showStateAtLoginPageMain(tmp,estate) {
     // 最后，将新创建的元素插入到div的第一个子元素（即button）之前
     var button = div.querySelector('button');
     if (button) {
+        var myTarget = document.getElementById('autoHideState');
         div.insertBefore(container, button);
-    }
+        
+    } 
 }
