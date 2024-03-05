@@ -47,6 +47,8 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 sendInfotipLong(data.cont);
             } else if (type == "tip_alert"){
                 sendAlerttip(data.cont);
+            } else if (type == "tip_alert_long"){
+                sendAlerttipLong(data.cont);
             } else if (type == "rc_infopage"){
                 updateContent_DetailPage();
             } else if (type == "rc_hidescore"){
