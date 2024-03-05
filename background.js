@@ -943,7 +943,7 @@ function refresh_page(redotimes){
     if(redotimes<5){
         chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
             let message = {
-                type: "refresh",
+                type: "bp-refresh",
                 data: {
                 }
             };
@@ -968,7 +968,7 @@ function refresh_realtime(redotimes){
     if(redotimes<5){
         chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
             let message = {
-                type: "refresh-click",
+                type: "bp-refresh-click",
             };
             try{
                 chrome.tabs.sendMessage(tabs[0].id, message);

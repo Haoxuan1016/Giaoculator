@@ -5,7 +5,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     chrome.storage.local.get('enable_state', function(result) {
         let type = message.type;
         let data = message.data;
-        if (result.enable_state === true || !result.hasOwnProperty('enable_state') || type.startsWith("refresh-click")) { // 如果enable_state为true或未设置，则继续。
+        if (result.enable_state === true || !result.hasOwnProperty('enable_state') || type.startsWith("bp")) { // 如果enable_state为true或未设置，则继续。
             var disable_autologin = false;
             
             if (type == "load") {
@@ -21,9 +21,11 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                         targetElement.style.display = "none";
                     }
                 }
-            } else if (type == "refresh"){
+            } else if (type == "bp-refresh"){
                 location.reload();
-            } else if (type == "refresh-click"){
+            } else if (type == "bp-logpageState"){
+                showStateAtLoginPage();//NEW
+            } else if (type == "bp-refresh-click"){
                 simulateClickRefresh(0);
             } else if (type == "replace_context"){
                 updateContent();
@@ -372,5 +374,39 @@ function hideAseRepeatedly(data, interval, duration) {
                 }
             });//该实现方式有待优化，可考虑在检测为false时continue
         }, i * interval);
+    }
+}
+
+function showStateAtLoginPage() {
+    var div = document.querySelector('.fe-components-stu-business-login-enter-box-__signBtnWrap--1hC-pSiXWu5_WJuSPKGEzQ');
+    if (!div) {
+        console.log('指定的div未找到');
+        return;
+    }
+
+    var container = document.createElement('div');
+    container.style.display = 'flex';
+    container.style.alignItems = 'center';
+    container.style.justifyContent = 'flex-start';
+    container.style.paddingBottom = '10px'; // 假设按钮的下内边距是10px
+
+    // 创建图标img元素
+    var iconImg = document.createElement('img');
+    iconImg.src = chrome.runtime.getURL("res/hideOn.svg"); // 你的SVG文件路径
+    iconImg.alt = 'Verified User';
+    iconImg.style.height = '24px'; // 根据需要调整大小
+    iconImg.style.width = '24px'; // 根据需要调整大小
+    container.appendChild(iconImg);
+
+    // 创建文本
+    var textSpan = document.createElement('span');
+    textSpan.textContent = 'Hello World';
+    textSpan.style.paddingLeft = '10px'; // 图标和文本之间的间距
+    container.appendChild(textSpan);
+
+    // 最后，将新创建的元素插入到div的第一个子元素（即button）之前
+    var button = div.querySelector('button');
+    if (button) {
+        div.insertBefore(container, button);
     }
 }
