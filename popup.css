@@ -90,6 +90,13 @@ body {
     outline: #56c25a 6px solid;
 }
 
+.roundbtn.partial {
+    /* background-color: #333d61; 橙色半启用*/
+    background-color: #ffb743; 
+    color: #fff;
+    outline: #d1973c 6px solid;
+}
+
 .roundbtn.disabled:hover {
     background-color: #242b43;
     color: #fff;
@@ -102,6 +109,12 @@ body {
     /* outline: #4CAF50 6px solid; */
     outline: #49a44c 6px solid;
 
+}
+
+.roundbtn.partial:hover {
+    background-color: #ff9f00;
+    color: #fff;
+    outline: #d1973c 6px solid;
 }
 
 .tooltext {
