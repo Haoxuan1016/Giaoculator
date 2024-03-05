@@ -377,11 +377,44 @@ function hideAseRepeatedly(data, interval, duration) {
     }
 }
 
-function showStateAtLoginPage() {
+
+
+function showStateAtLoginPage(){
+    chrome.storage.local.get('enable_state', function(estate) {
+        chrome.storage.local.get('user_preference', function(tmp) {
+            showStateAtLoginPageMain(tmp,estate.enable_state);
+        });
+    });
+}
+
+function showStateAtLoginPageMain(tmp,estate) {
+    var langSet = (navigator.language || navigator.userLanguage).startsWith('zh') ? 'cn' : 'en';
+    var content;
     var div = document.querySelector('.fe-components-stu-business-login-enter-box-__signBtnWrap--1hC-pSiXWu5_WJuSPKGEzQ');
     if (!div) {
         console.log('指定的div未找到');
         return;
+    }
+
+    data = tmp.user_preference;
+    if(data.autoHide==true && estate){
+        if(langSet == 'cn'){
+            content = '自动隐藏分数低于'+data.autoHide_Condition+'%的数据';
+        }else{
+            content = 'Auto-Hide Score Limit: '+data.autoHide_Condition+'%';
+        }
+    }else if(estate==false){
+        if(langSet == 'cn'){
+            content = 'Giaoculator已关闭';
+        }else{
+            content = 'Giaoculator is Disabled';
+        }
+    }else{
+        if(langSet == 'cn'){
+            content = '自动隐藏未开启';
+        }else{
+            content = 'Auto-Hide Scores Disabled';
+        }
     }
 
     var container = document.createElement('div');
@@ -392,16 +425,18 @@ function showStateAtLoginPage() {
 
     // 创建图标img元素
     var iconImg = document.createElement('img');
-    iconImg.src = chrome.runtime.getURL("res/hideOn.svg"); // 你的SVG文件路径
-    iconImg.alt = 'Verified User';
-    iconImg.style.height = '24px'; // 根据需要调整大小
-    iconImg.style.width = '24px'; // 根据需要调整大小
+    iconImg.src = chrome.runtime.getURL(data.autoHide&&estate ? "res/hideOn.svg" : "res/hideOff.svg"); // 你的SVG文件路径
+    iconImg.alt = '*';
+    iconImg.style.height = '20px'; // 根据需要调整大小
+    iconImg.style.width = '25px'; // 根据需要调整大小
     container.appendChild(iconImg);
 
     // 创建文本
     var textSpan = document.createElement('span');
-    textSpan.textContent = 'Hello World';
-    textSpan.style.paddingLeft = '10px'; // 图标和文本之间的间距
+    textSpan.textContent = content;
+    textSpan.style.marginTop = '-1px';
+    textSpan.style.fontSize = '12px';
+    textSpan.style.paddingLeft = '2px'; // 图标和文本之间的间距
     container.appendChild(textSpan);
 
     // 最后，将新创建的元素插入到div的第一个子元素（即button）之前

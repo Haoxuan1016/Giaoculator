@@ -64,6 +64,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         did_autocalcall = false;
         smsCalcStat = [];
         localStorage.clear();
+        send_short_msg("bp-logpageState",0);
         console.log("LocalStorageCleared");
         chrome.storage.local.get('user_preference', function(data) {
             if (data.user_preference) {
