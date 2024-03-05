@@ -508,28 +508,46 @@ async function checkVersion(){
     console.log(data)
 
     var versions = data.version
+    var force = data.force
     var newest = true
     // versions是一个数组，包含了最新版本的版本号，使用for循环比较新旧
     setTimeout(() => {
         for (var i = 0; i < versions.length; i++) {
             if (versions[i] > EXTENSION_VERSION[i]) {
                 // 如果有新版本，发送消息给content.js
-                // TODO
-                console.log("New version found: " + versions[i]);
-                text = "<h3>Giaoculator有新版本！</h3><br><div>"+data.updateLog[0]+"<ul>"
-                flag = false
-                console.log("JSHDJS",data);
-                for (texta in data.updateLog) {
-                    if (flag) {
-                        text += "<li> · " + data.updateLog[texta] + "</li>"
+                if (!force){
+                    console.log("New version found: " + versions[i]);
+                    text = "<h3>Giaoculator有新版本！</h3><br><div>"+data.updateLog[0]+"<ul>"
+                    flag = false
+                    // console.log("JSHDJS",data);
+                    for (texta in data.updateLog) {
+                        if (flag) {
+                            text += "<li> · " + data.updateLog[texta] + "</li>"
+                        }
+                        flag = true
+                        // text += "<li>" + text + "</li>"
                     }
-                    flag = true
-                    // text += "<li>" + text + "</li>"
+                    text += "</ul>前往“设置”页面去更新！或点击<a href='"+data.url+"' style='color:#fff; text-decoration: underline'>这里体验新版本！</a></div>"
+                    send_str_msg("tip_info_long",text,0);
+                    newest = false
+                    break;
+                } else {
+                    console.log("New version found: " + versions[i]);
+                    text = "<h3>Giaoculator有重大更新！</h3><br><div><b>"+data.updateLog[0]+"</b><ul>"
+                    flag = false
+                    // console.log("JSHDJS",data);
+                    for (texta in data.updateLog) {
+                        if (flag) {
+                            text += "<li> · " + data.updateLog[texta] + "</li>"
+                        }
+                        flag = true
+                        // text += "<li>" + text + "</li>"
+                    }
+                    text += "</ul>前往“设置”页面去更新！或点击<a href='"+data.url+"' style='color:#fff; text-decoration: underline'>这里体验新版本！</a></div>"
+                    send_str_msg("tip_warning_long",text,0);
+                    newest = false
+                    break;
                 }
-                text += "</ul>前往“设置”页面去更新！或点击<a href='"+data.url+"' style='color:#fff; text-decoration: underline'>这里体验新版本！</a></div>"
-                send_str_msg("tip_info_long",text,0);
-                newest = false
-                break;
             }
         }
         // if (newest) {
