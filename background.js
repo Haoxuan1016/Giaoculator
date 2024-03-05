@@ -65,6 +65,12 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         smsCalcStat = [];
         localStorage.clear();
         send_short_msg("bp-logpageState",0);
+        setTimeout(() => {
+            send_short_msg("bp-logpageState",0);
+        }, 1000);
+        setTimeout(() => {
+            send_short_msg("bp-logpageState",0);
+        }, 2000);
         console.log("LocalStorageCleared");
         chrome.storage.local.get('user_preference', function(data) {
             if (data.user_preference) {
