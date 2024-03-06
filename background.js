@@ -109,11 +109,11 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     } else if (tab.url === HomepagePattern) {
         if(localStorage.length < 2 && enable_state === true){
             if(!did_autocalcall){
-                did_autocalcall = true;
-                console.log("Do autocalc");
-                console.log("[HPPattern] Do autocalc");
                 chrome.storage.local.get('enable_state', function(result) {
                     if (result.enable_state === true) {
+                        did_autocalcall = true;
+                        console.log("Do autocalc");
+                        console.log("[HPPattern] Do autocalc");
                         AutoCalcAll();
                     }
                 });
@@ -1307,12 +1307,13 @@ chrome.runtime.onMessage.addListener(
     function(message, sender, sendResponse) {
         if (message.type === "enable_change") {
             send_short_msg("bp-logpageState",0);
-            chrome.storage.local.get('enable_state', function(result) {
+            chrome.storage.local.get('enable_state', async function(result) {
+                var usrName = await fetchUsrInfo();
                 enable_state = result.enable_state;
                 console.log(enable_state)
                 setTimeout(() => {
                     refresh_realtime(0);
-                    if(did_autocalcall == false && enable_state == true){
+                    if(did_autocalcall == false && enable_state == true && usrName != false){
                         AutoCalcAll();
                     }
                 }, 20);
