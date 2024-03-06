@@ -54,9 +54,11 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
             window.contentScriptInjected = true;
         }
         });
+
     } else if (changeInfo.url && tab.url.includes("https://tsinglanstudent.schoolis.cn/Home#!/realtime/list")) {
         setTimeout(() => {
             send_short_msg("replace_context",0); // 等待200ms后向content.js发送消息
+
         }, 200);
         
     } else if (tab.url === LoginPattern) {
@@ -107,6 +109,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
             }
         });
     } else if (tab.url === HomepagePattern) {
+        send_short_msg("bp-showRefresh",0);
         if(localStorage.length < 2 && enable_state === true){
             if(!did_autocalcall){
                 chrome.storage.local.get('enable_state', function(result) {
