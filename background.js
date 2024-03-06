@@ -225,6 +225,7 @@ chrome.webRequest.onBeforeRequest.addListener(
                     course.classEName = courseInfo.ename;
                     course.subjectName = courseInfo.ename;
                     course.subjectEName = courseInfo.ename;
+                    //course.scoreMappingId = courseInfo.ename.includes("AP")? "6799":"4517";
                     course.subjectId = courseInfo.subjectId;
                     course.subjectScore = courseInfo.gpa;
                     totalCourse.push(course);
@@ -509,6 +510,7 @@ chrome.webRequest.onCompleted.addListener(
 
 // 获取最新版本号并进行比较
 async function checkVersion(){
+    await delay(20000); //登录20秒后再显示，不影响用户使用
     var back = await fetch("https://lanbinshijie.github.io/giaoculator.json")
     var data = await back.json()
     console.log(data)
@@ -1259,10 +1261,10 @@ async function AutoCalcAll() {
                 console.log("[AutoCalc]Finished Calc",smsId);
                 smsCalcStat[smsId] = 1;
                 if((i+1) == his_range){
-                    if(his_range>1) send_str_msg("tip_suc",`已完成 ${smsId} 学期的计算, 所有计算均已完成`,0);
-                    else send_str_msg("tip_suc",`计算已完成`,0);
+                    if(his_range>1) send_str_msg("tip_suc",(navigator.language || navigator.userLanguage).includes('CN')? `已完成第${i+1}/${his_range}个学期计算，所有计算已完成！`:`All Calculation is Finished! ${i+1}/${his_range}`,0);
+                    else send_str_msg("tip_suc",(navigator.language || navigator.userLanguage).includes('CN')? `所有计算已完成！${i+1}/${his_range}`:`All Calculation is Finished! ${i+1}/${his_range}`,0);
                 }else{
-                    send_str_msg("tip_suc",`已完成 ${smsId} 学期的计算, 总进度 ${i+1}/${his_range}`,0);
+                    send_str_msg("tip_suc",(navigator.language || navigator.userLanguage).includes('CN')?`已完成第${i+1}/${his_range}个学期的计算`:`Scheduled Calc Process:${i+1}/${his_range}`,0);
                 }
                 await delay(1000);
             }else{

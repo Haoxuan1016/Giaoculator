@@ -318,7 +318,7 @@ function sendInfotipLong(cont){
         type: 'info',
         duration: 6000,
         position: {
-          x: 'right',
+          x: 'left',
           y: 'top',
         },
         dismissible: true,
