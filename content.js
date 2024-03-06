@@ -318,7 +318,7 @@ function sendInfotipLong(cont){
         type: 'info',
         duration: 6000,
         position: {
-          x: 'right',
+          x: 'left',
           y: 'top',
         },
         dismissible: true,
@@ -423,9 +423,17 @@ function showStateAtLoginPageMain(tmp,estate) {
     data = tmp.user_preference;
     if(data.autoHide==true && estate){
         if(langSet == 'cn'){
-            content = '自动隐藏分数低于'+data.autoHide_Condition+'%的数据';
+            if(data.autoHide_Condition > 100){
+                content = '自动隐藏所有数据';
+            }else{
+                content = '自动隐藏分数低于'+data.autoHide_Condition+'%的数据';
+            }
         }else{
-            content = 'Auto-Hide Score Limit: '+data.autoHide_Condition+'%';
+            if(data.autoHide_Condition > 100){
+                content = 'Auto-Hide Score Limit: Hide All';
+            }else{
+                content = 'Auto-Hide Score Limit: '+data.autoHide_Condition+'%';
+            }
         }
     }else if(estate==false){
         if(langSet == 'cn'){

@@ -59,7 +59,7 @@ function saveOptions() {
 
 document.getElementById('autoHide_Condition').addEventListener('input', function() {
     var min = 1; // 最小值
-    var max = 100; // 最大值
+    var max = 101; // 最大值
     var value = parseInt(this.value, 10); // 获取用户输入的数值，并转换为整数
 
     // 检查值是否低于最小值

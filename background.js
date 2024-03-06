@@ -1,4 +1,4 @@
-let EXTENSION_VERSION = [4,5,5]
+let EXTENSION_VERSION = [4,5,6]
 
 let processingUrls = {};    
 let categoryCache = {};
@@ -65,6 +65,12 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         smsCalcStat = [];
         localStorage.clear();
         send_short_msg("bp-logpageState",0);
+        setTimeout(() => {
+            send_short_msg("bp-logpageState",0);
+        }, 1000);
+        setTimeout(() => {
+            send_short_msg("bp-logpageState",0);
+        }, 2000);
         console.log("LocalStorageCleared");
         chrome.storage.local.get('user_preference', function(data) {
             if (data.user_preference) {
@@ -101,13 +107,13 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
             }
         });
     } else if (tab.url === HomepagePattern) {
-        if(localStorage.length < 2){
+        if(localStorage.length < 2 && enable_state === true){
             if(!did_autocalcall){
-                did_autocalcall = true;
-                console.log("Do autocalc");
-                console.log("[HPPattern] Do autocalc");
                 chrome.storage.local.get('enable_state', function(result) {
                     if (result.enable_state === true) {
+                        did_autocalcall = true;
+                        console.log("Do autocalc");
+                        console.log("[HPPattern] Do autocalc");
                         AutoCalcAll();
                     }
                 });
@@ -195,6 +201,7 @@ chrome.webRequest.onBeforeRequest.addListener(
                     course.className = courseInfo.className;
                     course.classEName = courseInfo.classEName;
                     course.classId = courseInfo.classId;
+                    course.scoreMappingId = courseInfo.scoreMappingId;
                     course.subjectId = courseInfo.subjectId;
                     course.subjectName = courseInfo.subjectName;
                     course.subjectEName = courseInfo.subjectEName;
@@ -219,6 +226,7 @@ chrome.webRequest.onBeforeRequest.addListener(
                     course.classEName = courseInfo.ename;
                     course.subjectName = courseInfo.ename;
                     course.subjectEName = courseInfo.ename;
+                    course.scoreMappingId = courseInfo.ename.includes("AP")? 6799:4517;
                     course.subjectId = courseInfo.subjectId;
                     course.subjectScore = courseInfo.gpa;
                     totalCourse.push(course);
@@ -253,6 +261,7 @@ chrome.webRequest.onBeforeRequest.addListener(
                         data: {
                             studentSemesterDynamicScoreBasicDtos: totalCourse,
                             "scoreMappingList": [
+                                {"scoresMappingId":6799,"isUseGpa":true,"scoreMappingConfigs":[{"displayName":"A+","minValue":97.00,"maxValue":9999.90,"isContainMin":true,"isContainMax":true,"sort":0,"gpa":4.80},{"displayName":"A","minValue":93.00,"maxValue":96.90,"isContainMin":true,"isContainMax":true,"sort":1,"gpa":4.50},{"displayName":"A-","minValue":90.00,"maxValue":92.90,"isContainMin":true,"isContainMax":true,"sort":2,"gpa":4.20},{"displayName":"B+","minValue":87.00,"maxValue":89.90,"isContainMin":true,"isContainMax":true,"sort":3,"gpa":3.90},{"displayName":"B","minValue":83.00,"maxValue":86.90,"isContainMin":true,"isContainMax":true,"sort":4,"gpa":3.60},{"displayName":"B-","minValue":80.00,"maxValue":82.90,"isContainMin":true,"isContainMax":true,"sort":5,"gpa":3.30},{"displayName":"C+","minValue":77.00,"maxValue":79.90,"isContainMin":true,"isContainMax":true,"sort":6,"gpa":3.00},{"displayName":"C","minValue":73.00,"maxValue":76.90,"isContainMin":true,"isContainMax":true,"sort":7,"gpa":2.70},{"displayName":"C-","minValue":70.00,"maxValue":72.90,"isContainMin":true,"isContainMax":true,"sort":8,"gpa":2.40},{"displayName":"D+","minValue":67.00,"maxValue":69.90,"isContainMin":true,"isContainMax":true,"sort":9,"gpa":2.10},{"displayName":"D","minValue":63.00,"maxValue":66.90,"isContainMin":true,"isContainMax":true,"sort":10,"gpa":1.80},{"displayName":"D-","minValue":60.00,"maxValue":62.90,"isContainMin":true,"isContainMax":true,"sort":11,"gpa":1.50},{"displayName":"F","minValue":0.00,"maxValue":59.90,"isContainMin":true,"isContainMax":true,"sort":12,"gpa":0.00}]},
                                 {"scoresMappingId":4517,"isUseGpa":true,"scoreMappingConfigs":[{"displayName":"A+","minValue":97.00,"maxValue":9999.90,"isContainMin":true,"isContainMax":true,"sort":0,"gpa":4.30},{"displayName":"A","minValue":93.00,"maxValue":96.90,"isContainMin":true,"isContainMax":true,"sort":1,"gpa":4.00},{"displayName":"A-","minValue":90.00,"maxValue":92.90,"isContainMin":true,"isContainMax":true,"sort":2,"gpa":3.70},{"displayName":"B+","minValue":87.00,"maxValue":89.90,"isContainMin":true,"isContainMax":true,"sort":3,"gpa":3.30},{"displayName":"B","minValue":83.00,"maxValue":86.90,"isContainMin":true,"isContainMax":true,"sort":4,"gpa":3.00},{"displayName":"B-","minValue":80.00,"maxValue":82.90,"isContainMin":true,"isContainMax":true,"sort":5,"gpa":2.70},{"displayName":"C+","minValue":77.00,"maxValue":79.90,"isContainMin":true,"isContainMax":true,"sort":6,"gpa":2.30},{"displayName":"C","minValue":73.00,"maxValue":76.90,"isContainMin":true,"isContainMax":true,"sort":7,"gpa":2.00},{"displayName":"C-","minValue":70.00,"maxValue":72.90,"isContainMin":true,"isContainMax":true,"sort":8,"gpa":1.70},{"displayName":"D+","minValue":67.00,"maxValue":69.90,"isContainMin":true,"isContainMax":true,"sort":9,"gpa":1.30},{"displayName":"D","minValue":63.00,"maxValue":66.90,"isContainMin":true,"isContainMax":true,"sort":10,"gpa":1.00},{"displayName":"D-","minValue":60.00,"maxValue":62.90,"isContainMin":true,"isContainMax":true,"sort":11,"gpa":0.70},{"displayName":"F","minValue":0.00,"maxValue":59.90,"isContainMin":true,"isContainMax":true,"sort":12,"gpa":0.00}]}
                             ],
                         },
@@ -503,6 +512,7 @@ chrome.webRequest.onCompleted.addListener(
 
 // 获取最新版本号并进行比较
 async function checkVersion(){
+    await delay(20000); //登录20秒后再显示，不影响用户使用
     var back = await fetch("https://lanbinshijie.github.io/giaoculator.json")
     var data = await back.json()
     console.log(data)
@@ -853,6 +863,7 @@ function getAllCourseInfo(targsms) {
                     className : courseInfo.className,
                     classEName : courseInfo.classEName,
                     classId : courseInfo.classId,
+                    scoreMappingId : courseInfo.scoreMappingId,
                     subjectName : courseInfo.subjectName,
                     subjectEName : courseInfo.subjectEName,
                     subjectScore : courseInfo.subjectScore,
@@ -1154,6 +1165,7 @@ async function fetchOriginalRequest(smsId) {
             let course = {
                 className : courseInfo.className,
                 subjectId : courseInfo.subjectId,
+                scoreMappingId : courseInfo.scoreMappingId,
                 classEName : courseInfo.classEName,
                 smsId : working_sms,
                 classId : courseInfo.classId,
@@ -1222,6 +1234,7 @@ async function sendLoginMessage() {
   
 
 async function AutoCalcAll() {
+    did_autocalcall = true;
     const response = await fetch("https://tsinglanstudent.schoolis.cn/api/School/GetSchoolSemesters");
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -1252,15 +1265,17 @@ async function AutoCalcAll() {
                 console.log("[AutoCalc]Finished Calc",smsId);
                 smsCalcStat[smsId] = 1;
                 if((i+1) == his_range){
-                    if(his_range>1) send_str_msg("tip_suc",`已完成 ${smsId} 学期的计算, 所有计算均已完成`,0);
-                    else send_str_msg("tip_suc",`计算已完成`,0);
+                    if(his_range>1) send_str_msg("tip_suc",(navigator.language || navigator.userLanguage).includes('CN')? `已完成第${i+1}/${his_range}个学期计算，所有计算已完成！`:`All Calculation is Finished! ${i+1}/${his_range}`,0);
+                    else send_str_msg("tip_suc",(navigator.language || navigator.userLanguage).includes('CN')? `所有计算已完成！${i+1}/${his_range}`:`All Calculation is Finished! ${i+1}/${his_range}`,0);
                 }else{
-                    send_str_msg("tip_suc",`已完成 ${smsId} 学期的计算, 总进度 ${i+1}/${his_range}`,0);
+                    send_str_msg("tip_suc",(navigator.language || navigator.userLanguage).includes('CN')?`已完成第${i+1}/${his_range}个学期的计算`:`Scheduled Calc Process:${i+1}/${his_range}`,0);
                 }
                 await delay(1000);
             }else{
                 await delay(2000);
                 send_str_msg("tip_err",`自动计算被异常打断，请重新登录平台`,0);
+                localStorage.clear();
+                did_autocalcall = false;
                 console.log("[Autocalc]Error stoped!")
                 return;
             }
@@ -1298,12 +1313,13 @@ chrome.runtime.onMessage.addListener(
     function(message, sender, sendResponse) {
         if (message.type === "enable_change") {
             send_short_msg("bp-logpageState",0);
-            chrome.storage.local.get('enable_state', function(result) {
+            chrome.storage.local.get('enable_state', async function(result) {
+                var usrName = await fetchUsrInfo();
                 enable_state = result.enable_state;
                 console.log(enable_state)
                 setTimeout(() => {
                     refresh_realtime(0);
-                    if(did_autocalcall == false && enable_state == true){
+                    if(did_autocalcall == false && enable_state == true && usrName != false){
                         AutoCalcAll();
                     }
                 }, 20);
