@@ -137,8 +137,10 @@ function setLanguage() {
             'welcomeMsgLabel': 'Custom Welcome Message',
             'autoHideGradesLabel': 'Auto-Hide Unsatisfactory Grades',
             'enableLabel': 'Enable',
+            'enableLabel2': 'Enable',
             'autoHide_Condition_Label': 'When score is below',
-            'save': 'Save'
+            'save': 'Save',
+            'updateLabel': 'Enable Update Notification',
         },
         'zh': {
             'main_header': '基本设置',
@@ -146,8 +148,10 @@ function setLanguage() {
             'welcomeMsgLabel': '自定义欢迎语',
             'autoHideGradesLabel': '自动隐藏不满意的成绩',
             'enableLabel': '启用',
+            'enableLabel2': '启用',
             'autoHide_Condition_Label': '当分数低于',
-            'save': '保存'
+            'save': '保存',
+            'updateLabel': '启用更新提示',
         }
     };
     
