@@ -178,11 +178,11 @@ document.onkeydown = function(e) {
         simulateClickLogout();
     } else if(e.key >= '1' && e.key <= '4'){
         simulateClickBar(e.key.charCodeAt(0) - 49);
-    } else if(e.key == 'ArrowLeft' && currentWindow === "https://tsinglanstudent.schoolis.cn/Home#!/task/list" || currentWindow === "https://tsinglanstudent.schoolis.cn/Home#!/schedule"){
+    } else if(e.key == 'ArrowLeft' && (currentWindow === "https://tsinglanstudent.schoolis.cn/Home#!/task/list" || currentWindow === "https://tsinglanstudent.schoolis.cn/Home#!/schedule")){
         try{document.getElementsByClassName("fc-prev-button fc-button fc-state-default fc-corner-left fc-corner-right")[0].click();}catch{}
         try{document.getElementsByClassName("ng-scope fe-components-xb-pagination-__pageNumber--1VqmLfGo3J_SMKjULyiFzU fe-components-xb-pagination-__leftIcon--1xTQmlKB0ldX-7LWrTevD4")[0].click();}catch{}
-    } else if(e.key == 'ArrowRight' && currentWindow === "https://tsinglanstudent.schoolis.cn/Home#!/task/list" || currentWindow === "https://tsinglanstudent.schoolis.cn/Home#!/schedule"){
-        try{document.getElementsByClassName("fc-next-button fc-button fc-state-default fc-corner-left fc-corner-right")[0].click();}catch{console.log("Notfound")}  
+    } else if(e.key == 'ArrowRight' && (currentWindow === "https://tsinglanstudent.schoolis.cn/Home#!/task/list" || currentWindow === "https://tsinglanstudent.schoolis.cn/Home#!/schedule")){
+        try{document.getElementsByClassName("fc-next-button")[0].click();}catch{console.log("Notfound")}  
         try{document.getElementsByClassName("ng-scope fe-components-xb-pagination-__pageNumber--1VqmLfGo3J_SMKjULyiFzU fe-components-xb-pagination-__rightIcon--ZSZeXHkbdqtWaqpsNXVn-")[0].click();}catch{}
     } else if(e.key == 'ArrowDown' && currentWindow === "https://tsinglanstudent.schoolis.cn/Home#!/realtime/list"){
         simulateClickRefresh(1);
