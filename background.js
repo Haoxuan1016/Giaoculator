@@ -201,6 +201,7 @@ chrome.webRequest.onBeforeRequest.addListener(
                     course.className = courseInfo.className;
                     course.classEName = courseInfo.classEName;
                     course.classId = courseInfo.classId;
+                    course.scoreMappingId = courseInfo.scoreMappingId;
                     course.subjectId = courseInfo.subjectId;
                     course.subjectName = courseInfo.subjectName;
                     course.subjectEName = courseInfo.subjectEName;
@@ -862,6 +863,7 @@ function getAllCourseInfo(targsms) {
                     className : courseInfo.className,
                     classEName : courseInfo.classEName,
                     classId : courseInfo.classId,
+                    scoreMappingId : courseInfo.scoreMappingId,
                     subjectName : courseInfo.subjectName,
                     subjectEName : courseInfo.subjectEName,
                     subjectScore : courseInfo.subjectScore,
@@ -1163,6 +1165,7 @@ async function fetchOriginalRequest(smsId) {
             let course = {
                 className : courseInfo.className,
                 subjectId : courseInfo.subjectId,
+                scoreMappingId : courseInfo.scoreMappingId,
                 classEName : courseInfo.classEName,
                 smsId : working_sms,
                 classId : courseInfo.classId,
