@@ -60,6 +60,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
             } else if (type == "rc_hideasm"){
                 hideAssignments(data.cont);
                 hideAseRepeatedly(data,10,1500);
+                hideAseRepeatedly(data,100,3000);
             }
         }
     });
@@ -106,16 +107,16 @@ function hideScores(scorelim) {
   }
 }
 
-function hideAssignments(scorelim) {
+function hideAssignments(settingData) {
+    var scorelim = settingData.autoHide_Condition;
     const elements = document.getElementsByClassName('ng-scope fe-components-stu-app-task-list-__listItem--2LlZEXXtXjZzVCV4Ai9B6y');
     for (let element of elements) {
         var scoreNumElement = element.querySelector('.fe-components-stu-business-task-list-item-__taskScore--13ruwhA6IFpxEaXteLRQco');
+        var totalScoreNum = (element.querySelector('span.ng-binding.ng-scope').textContent.match(/\d+/)[0]) * 1.0;
         if (scoreNumElement) {
-            var score = parseFloat(scoreNumElement.innerText);
-            if(score<=10){
-                score=score*10;
-            }
-            if (score < scorelim) {
+            //var score = parseFloat(scoreNumElement.innerText) +"|" +totalScoreNum;
+            var score = (parseFloat(scoreNumElement.innerText)/totalScoreNum)*100;
+            if (score < scorelim && settingData.autoHide) {
                 scoreNumElement.innerHTML = '<img src="' + chrome.runtime.getURL("res/disable.png") + '" alt="Disabled" style="width: 70%;padding-top:20px;" />';
         
                 const scoreInfoElement = element.querySelector('.fe-components-stu-app-realtime-list-__scoreInfo--1d-D_GnPEaK1HTrcgeNURt');
@@ -125,7 +126,7 @@ function hideAssignments(scorelim) {
             }
         }
     }
-  }
+}
 
 
 function updateContent_DetailPage() {

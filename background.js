@@ -148,9 +148,9 @@ chrome.webRequest.onBeforeRequest.addListener(
 
         if (details.url.startsWith(PresentAssignmentPattern)&&usr_setting.autoHide) {
             setTimeout(() => {
-                send_str_msg("rc_hideasm",usr_setting.autoHide_Condition,0);
+                send_str_msg("rc_hideasm",usr_setting,0);
                 setTimeout(() => {
-                    send_str_msg("rc_hideasm",usr_setting.autoHide_Condition,0);
+                    send_str_msg("rc_hideasm",usr_setting,0);
                 }, 10);
             }, 10);
             
