@@ -425,7 +425,14 @@ function showHideButtonAtHome(){
 
 // 
 function changeHideState(){
-    // TODO
+    // 设置显示状态为相反
+    chrome.storage.local.get('user_preference', function(tmp) {
+        var data = tmp.user_preference;
+        data.autoHide = !data.autoHide;
+        chrome.storage.local.set({user_preference: data});
+        showHideButtonAtHome();
+    })
+    // showHideButtonAtHome();
 }
 
 function showHideButton(tmp){
@@ -452,32 +459,17 @@ function showHideButton(tmp){
     // 获取ng-binding fe-components-xb-rest-btn-__cancel--GAK6A0SPZh0p3LOnXTukB的button元素，并将里面的内容替换为img
     button = document.querySelector('.fe-components-xb-rest-btn-__cancel--GAK6A0SPZh0p3LOnXTukB');
     url = chrome.runtime.getURL(data.autoHide==true ? "res/visOn.svg" : "res/visOff.svg"); // 你的SVG文件路径
-    button.innerHTML = '<img src="' + url + '" alt="*" style="height: 20px; width: 25px; margin-top:5px" />';
-
-    
-
-    // 创建图标img元素
-    // var iconImg = document.createElement('img');
-    // iconImg.src = chrome.runtime.getURL(true ? "res/visOn.svg" : "res/visOff.svg"); // 你的SVG文件路径
-    // iconImg.alt = '*';
-    // iconImg.style.height = '20px'; // 根据需要调整大小
-    // iconImg.style.width = '25px'; // 根据需要调整大小
-    
-    button.appendChild(iconImg);
-
-    if (div) {
-        // console.log('指定的div找到了');
-        // xb_rest_btn.appendChild(button);
-        // span.appendChild(xb_rest_btn);
-        // div.appendChild(span);
-
-        // 删除div最后一个子元素
-        // div.removeChild(div.lastElementChild);
-
-        // div.appendChild(button);
-    } else {
-        // console.log('指定的div未找到');
+    // button.innerHTML = '<img src="' + url + '" alt="*" style="height: 20px; width: 25px; margin-top:5px; fill: #ccc" />';
+    if (data.autoHide==true){
+        button.innerHTML = '<span><svg style="height: 20px; width: 25px; margin-top:5px; fill: #222" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="m644-428-58-58q9-47-27-88t-93-32l-58-58q17-8 34.5-12t37.5-4q75 0 127.5 52.5T660-500q0 20-4 37.5T644-428Zm128 126-58-56q38-29 67.5-63.5T832-500q-50-101-143.5-160.5T480-720q-29 0-57 4t-55 12l-62-62q41-17 84-25.5t90-8.5q151 0 269 83.5T920-500q-23 59-60.5 109.5T772-302Zm20 246L624-222q-35 11-70.5 16.5T480-200q-151 0-269-83.5T40-500q21-53 53-98.5t73-81.5L56-792l56-56 736 736-56 56ZM222-624q-29 26-53 57t-41 67q50 101 143.5 160.5T480-280q20 0 39-2.5t39-5.5l-36-38q-11 3-21 4.5t-21 1.5q-75 0-127.5-52.5T300-500q0-11 1.5-21t4.5-21l-84-82Zm319 93Zm-151 75Z"/></svg></span>'
+    }else{
+        button.innerHTML = '<span><svg style="height: 20px; width: 25px; margin-top:5px; fill: #222" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M480-320q75 0 127.5-52.5T660-500q0-75-52.5-127.5T480-680q-75 0-127.5 52.5T300-500q0 75 52.5 127.5T480-320Zm0-72q-45 0-76.5-31.5T372-500q0-45 31.5-76.5T480-608q45 0 76.5 31.5T588-500q0 45-31.5 76.5T480-392Zm0 192q-146 0-266-81.5T40-500q54-137 174-218.5T480-800q146 0 266 81.5T920-500q-54 137-174 218.5T480-200Zm0-300Zm0 220q113 0 207.5-59.5T832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280Z"/></svg></span>'
     }
+    // 给Button加上点击事件
+    button.onclick = function() {
+        changeHideState();
+    }
+
 
 
 }
