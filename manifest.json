@@ -21,7 +21,9 @@
     "res/disablev2.png",
     "res/disable.png",
     "res/hideOff.svg",
-    "res/hideOn.svg"
+    "res/hideOn.svg",
+    "res/visOn.svg",
+    "res/visOff.svg"
   ],
   "browser_action": {
     "default_icon": "icon.png",

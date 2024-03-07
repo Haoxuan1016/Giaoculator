@@ -1,5 +1,7 @@
 console.log("Giaoculator is Running");
 
+SHOW_REFRESH = false;
+
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     // 尝试结合两个版本的功能：使用chrome.storage.local来检查enable_state，并保留disable_autologin逻辑。
     chrome.storage.local.get('enable_state', function(result) {
@@ -24,6 +26,8 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 location.reload();
             } else if (type == "bp-logpageState"){
                 showStateAtLoginPage();//NEW
+            } else if (type == "bp-showRefresh"){
+                showHideButtonAtHome();//NEW
             } else if (type == "bp-refresh-click"){
                 simulateClickRefresh(0);
             } else if (type == "replace_context"){
@@ -410,6 +414,73 @@ function showStateAtLoginPage(){
             showStateAtLoginPageMain(tmp,estate.enable_state);
         });
     });
+}
+
+function showHideButtonAtHome(){
+    chrome.storage.local.get('enable_state', function() {
+        chrome.storage.local.get('user_preference', function(tmp) {
+            showHideButton(tmp);
+        });
+    });
+}
+
+// 
+function changeHideState(){
+    // TODO
+}
+
+function showHideButton(tmp){
+    // if (SHOW_REFRESH) {
+    //     return;
+    // }
+    // SHOW_REFRESH = true;
+
+    // var span = document.createElement('span');
+    // span.className = 'ng-scope fe-components-stu-app-task-list-__marR10--3--xJSPS__rgN4cQ4G6FjE';
+    // span.style.marginRight = '0';
+
+    // var xb_rest_btn = document.createElement('xb-rest-btn');
+    // xb_rest_btn.className = 'ng-isolate-scope';
+
+    // var button = document.createElement('button');
+    // button.className = 'ng-binding fe-components-xb-rest-btn-__cancel--GAK6A0SPZh0p3LOnXTukB';
+    // button.style.height = '30px';
+    data = tmp.user_preference;
+
+    
+
+    // var div = document.querySelector('.fe-components-stu-common-stu-select-bar-__selectDiv--1TuYczJu6_9rrSCwO58S-d');
+    // 获取ng-binding fe-components-xb-rest-btn-__cancel--GAK6A0SPZh0p3LOnXTukB的button元素，并将里面的内容替换为img
+    button = document.querySelector('.fe-components-xb-rest-btn-__cancel--GAK6A0SPZh0p3LOnXTukB');
+    url = chrome.runtime.getURL(data.autoHide==true ? "res/visOn.svg" : "res/visOff.svg"); // 你的SVG文件路径
+    button.innerHTML = '<img src="' + url + '" alt="*" style="height: 20px; width: 25px; margin-top:5px" />';
+
+    
+
+    // 创建图标img元素
+    // var iconImg = document.createElement('img');
+    // iconImg.src = chrome.runtime.getURL(true ? "res/visOn.svg" : "res/visOff.svg"); // 你的SVG文件路径
+    // iconImg.alt = '*';
+    // iconImg.style.height = '20px'; // 根据需要调整大小
+    // iconImg.style.width = '25px'; // 根据需要调整大小
+    
+    button.appendChild(iconImg);
+
+    if (div) {
+        // console.log('指定的div找到了');
+        // xb_rest_btn.appendChild(button);
+        // span.appendChild(xb_rest_btn);
+        // div.appendChild(span);
+
+        // 删除div最后一个子元素
+        // div.removeChild(div.lastElementChild);
+
+        // div.appendChild(button);
+    } else {
+        // console.log('指定的div未找到');
+    }
+
+
 }
 
 function showStateAtLoginPageMain(tmp,estate) {
