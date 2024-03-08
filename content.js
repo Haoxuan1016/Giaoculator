@@ -1,6 +1,7 @@
 console.log("Giaoculator is Running");
 
 SHOW_REFRESH = false;
+var tmp_stopHide = false;
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     // 尝试结合两个版本的功能：使用chrome.storage.local来检查enable_state，并保留disable_autologin逻辑。
@@ -57,6 +58,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 updateContent_DetailPage();
             } else if (type == "rc_hidescore"){
                 hideScoresRepeatedly(data,10,1500);
+                tmp_stopHide = false;
             } else if (type == "rc_hideasm"){
                 hideAssignments(data.cont);
                 hideAseRepeatedly(data,10,1500);
@@ -108,6 +110,9 @@ function hideScores(scorelim) {
 }
 
 function hideAssignments(settingData) {
+    if(tmp_stopHide==true){
+        return;
+    }
     var scorelim = settingData.autoHide_Condition;
     const elements = document.getElementsByClassName('ng-scope fe-components-stu-app-task-list-__listItem--2LlZEXXtXjZzVCV4Ai9B6y');
     for (let element of elements) {
@@ -393,8 +398,20 @@ function hideScoresRepeatedly(data, interval, duration) {
 }
 
 function hideAseRepeatedly(data, interval, duration) {
-    const times = Math.floor(duration / interval);
+    if(tmp_stopHide==true){
+        return;
+    }
 
+    const times = Math.floor(duration / interval);
+    for (let i = 0; i <= 100; i++) {
+        setTimeout(() => {  
+            chrome.storage.local.get('enable_state', function(result) {
+                if(result.enable_state){
+                    hideAssignments(data.cont);
+                }
+            });//该实现方式有待优化，可考虑在检测为false时continue
+        }, i * 2);
+    }
     for (let i = 0; i <= times; i++) {
         setTimeout(() => {  
             chrome.storage.local.get('enable_state', function(result) {
@@ -417,6 +434,8 @@ function showStateAtLoginPage(){
 }
 
 function showHideButtonAtHome(){
+    showHideButton(tmp_stopHide);
+    return;
     chrome.storage.local.get('enable_state', function() {
         chrome.storage.local.get('user_preference', function(tmp) {
             showHideButton(tmp);
@@ -426,12 +445,16 @@ function showHideButtonAtHome(){
 
 // 
 function changeHideState(){
+    console.log(tmp_stopHide);
+    tmp_stopHide = !tmp_stopHide;
+    showHideButtonAtHome();
+    document.getElementsByClassName("fe-components-xb-pagination-__active--38NmY6BWhbJQuJwfItXtYi")[0].click();
+    return;
     // 设置显示状态为相反
     chrome.storage.local.get('user_preference', function(tmp) {
         var data = tmp.user_preference;
         data.autoHide = !data.autoHide;
         chrome.storage.local.set({user_preference: data});
-        showHideButtonAtHome();
     })
     // showHideButtonAtHome();
 }
@@ -452,16 +475,15 @@ function showHideButton(tmp){
     // var button = document.createElement('button');
     // button.className = 'ng-binding fe-components-xb-rest-btn-__cancel--GAK6A0SPZh0p3LOnXTukB';
     // button.style.height = '30px';
-    data = tmp.user_preference;
-
-    
+    //data = tmp.user_preference;
+    hidestate = tmp
 
     // var div = document.querySelector('.fe-components-stu-common-stu-select-bar-__selectDiv--1TuYczJu6_9rrSCwO58S-d');
     // 获取ng-binding fe-components-xb-rest-btn-__cancel--GAK6A0SPZh0p3LOnXTukB的button元素，并将里面的内容替换为img
     button = document.querySelector('.fe-components-xb-rest-btn-__cancel--GAK6A0SPZh0p3LOnXTukB');
-    url = chrome.runtime.getURL(data.autoHide==true ? "res/visOn.svg" : "res/visOff.svg"); // 你的SVG文件路径
+    url = chrome.runtime.getURL(hidestate==true ? "res/visOn.svg" : "res/visOff.svg"); // 你的SVG文件路径
     // button.innerHTML = '<img src="' + url + '" alt="*" style="height: 20px; width: 25px; margin-top:5px; fill: #ccc" />';
-    if (data.autoHide==true){
+    if (hidestate==true){
         button.innerHTML = '<span><svg style="height: 20px; width: 25px; margin-top:5px; fill: #222" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="m644-428-58-58q9-47-27-88t-93-32l-58-58q17-8 34.5-12t37.5-4q75 0 127.5 52.5T660-500q0 20-4 37.5T644-428Zm128 126-58-56q38-29 67.5-63.5T832-500q-50-101-143.5-160.5T480-720q-29 0-57 4t-55 12l-62-62q41-17 84-25.5t90-8.5q151 0 269 83.5T920-500q-23 59-60.5 109.5T772-302Zm20 246L624-222q-35 11-70.5 16.5T480-200q-151 0-269-83.5T40-500q21-53 53-98.5t73-81.5L56-792l56-56 736 736-56 56ZM222-624q-29 26-53 57t-41 67q50 101 143.5 160.5T480-280q20 0 39-2.5t39-5.5l-36-38q-11 3-21 4.5t-21 1.5q-75 0-127.5-52.5T300-500q0-11 1.5-21t4.5-21l-84-82Zm319 93Zm-151 75Z"/></svg></span>'
     }else{
         button.innerHTML = '<span><svg style="height: 20px; width: 25px; margin-top:5px; fill: #222" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M480-320q75 0 127.5-52.5T660-500q0-75-52.5-127.5T480-680q-75 0-127.5 52.5T300-500q0 75 52.5 127.5T480-320Zm0-72q-45 0-76.5-31.5T372-500q0-45 31.5-76.5T480-608q45 0 76.5 31.5T588-500q0 45-31.5 76.5T480-392Zm0 192q-146 0-266-81.5T40-500q54-137 174-218.5T480-800q146 0 266 81.5T920-500q-54 137-174 218.5T480-200Zm0-300Zm0 220q113 0 207.5-59.5T832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280Z"/></svg></span>'
