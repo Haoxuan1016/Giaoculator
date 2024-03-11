@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Giaoculator Lite",
   "version": "4.5.6",
-  "description": "A chrome extension for calculating your GPA. ",
+  "description": "A chrome extension for calculating your GPA on schoolis. ",
   "options_page":  "options.html",
   "background": {
     "scripts": ["background.js"],

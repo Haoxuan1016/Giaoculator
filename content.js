@@ -80,10 +80,10 @@ function updateContent() {
         for (cnt=0;cnt<targetElement.length;cnt++){
             target = targetElement[cnt];
             if(target.innerText=="首次公布时间：1970-01-01 08:00"){
-                target.innerText="由Giaoculator计算"
+                target.innerText="由Giaoculator Lite计算"
             }
             if(target.innerText=="First Publish Time：1970-01-01 08:00"){
-                target.innerText="Calc by Giaoculator"
+                target.innerText="Calculated by Giaoculator Lite"
             }
         }
     }
@@ -138,10 +138,10 @@ function updateContent_DetailPage() {
         for (cnt=0;cnt<targetElement.length;cnt++){
             target = targetElement[cnt];
             if(target.innerText=="首次公布时间：1970-01-01 08:00"){
-                target.innerText="由Giaoculator计算"
+                target.innerText="由Giaoculator Lite计算"
             }
             if(target.innerText=="First Publish Time：1970-01-01 08:00"){
-                target.innerText="By Giaoculator"
+                target.innerText="By Giaoculator Lite"
             }
         }
     } 
