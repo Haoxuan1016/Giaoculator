@@ -8,25 +8,25 @@ Giaoculator will not longer be itself. We need to know what is Giaoculator:
 
 **Gialculator is...**
 
-*A chrome extension*
+>*A chrome extension*
 
-*A GPA Calculator*
+>*A GPA Calculator*
 
-*A schoolis++* 
+>*A schoolis++* 
 
-*GPA planning extension*
+>*GPA planning extension*
 
 **Giaoculator is NOT...**
 
-*A big green button*
+>*A big green button*
 
-*GPA booster*
+>*GPA booster*
 
-*An automatically pop-ups genreator*
+>*An automatically pop-ups genreator*
 
-*left ideal of a ring*
+>*left ideal of a ring*
 
-*An advertisement pop-ups book toaster\**
+>*An advertisement pop-ups book toaster\**
 
 ![Figure1.1](https://i.postimg.cc/HLGPYh70/1710164143719-262838-e39ab82d8e01e1d3760c75fa6b17d223-generated.jpg)
 
