@@ -1,3 +1,3 @@
 # Giaoculator Lite
 
-Giaoculator轻量版
+Giaoculator Lite: A Better Giaoculator
