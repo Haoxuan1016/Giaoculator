@@ -5,15 +5,15 @@
 let enable = true;
 
 function updateButton(){
-  document.getElementById('goSettingsBtn').innerText = (navigator.language || navigator.userLanguage).startsWith('zh') ? '前往设置' : 'Settings';
+  document.getElementById('goSettingsBtn').innerText = (navigator.language || navigator.userLanguage).startsWith('zh') ? '设置' : 'Settings';
   if (enable) {
-    document.querySelector('#toggle-button').innerHTML = (navigator.language || navigator.userLanguage).startsWith('zh') ? '关闭' : 'Enabled'
+    document.querySelector('#toggle-button').innerHTML = (navigator.language || navigator.userLanguage).startsWith('zh') ? '关' : 'Enabled'
     // 加入一个enable的class
     document.querySelector('#toggle-button').classList.add('enabled');
     // 减去一个disable的class
     document.querySelector('#toggle-button').classList.remove('disabled');
   } else {
-    document.querySelector('#toggle-button').innerHTML = (navigator.language || navigator.userLanguage).startsWith('zh') ? '开启' : 'Disabled'
+    document.querySelector('#toggle-button').innerHTML = (navigator.language || navigator.userLanguage).startsWith('zh') ? '开' : 'Disabled'
     // 加入一个disable的class
     document.querySelector('#toggle-button').classList.add('disabled');
     // 减去一个enable的class
