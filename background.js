@@ -1243,6 +1243,7 @@ async function AutoCalcAll() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         sendLoginMessage();
+        his_range = usr_setting.calcRange;
         if (usr_setting.calcRange !== undefined && usr_setting.calcRange > 1) {
             his_range = usr_setting.calcRange;
         }
