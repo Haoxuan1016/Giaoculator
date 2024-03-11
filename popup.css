@@ -74,6 +74,8 @@ body {
     font-size: 2rem;
     font-weight: bold;
     transition: all .2s ease-in-out;
+    padding: 0px 2px 2px 2px;
+    justify-content: center;
     /* border: #333 2px solid; */
 }
 

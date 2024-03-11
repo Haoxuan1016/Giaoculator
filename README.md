@@ -1,3 +1,3 @@
-# Giaoculator
+# Giaoculator Lite
 
-你好世界
+Giaoculator轻量版
