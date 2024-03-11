@@ -1,6 +1,6 @@
 # Giaoculator Lite
 
-Giaoculator Lite: A Better Giaoculator.
+Giaoculator Lite: A Better [Giaoculator](https://github.com/Haoxuan1016/Giaoculator).
 
 ## Why Giaoculator **Lite**?
 
