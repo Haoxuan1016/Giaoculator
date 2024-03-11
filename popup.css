@@ -67,9 +67,9 @@ body {
 .roundbtn {
     /* 圆球的圆角 */
     /* margin: auto; */
-    border-radius: 50%;
-    width: 160px;
-    height: 160px;
+    border-radius: 20%;
+    width: 40px;
+    height: 40px;
     border: 0;
     font-size: 2rem;
     font-weight: bold;
@@ -85,9 +85,9 @@ body {
 }   
 .roundbtn.enabled {
     /* background-color: #333d61; 绿色启用*/
-    background-color: #5dcc61; 
+    background-color: #6589f1; 
     color: #fff;
-    outline: #56c25a 6px solid;
+    outline: #5a7bd8 6px solid;
 }
 
 .roundbtn.partial {
@@ -104,10 +104,10 @@ body {
 }
 
 .roundbtn.enabled:hover {
-    background-color: #4CAF50;
+    background-color: #6589f1;
     color: #fff;
     /* outline: #4CAF50 6px solid; */
-    outline: #49a44c 6px solid;
+    outline: #5a7bd8 6px solid;
 
 }
 
