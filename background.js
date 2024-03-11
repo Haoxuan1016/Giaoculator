@@ -515,6 +515,8 @@ chrome.webRequest.onCompleted.addListener(
 
 // 获取最新版本号并进行比较
 async function checkVersion(){
+    return;//暂未完成的功能，暂时关闭
+
     await delay(20000); //登录20秒后再显示，不影响用户使用
     var back = await fetch("https://lanbinshijie.github.io/giaoculator.json")
     var data = await back.json()
