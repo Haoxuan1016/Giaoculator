@@ -80,18 +80,18 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
                 usr_setting = data.user_preference;
             } else {
                 // 如果用户第一次安装插件
-                console.log('No preferences found.');
+                /*console.log('No preferences found.');
                 var langSet = navigator.language || navigator.userLanguage; 
                 if(langSet.includes('CN')){
                     defaultwelcomeMsg = "欢迎使用Giaoculator！<br>请前往设置以定义Giaoculator的更多功能！"
                 }else{
                     defaultwelcomeMsg = "Welcome!<br>Go to settings to costumize your Giaoculator!"
-                }
+                }*/
                 var user_preference = {
                     calcRange: parseInt(1, 10),
-                    welcomeMsg: defaultwelcomeMsg,
-                    autoHide: true,
-                    autoHide_Condition: parseInt(60, 10)
+                    welcomeMsg: "",
+                    autoHide: false,
+                    autoHide_Condition: parseInt(0, 10)
                 };
                 chrome.storage.local.set({user_preference: user_preference});
                 usr_setting = user_preference;
@@ -1197,7 +1197,7 @@ async function fetchOriginalRequest(smsId) {
 }
 
 async function sendLoginMessage() {
-    rand_num = Math.floor(Math.random() * 3) + 1;
+    /*rand_num = Math.floor(Math.random() * 3) + 1;
     var msg;
     if(rand_num == 1 || usr_setting.welcomeMsg.includes("Giaoculator")){
         msg = usr_setting.welcomeMsg;
@@ -1231,7 +1231,8 @@ async function sendLoginMessage() {
     send_str_msg("tip_info", msg, 0);
     checkVersion(); // 更新检查
 
-    
+    */
+
   }
   
 

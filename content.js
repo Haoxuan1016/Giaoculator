@@ -507,7 +507,7 @@ function showStateAtLoginPageMain(tmp,estate) {
     }
 
     data = tmp.user_preference;
-    if(data.autoHide==true && estate){
+    /*if(data.autoHide==true && estate){
         if(langSet == 'cn'){
             if(data.autoHide_Condition > 100){
                 content = '自动隐藏所有数据';
@@ -533,7 +533,7 @@ function showStateAtLoginPageMain(tmp,estate) {
         }else{
             content = 'Auto-Hide Scores Disabled';
         }
-    }
+    }*/
     var containerG = document.getElementById('autoHideState');
     if(containerG){
         containerG.remove();
