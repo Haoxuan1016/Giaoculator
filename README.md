@@ -6,7 +6,7 @@ Giaoculator Lite: A Better Giaoculator.
 
 Giaoculator will not longer be itself. We need to know what is Giaoculator:
 
-*Gialculator is...*
+**Gialculator is...**
 
 *A chrome extension*
 
@@ -16,7 +16,7 @@ Giaoculator will not longer be itself. We need to know what is Giaoculator:
 
 *GPA planning extension*
 
-*Giaoculator is NOT...*
+**Giaoculator is NOT...**
 
 *A big green button*
 
