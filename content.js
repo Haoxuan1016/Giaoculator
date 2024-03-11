@@ -25,8 +25,6 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 }
             } else if (type == "bp-refresh"){
                 location.reload();
-            } else if (type == "bp-logpageState"){
-                showStateAtLoginPage();//NEW
             } else if (type == "bp-showRefresh"){
                 showHideButtonAtHome();//NEW
             } else if (type == "bp-refresh-click"){
@@ -423,16 +421,6 @@ function hideAseRepeatedly(data, interval, duration) {
     }
 }
 
-
-
-function showStateAtLoginPage(){
-    chrome.storage.local.get('enable_state', function(estate) {
-        chrome.storage.local.get('user_preference', function(tmp) {
-            showStateAtLoginPageMain(tmp,estate.enable_state);
-        });
-    });
-}
-
 function showHideButtonAtHome(){
     showHideButton(tmp_stopHide);
     return;
@@ -495,51 +483,4 @@ function showHideButton(tmp){
 
 
 
-}
-
-function showStateAtLoginPageMain(tmp,estate) {
-    // var langSet = (navigator.language || navigator.userLanguage).startsWith('zh') ? 'cn' : 'en';
-    // var content;
-    // var div = document.querySelector('.fe-components-stu-business-login-enter-box-__signBtnWrap--1hC-pSiXWu5_WJuSPKGEzQ');
-    // if (!div) {
-    //     console.log('指定的div未找到');
-    //     return;
-    // }
-
-    // data = tmp.user_preference;
-
-    // var containerG = document.getElementById('autoHideState');
-    // if(containerG){
-    //     containerG.remove();
-    // }
-    // var container = document.createElement('div');
-    // container.id = 'autoHideState';
-    // container.style.display = 'flex';
-    // container.style.alignItems = 'center';
-    // container.style.justifyContent = 'flex-start';
-    // container.style.paddingBottom = '10px'; // 假设按钮的下内边距是10px
-
-    // // 创建图标img元素
-    // var iconImg = document.createElement('img');
-    // iconImg.src = chrome.runtime.getURL(data.autoHide&&estate ? "res/hideOn.svg" : "res/hideOff.svg"); // 你的SVG文件路径
-    // iconImg.alt = '*';
-    // iconImg.style.height = '20px'; // 根据需要调整大小
-    // iconImg.style.width = '25px'; // 根据需要调整大小
-    // container.appendChild(iconImg);
-
-    // // 创建文本
-    // var textSpan = document.createElement('span');
-    // textSpan.textContent = content;
-    // textSpan.style.marginTop = '-1px';
-    // textSpan.style.fontSize = '12px';
-    // textSpan.style.paddingLeft = '2px'; // 图标和文本之间的间距
-    // container.appendChild(textSpan);
-
-    // // 最后，将新创建的元素插入到div的第一个子元素（即button）之前
-    // var button = div.querySelector('button');
-    // if (button) {
-    //     var myTarget = document.getElementById('autoHideState');
-    //     div.insertBefore(container, button);
-        
-    // } 
 }

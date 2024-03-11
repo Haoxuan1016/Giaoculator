@@ -66,13 +66,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         did_autocalcall = false;
         smsCalcStat = [];
         localStorage.clear();
-        send_short_msg("bp-logpageState",0);
-        setTimeout(() => {
-            send_short_msg("bp-logpageState",0);
-        }, 1000);
-        setTimeout(() => {
-            send_short_msg("bp-logpageState",0);
-        }, 2000);
         console.log("LocalStorageCleared");
         chrome.storage.local.get('user_preference', function(data) {
             if (data.user_preference) {
@@ -1310,7 +1303,6 @@ function parseDateInfo(dateInfo) {
 chrome.runtime.onMessage.addListener(
     function(message, sender, sendResponse) {
         if (message.type === "enable_change") {
-            send_short_msg("bp-logpageState",0);
             chrome.storage.local.get('enable_state', async function(result) {
                 var usrName = await fetchUsrInfo();
                 enable_state = result.enable_state;
