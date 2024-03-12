@@ -574,11 +574,17 @@ function showStateAtLoginPageMain(tmp,estate) {
 }
 
 function diyHomepage(){
-    try {
-        targ = document.getElementsByClassName("fe-components-stu-business-login-enter-box-__schoolBackground--2S3KJugj_l_m7T5hRdY_cv")[0];
-        targ.children[0].innerHTML = "<div id='video-wrapper' style='width: 100%; height: 100%; position: relative; overflow: hidden;'><video style='width: 100%; height: 100%; object-fit: cover;' autoplay loop muted><source src='https://www.tsinglan.cn/uploadfile/mp4/HomeVideo.mp4' type='video/mp4'>Your browser does not support the video tag.</video></div>"
-    } catch (error) {
-        
-    }
+    chrome.storage.local.get('user_preference', function(result) {
+        var source = result.user_preference.homeSrc;
+        try {
+            targ2 = document.getElementsByClassName("ng-scope fe-apps-login-__bgWhite--17b4s19HLx5VBdUGMT5Gz0")[0];
+            //targ2.style.backgroundImage = "url("+source+")";
+            targ = document.getElementsByClassName("fe-components-stu-business-login-enter-box-__schoolBackground--2S3KJugj_l_m7T5hRdY_cv")[0];
+            targ.children[0].innerHTML = "<div id='video-wrapper' style='width: 100%; height: 100%; position: relative; overflow: hidden;'><video style='width: 100%; height: 100%; object-fit: cover;' autoplay loop muted><source src='"+source+"' type='video/mp4'>Your browser does not support the video tag.</video></div>"
+        } catch (error) {
+            
+        }
+    })
+
 }
     

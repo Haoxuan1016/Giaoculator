@@ -179,6 +179,9 @@ function initExpSettings(){
     var link = prompt("[实验功能]自定义主页背景图为视频链接\n当前设置:"+exp_homevod+"\n请输入一个链接:");
     if (link === "" || link === null) {
         link = "null";
+        alert("已关闭该功能！");
+    }else{
+        alert("设置成功！\n"+link);
     }
     exp_homevod = link;
 }
