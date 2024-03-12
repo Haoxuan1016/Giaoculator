@@ -1,0 +1,41 @@
+name: Release Chrome Extension
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+
+    - name: Get version number from manifest
+      id: manifest
+      run: echo "::set-output name=version::$(jq -r '.version' manifest.json)"
+
+    - name: Bundle files into a ZIP
+      run: |
+        zip -r extension-${{ steps.manifest.outputs.version }}.zip lib res LICENSE README.md background.js content.js icon.png manifest.json options.css options.html options.js popup.css popup.html popup.js
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ steps.manifest.outputs.version }}
+        release_name: Release ${{ steps.manifest.outputs.version }}
+        body_path: UpdateMessage.md
+        draft: false
+        prerelease: false
+
+    - name: Upload ZIP to Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./extension-${{ steps.manifest.outputs.version }}.zip
+        asset_name: extension-${{ steps.manifest.outputs.version }}.zip
+        asset_content_type: application/zip
