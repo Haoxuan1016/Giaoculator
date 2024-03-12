@@ -1,5 +1,5 @@
 let EXTENSION_VERSION = [4,5,5]
-
+var exp_homevod
 var langSet = (navigator.language || navigator.userLanguage).startsWith('zh') ? 'cn' : 'en';
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 document.getElementById('save').addEventListener('click', saveOptions);
+
+document.getElementById('exp_settings').addEventListener('click', initExpSettings);
 
 // Update display for calcRange slider dynamically
 document.getElementById('calcRange').addEventListener('input', function() {
@@ -39,7 +41,8 @@ function saveOptions() {
         calcRange: parseInt(calcRange, 10),
         welcomeMsg: welcomeMsg,
         autoHide: autoHide,
-        autoHide_Condition: parseInt(autoHide_Condition, 10)
+        autoHide_Condition: parseInt(autoHide_Condition, 10),
+        homeSrc: exp_homevod
     };
 
     // Use chrome.storage.local to save the user preferences
@@ -83,6 +86,12 @@ function loadOptions() {
             }else{
                 document.getElementById('calcRangeValue').textContent =  "计算最近 " + document.getElementById('calcRange').value + " 个学期的数据";
             }
+            try {
+                exp_homevod = data.user_preference.homeSrc;
+            } catch (error) {
+                exp_homevod = "无";
+            }
+            
             document.getElementById('welcomeMsg').value = data.user_preference.welcomeMsg;
             document.getElementById('autoHide').checked = data.user_preference.autoHide;
             document.getElementById('autoHide_Condition').value = data.user_preference.autoHide_Condition;
@@ -164,4 +173,12 @@ function setLanguage() {
             element.textContent = data[id];
         }
     }
+}
+
+function initExpSettings(){
+    var link = prompt("[实验功能]自定义主页背景图为视频链接\n当前设置:"+exp_homevod+"\n请输入一个链接:");
+    if (link === "" || link === null) {
+        link = "null";
+    }
+    exp_homevod = link;
 }

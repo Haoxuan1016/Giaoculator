@@ -24,6 +24,26 @@ body {
     background-size: cover; /* 保证图标完全覆盖指定区域 */
 }
 
+#exp_settings {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    margin-right: 2px;
+    margin-bottom: 15px;
+    padding: 5px;
+
+    width: 100px; /* 根据您的图标尺寸调整 */
+    height: 20px; /* 根据您的图标尺寸调整 */
+    background-image: url('res/exp_settings.png'); /* 指向您的图标文件 */
+    background-size: cover; /* 保证图标完全覆盖指定区域 */
+
+    background-color: transparent;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
 
 .subtitle {
     font-size: 14.3px;
@@ -148,7 +168,7 @@ input[type="checkbox"]:checked {
     align-items: center;
 }
 
-button {
+#save {
     background-color: #4CAF50; /* Green */
     color: white;
     padding: 10px 15px;
@@ -158,6 +178,6 @@ button {
     font-size: 16px;
 }
 
-button:hover {
+#save:hover {
     background-color: #45a049;
 }

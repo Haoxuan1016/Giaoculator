@@ -1,7 +1,9 @@
 console.log("Giaoculator is Running");
+diyHomepage();
 
 SHOW_REFRESH = false;
 var tmp_stopHide = false;
+
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     // 尝试结合两个版本的功能：使用chrome.storage.local来检查enable_state，并保留disable_autologin逻辑。
@@ -421,7 +423,7 @@ function hideAseRepeatedly(data, interval, duration) {
             });//该实现方式有待优化，可考虑在检测为false时continue
         }, i * interval);
     }
-}
+}   
 
 
 
@@ -431,6 +433,7 @@ function showStateAtLoginPage(){
             showStateAtLoginPageMain(tmp,estate.enable_state);
         });
     });
+
 }
 
 function showHideButtonAtHome(){
@@ -569,3 +572,13 @@ function showStateAtLoginPageMain(tmp,estate) {
         
     } 
 }
+
+function diyHomepage(){
+    try {
+        targ = document.getElementsByClassName("fe-components-stu-business-login-enter-box-__schoolBackground--2S3KJugj_l_m7T5hRdY_cv")[0];
+        targ.children[0].innerHTML = "<div id='video-wrapper' style='width: 100%; height: 100%; position: relative; overflow: hidden;'><video style='width: 100%; height: 100%; object-fit: cover;' autoplay loop muted><source src='https://www.tsinglan.cn/uploadfile/mp4/HomeVideo.mp4' type='video/mp4'>Your browser does not support the video tag.</video></div>"
+    } catch (error) {
+        
+    }
+}
+    
