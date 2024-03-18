@@ -1,4 +1,4 @@
-let EXTENSION_VERSION = [4,5,6]
+let EXTENSION_VERSION = [4,5,7]
 
 let processingUrls = {};    
 let categoryCache = {};
@@ -36,6 +36,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     // 定义监听的地址
     const LoginPattern = "https://tsinglanstudent.schoolis.cn/";
     const HomepagePattern = "https://tsinglanstudent.schoolis.cn/Home#!/task/list";
+    const NetworkLoginPattern = "http://4.3.2.1/ac_portal/";
 
     // 当URL变化时，重新注入内容脚本（上古时期的代码了，反正能跑）
     if (changeInfo.url && tab.url.includes("https://tsinglanstudent.schoolis.cn/Home#!/task/stat")) {

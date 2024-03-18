@@ -3,6 +3,11 @@ diyHomepage();
 
 SHOW_REFRESH = false;
 var tmp_stopHide = false;
+var clicked_disclamer = false;
+
+if(window.location.href==="http://4.3.2.1/homepage/login.html"){
+    window.location.href="http://4.3.2.1";
+}
 
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
@@ -70,7 +75,17 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     });
 });
 
-
+function Ntw_SimclickDisclamer(){
+    if(!clicked_disclamer){
+        var targ = document.getElementById("password_disclaimer");//用于快速点击disclamer选项
+        if(targ){
+            if(!targ.checked){
+                targ.click();
+                clicked_disclamer=true;
+            }
+        }
+    }
+}
 function editPageText(){
     changeBarname(0, " (1)")
     changeBarname(1, " (2)")
@@ -166,6 +181,8 @@ function engPage_opti(){
     }
 }
 
+
+
 document.onkeydown = function(e) {
     const target = e.target;
     const tagName = target.tagName.toUpperCase();
@@ -177,6 +194,7 @@ document.onkeydown = function(e) {
 
     if (isEditable) {
         console.log("Typing..")
+        Ntw_SimclickDisclamer();
         return;
     }
 
@@ -184,6 +202,7 @@ document.onkeydown = function(e) {
 
     if(e.key === 'Escape'){
         simulateClickLogout();
+        
     } else if(e.key >= '1' && e.key <= '4'){
         simulateClickBar(e.key.charCodeAt(0) - 49);
     } else if(e.key == 'ArrowLeft' && (currentWindow === "https://tsinglanstudent.schoolis.cn/Home#!/task/list" || currentWindow === "https://tsinglanstudent.schoolis.cn/Home#!/schedule")){
@@ -240,7 +259,11 @@ function simulateClickLogout() {
             try{
                 document.getElementsByClassName("ng-binding fe-components-stu-business-topbar-profile-__liBtn--2o4Tw8hObEQPDm7WM_T2us")[1].click();
             }catch{
-                
+                try {
+                    document.getElementsByClassName("logout hide")[0].click();
+                } catch{
+                    
+                }
             }
         }
     }
