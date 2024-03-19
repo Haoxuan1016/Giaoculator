@@ -70,6 +70,10 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 hideAssignments(data.cont);
                 hideAseRepeatedly(data,10,1500);
                 hideAseRepeatedly(data,100,3000);
+            } else if (type == "bp-GPAcalced"){
+                gpaClaced();
+            } else if (type == "bp-GPANotcalced"){
+                gpaNotClaced();
             }
         }
     });
@@ -609,5 +613,29 @@ function diyHomepage(){
         }
     })
 
+}
+
+function gpaClaced(){
+    var langSet = (navigator.language || navigator.userLanguage).startsWith('zh') ? 'cn' : 'en';
+    if(langSet == 'cn'){
+        setTimeout(() => {
+            document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__gpaContentTitle--JYXIB_rCNvSgM5wWcEYdJ")[0].innerText = "学期GPA (预估)";
+        }, 20);
+        document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__gpaContentTitle--JYXIB_rCNvSgM5wWcEYdJ")[0].innerText = "学期GPA (预估)";
+    }else{
+        setTimeout(() => {
+            document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__gpaContentTitle--JYXIB_rCNvSgM5wWcEYdJ")[0].innerText = "Semester GPA (Predicted)";
+        }, 20);
+        document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__gpaContentTitle--JYXIB_rCNvSgM5wWcEYdJ")[0].innerText = "Semester GPA (Predicted)";
+    }
+} 
+
+function gpaNotClaced(){
+    var langSet = (navigator.language || navigator.userLanguage).startsWith('zh') ? 'cn' : 'en';
+    if(langSet != 'cn'){
+        document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__gpaContentTitle--JYXIB_rCNvSgM5wWcEYdJ")[0].innerText = "Semester GPA";
+    }else{
+        document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__gpaContentTitle--JYXIB_rCNvSgM5wWcEYdJ")[0].innerText = "学期GPA";
+    }
 }
     

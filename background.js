@@ -1,8 +1,10 @@
-let EXTENSION_VERSION = [4,5,7]
+let EXTENSION_VERSION = [4,6.0]
 
 let processingUrls = {};    
 let categoryCache = {};
+var gpaExistenceMap = {};
 var his_range = 1;
+var isFetchingGPA = false;
 var usr_setting = {};
 var enable_state = true;
 var did_autocalcall = false;
@@ -219,7 +221,7 @@ chrome.webRequest.onBeforeRequest.addListener(
                         course.classEName = "Homeroom";
                     }
                     totalCourse.push(course);
-                    console.log("Pushed!TypeORIGINALdata:",course.subjectEName);
+                    //console.log("Pushed!TypeORIGINALdata:",course.subjectEName);
                     add_count+=1;
                 }
             }
@@ -234,7 +236,7 @@ chrome.webRequest.onBeforeRequest.addListener(
                     course.subjectId = courseInfo.subjectId;
                     course.subjectScore = courseInfo.gpa;
                     totalCourse.push(course);
-                    console.log("Pushed!TypeCALCdata:",courseInfo.ename);
+                    //console.log("Pushed!TypeCALCdata:",courseInfo.ename);
                     add_count+=1;
                 }
                 
@@ -279,27 +281,33 @@ chrome.webRequest.onBeforeRequest.addListener(
                 return null;
             }
             
-        }/* else if (details.url.startsWith(GPAUrlPattern)) {
-            // gpa = getFromLocalStorage(0).gpa => number;
-            let totalGPA = 0;
-            let scores = getAllGPAValues();
-            let gpas = [];
-            // 根据gpaRules将scores转换为gpa，然后加入gpas列表
-            for (let score of scores) {
-                for (let rule of gpaRules) {
-                    if (score >= rule.minValue && score <= rule.maxValue) {
-                        gpas.push(rule.gpa);
-                        break;
-                    }
-                }
+        }else if (details.url.startsWith(GPAUrlPattern)) {
+            var invalidCount = 0;
+            if(isFetchingGPA){
+                isFetchingGPA = false;
+                return
             }
+            var tmptargsms = details.url.split('?semesterId=')[1];
+            if(smsCalcStat[tmptargsms]!=1 || gpaExistenceMap[tmptargsms]){
+                console.log("Not FinishedCalc or Already HaveINFO:",tmptargsms);
+                send_short_msg("bp-GPANotcalced",0);
+                return;
+                
+            }
+            let totalGPA = 0;
+            let gpas = getAllGPAValues(tmptargsms);
+            // 根据gpaRules将scores转换为gpa，然后加入gpas列表
+            
 
             // 计算平均GPA
             for (let gpa of gpas) {
                 totalGPA += gpa;
+                if(gpa<=0){
+                    invalidCount = invalidCount + 1;
+                }
             }
-            let avgGPA = totalGPA / gpas.length;
-
+            let avgGPA = totalGPA / (gpas.length-invalidCount);
+            send_short_msg("bp-GPAcalced",0);
             return {
                 redirectUrl: "data:application/json," + encodeURIComponent(JSON.stringify({
                     // "data": avgGPA, 两位小数
@@ -310,8 +318,7 @@ chrome.webRequest.onBeforeRequest.addListener(
                     "msg": null
                 }))
             }
-            
-        }*/else if (details.url.startsWith(GiaoculatorClassUrlPattern)) {
+        }else if (details.url.startsWith(GiaoculatorClassUrlPattern)) {
             const urlParams = new URLSearchParams(new URL(details.url).search);
             let req_subjectId = urlParams.get('subjectId');
             let req_semesterId = urlParams.get('semesterId');
@@ -833,21 +840,81 @@ function getFromLocalStorage(keyName) {
 
 function getAllGPAValues(targsms) {
     let gpaList = [];
-
+    var chineseGPA = -1;
     // 遍历所有localStorage的键
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        
+        if(!key.startsWith(targsms) || key.includes("I")){
+            //console.log("忽略"+key+"的data!");
+            continue;
+        }
         // 使用之前的函数来获取每个键的值
-        const data = getFromLocalStorage(targsms+'|'+key);
+        const data = getFromLocalStorage(key);
+        var score;
+        var weighted_value = 0;
+        if(data.isOriginal==true){
+            score = parseFloat(data.subjectScore);
+            if(data.scoreMappingId=="6799"){
+                weighted_value = 0.5;
+            }else if(data.classEName.includes("C-Humanities")){
+                if(chineseGPA === -1){
+                    chineseGPA = score;
+                }else{
+                    chineseGPA = chineseGPA * 0.666 + score * 0.333;
+                }
+                continue;
+            }else if(data.classEName.includes("Chinese")){
+                if(chineseGPA === -1){
+                    chineseGPA = score;
+                }else{
+                    chineseGPA = chineseGPA * 0.333 + score * 0.666;
+                }
+                continue;
+            }
+            //console.log(data.classEName,data.scoreMappingId,weighted_value);
+        }else{
+            score = parseFloat(data.gpa);
+            if(data.gpaInfo.ename.includes("AP")){
+                weighted_value = 0.5;
+            }else if(data.gpaInfo.ename.includes("C-Humanities")){
+                if(chineseGPA === -1){
+                    chineseGPA = score;
+                }else{
+                    chineseGPA = chineseGPA * 0.666 + score * 0.333;
+                }
+                continue;
+            }else if(data.gpaInfo.ename.includes("Chinese")){
+                if(chineseGPA === -1){
+                    chineseGPA = score;
+                }else{
+                    chineseGPA = chineseGPA * 0.333 + score * 0.666;
+                }
+                continue;
+            }
+            //console.log(data.gpaInfo.ename,weighted_value);
+        }
+        if(score<=0){
+            continue;
+        }
+        for (let rule of gpaRules) {
+            if (score >= rule.minValue && score <= rule.maxValue) {
+                var tmp = rule.gpa;
+                tmp = tmp + weighted_value;
+                gpaList.push(parseFloat(tmp));
+                break;
+            }
+        }
         
-        // 检查对象中是否有gpa属性
-        if (data && typeof data.gpa !== 'undefined') {
-            // 将gpa值转换为浮点数并加入列表中
-            gpaList.push(parseFloat(data.gpa));
+    }
+    if(chineseGPA > -1){
+        for (let rule of gpaRules) {
+            if (chineseGPA >= rule.minValue && chineseGPA <= rule.maxValue) {
+                var tmp2 = rule.gpa;
+                gpaList.push(parseFloat(tmp2));
+            }
         }
     }
-    
+    console.log(gpaList);
     return gpaList;
 }
 
@@ -987,7 +1054,7 @@ function refresh_page(redotimes){
                 chrome.tabs.sendMessage(tabs[0].id, message);
                 console.log("[refreshpage]:sucess send")
             }catch(e){
-                console.log(`[refeshpage]:failed to send,${redotimes}`)
+                //console.log(`[refeshpage]:failed to send,${redotimes}`)
                 console.log(message);
                 setTimeout(() => { 
                     refresh_page(redotimes+1)
@@ -1010,7 +1077,7 @@ function refresh_realtime(redotimes){
                 chrome.tabs.sendMessage(tabs[0].id, message);
                 console.log("[refreshByClick]:sucess send")
             }catch(e){
-                console.log(`[refreshByClick]:failed to send,${redotimes}`)
+                //console.log(`[refreshByClick]:failed to send,${redotimes}`)
                 console.log(message);
                 setTimeout(() => { 
                     refresh_realtime(redotimes+1)
@@ -1033,9 +1100,9 @@ function send_short_msg(msgtype,redotimes){
             };
             try{
                 chrome.tabs.sendMessage(tabs[0].id, message);
-                console.log(`[${msgtype}]:failed to send,${redotimes}`)
+                //console.log(`[${msgtype}]:failed to send,${redotimes}`)
             }catch(e){
-                console.log(`[${msgtype}]:failed to send,${redotimes}`)
+                //console.log(`[${msgtype}]:failed to send,${redotimes}`)
                 console.log(message);
                 setTimeout(() => { 
                     send_short_msg(msgtype,redotimes+1);
@@ -1059,9 +1126,9 @@ function send_str_msg(msgtype,cont,redotimes){
             };
             try{
                 chrome.tabs.sendMessage(tabs[0].id, message);
-                console.log(`[${msgtype}]:failed to send,${redotimes}`)
+                //console.log(`[${msgtype}]:failed to send,${redotimes}`)
             }catch(e){
-                console.log(`[${msgtype}]:failed to send,${redotimes}`)
+                //console.log(`[${msgtype}]:failed to send,${redotimes}`)
                 console.log(message);
                 setTimeout(() => { 
                     send_str_msg(msgtype,cont,redotimes+1);
@@ -1269,6 +1336,7 @@ async function AutoCalcAll() {
             console.log("[AutoCalc]Start Calc",smsId);
             smsCalcStat[smsId] = -1;
             if(await CalcBySmsId(smsId,bgnDates[i],endDates[i])){
+                await isExistGPA(smsId);
                 console.log("[AutoCalc]Finished Calc",smsId);
                 smsCalcStat[smsId] = 1;
                 if((i+1) == his_range){
@@ -1335,3 +1403,26 @@ chrome.runtime.onMessage.addListener(
         }
     }
 );
+
+async function isExistGPA(smsId) {
+    const url = `https://tsinglanstudent.schoolis.cn/api/DynamicScore/GetGpa?semesterId=${smsId}`;
+    try {
+        isFetchingGPA = true;
+        let response = await fetch(url);
+        let data = await response.json();
+        console.log("do a fetch");
+
+        // 检查是否已存在有效的GPA数据
+        if (data && data.data && typeof data.data === 'number' && data.data > 0) {
+            console.log("GPA data already exists for smsId:", smsId);
+            gpaExistenceMap[smsId] = true;
+        } else {
+            console.log("No valid GPA data found for smsId:", smsId);
+            gpaExistenceMap[smsId] = false;
+        }
+    } catch (error) {
+        console.error("Error fetching GPA data for smsId:", smsId, error);
+        gpaExistenceMap[smsId] = false;
+    }
+    isFetchingGPA = false;
+}
