@@ -202,7 +202,7 @@ chrome.webRequest.onBeforeRequest.addListener(
             let add_count = 0;
             for (let courseInfo of courseInfoList) {
                 let course = JSON.parse(JSON.stringify(template));
-                console.log("courseInfo:",courseInfo);
+                //console.log("courseInfo:",courseInfo);
                 if(courseInfo.source == "original"){
                     course.className = courseInfo.className;
                     course.classEName = courseInfo.classEName;
@@ -295,7 +295,7 @@ chrome.webRequest.onBeforeRequest.addListener(
                 
             }
             let totalGPA = 0;
-            let gpas = getAllGPAValues(tmptargsms);
+            /*let gpas = getAllGPAValues(tmptargsms);
             // 根据gpaRules将scores转换为gpa，然后加入gpas列表
             
 
@@ -306,8 +306,10 @@ chrome.webRequest.onBeforeRequest.addListener(
                     invalidCount = invalidCount + 1;
                 }
             }
-            let avgGPA = totalGPA / (gpas.length-invalidCount);
+            let avgGPA = totalGPA / (gpas.length-invalidCount);*/
+            let avgGPA = getAllGPAValues(tmptargsms);
             send_short_msg("bp-GPAcalced",0);
+            console.log(avgGPA);
             return {
                 redirectUrl: "data:application/json," + encodeURIComponent(JSON.stringify({
                     // "data": avgGPA, 两位小数
@@ -410,7 +412,7 @@ chrome.webRequest.onBeforeRequest.addListener(
             }
             let totalCourse = [];
             let template = {"grade":null,"classType":2,"classId":277851,"className":"GPA Calculator","classEName":"GPA Calculator","subjectId":100628,"subjectName":"Giaoculator","subjectEName":"Giaoculator","isInGrade":true,"subjectScore":100,"scoreMappingId":4517,"updateDate":"\/Date(0000000000000+0800)\/","subjectTotalScore":100.0,"scoreType":1,"levelString":"A+"};
-
+ 
             // 获取所有的course
             let courseInfoList = getAllCourseInfo();
             
@@ -784,6 +786,7 @@ async function fetchSubjectEName(semesterId, subjectId) {
         if (subjectData) {
             return {
                 ename: subjectData.eName,
+                subjectCode: subjectData.subjectCode,
                 semesterId: semesterId,
                 subjectId: subjectId
             };
@@ -840,6 +843,12 @@ function getFromLocalStorage(keyName) {
 
 function getAllGPAValues(targsms) {
     let gpaList = [];
+    var avg_lowWeight = 0;
+    var avg_moderateWeight = 0;
+    var avg_highWeight = 0;
+    var cnt_lowWeight = 0;
+    var cnt_moderateWeight = 0;
+    var cnt_highWeight = 0;
     var chineseGPA = -1;
     // 遍历所有localStorage的键
     for (let i = 0; i < localStorage.length; i++) {
@@ -851,8 +860,13 @@ function getAllGPAValues(targsms) {
         // 使用之前的函数来获取每个键的值
         const data = getFromLocalStorage(key);
         var score;
+        var subjectGPA;
+        var subjectName = "Houseee";
+        var subjectCode = "Houseeeeee";
         var weighted_value = 0;
         if(data.isOriginal==true){
+            subjectName = data.classEName;
+            subjectCode = data.subjectInfo.subjectCode;
             score = parseFloat(data.subjectScore);
             if(data.scoreMappingId=="6799"){
                 weighted_value = 0.5;
@@ -873,6 +887,8 @@ function getAllGPAValues(targsms) {
             }
             //console.log(data.classEName,data.scoreMappingId,weighted_value);
         }else{
+            subjectName = data.gpaInfo.ename;
+            subjectCode = data.gpaInfo.subjectCode;
             score = parseFloat(data.gpa);
             if(data.gpaInfo.ename.includes("AP")){
                 weighted_value = 0.5;
@@ -900,9 +916,25 @@ function getAllGPAValues(targsms) {
             if (score >= rule.minValue && score <= rule.maxValue) {
                 var tmp = rule.gpa;
                 tmp = tmp + weighted_value;
-                gpaList.push(parseFloat(tmp));
+                subjectGPA=tmp;
                 break;
             }
+        }
+        var subjectInfos = subjectCode + subjectName;
+        console.log(subjectName,subjectCode,score,subjectGPA);
+        let excludeList_LowWeight = ["PE","Fine Art","IT","Ele","Drama"];
+        let excludeList_NotCNT = ["TSSA","IELTS","TOFEL","Student","Clubs"];
+        if(subjectName.includes("AP")){
+            avg_highWeight += subjectGPA;
+            cnt_highWeight += 1;
+        }else if(excludeList_LowWeight.some(excludeItem => subjectInfos.includes(excludeItem))){
+            avg_lowWeight += subjectGPA;
+            cnt_lowWeight += 1;
+        }else if(excludeList_NotCNT.some(excludeItem => subjectInfos.includes(excludeItem))){
+            continue;
+        }else{
+            avg_moderateWeight += subjectGPA;
+            cnt_moderateWeight += 1;
         }
         
     }
@@ -910,12 +942,15 @@ function getAllGPAValues(targsms) {
         for (let rule of gpaRules) {
             if (chineseGPA >= rule.minValue && chineseGPA <= rule.maxValue) {
                 var tmp2 = rule.gpa;
-                gpaList.push(parseFloat(tmp2));
+                avg_moderateWeight += tmp2;
+                cnt_moderateWeight += 1;
             }
         }
     }
-    console.log(gpaList);
-    return gpaList;
+    var finalGPA = 0;
+    console.log(avg_highWeight,avg_moderateWeight,avg_lowWeight,cnt_highWeight,cnt_moderateWeight,cnt_lowWeight);
+    finalGPA = (avg_highWeight * 1.25 + avg_moderateWeight * 1 + avg_lowWeight * 0.75)/(cnt_highWeight * 1.25 + cnt_moderateWeight * 1 + cnt_lowWeight * 0.75);
+    return finalGPA;
 }
 
 function getAllCourseInfo(targsms) {
@@ -953,6 +988,7 @@ function getAllCourseInfo(targsms) {
                     // 将gpa值转换为浮点数并加入列表中
                     courseInfoList.push({
                         ename: data.gpaInfo.ename,
+                        subjectCode: data.gpaInfo.subjectCode,
                         subjectId: data.gpaInfo.subjectId,
                         gpa: parseFloat(data.gpa),
                         isOriginal: false,
@@ -1209,7 +1245,7 @@ async function fetchOriginalRequest(smsId) {
     isFetchOriginal = true;
     // 如果没有提供 semesterId 或 subjectId，可以直接返回 null 或抛出错误
     if (!smsId) {
-        smsId = 24699;
+        return;
     }
     urlPattern = "https://tsinglanstudent.schoolis.cn/api/DynamicScore/GetStuSemesterDynamicScore?semesterId="+smsId;
 
@@ -1233,6 +1269,7 @@ async function fetchOriginalRequest(smsId) {
         let originalCourseInfoList = data.data.studentSemesterDynamicScoreBasicDtos;
         for (var i=0;i<originalCourseInfoList.length;i++) {
             courseInfo = originalCourseInfoList[i];
+            let subjectInfo = await fetchSubjectEName(smsId, courseInfo.subjectId);
             // Localstorage移除courseInfo.classId的字段
             localStorage.removeItem(smsId+'|'+courseInfo.subjectId);
             let course = {
@@ -1241,6 +1278,7 @@ async function fetchOriginalRequest(smsId) {
                 scoreMappingId : courseInfo.scoreMappingId,
                 classEName : courseInfo.classEName,
                 smsId : working_sms,
+                subjectInfo : subjectInfo,
                 classId : courseInfo.classId,
                 subjectName : courseInfo.subjectName,
                 subjectEName : courseInfo.subjectEName,
