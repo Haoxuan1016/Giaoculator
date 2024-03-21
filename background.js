@@ -232,7 +232,7 @@ chrome.webRequest.onBeforeRequest.addListener(
                     course.classEName = courseInfo.ename;
                     course.subjectName = courseInfo.ename;
                     course.subjectEName = courseInfo.ename;
-                    course.scoreMappingId = courseInfo.ename.includes("AP")? 6799:4517;
+                    course.scoreMappingId = (courseInfo.ename.includes("AP")||courseInfo.ename.includes("AS"))? 6799:4517;
                     course.subjectId = courseInfo.subjectId;
                     course.subjectScore = courseInfo.gpa;
                     totalCourse.push(course);
@@ -307,7 +307,7 @@ chrome.webRequest.onBeforeRequest.addListener(
                 }
             }
             let avgGPA = totalGPA / (gpas.length-invalidCount);*/
-            let avgGPA = getAllGPAValues(tmptargsms);
+            let avgGPA = getAllGPAValues(tmptargsms)+0.0000001;
             send_short_msg("bp-GPAcalced",0);
             console.log(avgGPA);
             return {
@@ -890,20 +890,20 @@ function getAllGPAValues(targsms) {
             subjectName = data.gpaInfo.ename;
             subjectCode = data.gpaInfo.subjectCode;
             score = parseFloat(data.gpa);
-            if(data.gpaInfo.ename.includes("AP")){
+            if(data.gpaInfo.ename.includes("AP")||data.gpaInfo.ename.includes("AS")){
                 weighted_value = 0.5;
             }else if(data.gpaInfo.ename.includes("C-Humanities")){
                 if(chineseGPA === -1){
                     chineseGPA = score;
                 }else{
-                    chineseGPA = chineseGPA * 0.666 + score * 0.333;
+                    chineseGPA = chineseGPA * 0.66666 + score * 0.33333;
                 }
                 continue;
             }else if(data.gpaInfo.ename.includes("Chinese")){
                 if(chineseGPA === -1){
                     chineseGPA = score;
                 }else{
-                    chineseGPA = chineseGPA * 0.333 + score * 0.666;
+                    chineseGPA = chineseGPA * 0.33333 + score * 0.66666;
                 }
                 continue;
             }
@@ -922,12 +922,9 @@ function getAllGPAValues(targsms) {
         }
         var subjectInfos = subjectCode + subjectName;
         console.log(subjectName,subjectCode,score,subjectGPA);
-        let excludeList_LowWeight = ["PE","Fine Art","IT","Ele","Drama"];
-        let excludeList_NotCNT = ["TSSA","IELTS","TOFEL","Student","Clubs"];
-        if(subjectName.includes("AP")){
-            avg_highWeight += subjectGPA;
-            cnt_highWeight += 1;
-        }else if(excludeList_LowWeight.some(excludeItem => subjectInfos.includes(excludeItem))){
+        let excludeList_LowWeight = ["Fine Art","IT","Ele","Drama","Chinese Painting","Architectural","Dance","Percussion","Vocal","Media","Programming","Spanish","Philosophy","Skills","Journalism","Creative"];
+        let excludeList_NotCNT = ["TSSA","IELTS","TOFEL","Student","Clubs","Homeroom"];
+        if(excludeList_LowWeight.some(excludeItem => subjectInfos.includes(excludeItem))){
             avg_lowWeight += subjectGPA;
             cnt_lowWeight += 1;
         }else if(excludeList_NotCNT.some(excludeItem => subjectInfos.includes(excludeItem))){
@@ -936,6 +933,7 @@ function getAllGPAValues(targsms) {
             avg_moderateWeight += subjectGPA;
             cnt_moderateWeight += 1;
         }
+        console.log("GPACLAC",subjectGPA,score,subjectName);
         
     }
     if(chineseGPA > -1){
@@ -944,12 +942,13 @@ function getAllGPAValues(targsms) {
                 var tmp2 = rule.gpa;
                 avg_moderateWeight += tmp2;
                 cnt_moderateWeight += 1;
+                console.log("[GPACALC]Chineses",tmp2);
             }
         }
     }
     var finalGPA = 0;
     console.log(avg_highWeight,avg_moderateWeight,avg_lowWeight,cnt_highWeight,cnt_moderateWeight,cnt_lowWeight);
-    finalGPA = (avg_highWeight * 1.25 + avg_moderateWeight * 1 + avg_lowWeight * 0.75)/(cnt_highWeight * 1.25 + cnt_moderateWeight * 1 + cnt_lowWeight * 0.75);
+    finalGPA = (avg_moderateWeight * 1 + avg_lowWeight * 0.5)/(cnt_moderateWeight * 1 + cnt_lowWeight * 0.5);
     return finalGPA;
 }
 
@@ -1375,6 +1374,7 @@ async function AutoCalcAll() {
             smsCalcStat[smsId] = -1;
             if(await CalcBySmsId(smsId,bgnDates[i],endDates[i])){
                 await isExistGPA(smsId);
+                await fetchSchedule(bgnDates[i]);
                 console.log("[AutoCalc]Finished Calc",smsId);
                 smsCalcStat[smsId] = 1;
                 if((i+1) == his_range){
@@ -1464,3 +1464,41 @@ async function isExistGPA(smsId) {
     }
     isFetchingGPA = false;
 }
+async function fetchSchedule(startDate) {
+    return;//暂时关闭，未完成
+    const url = 'https://tsinglanstudent.schoolis.cn/api/Schedule/ListScheduleByParent';
+    const bgn_parsed = parseDateInfo(startDate);
+    let bgn_year = bgn_parsed.year;
+    let bgn_mon = bgn_parsed.mon;
+    let bgn_date = bgn_parsed.date;
+    let end_date = bgn_date;
+    let end_mon = bgn_mon;
+    if(bgn_date>13){
+        end_mon += 1;
+    }else{
+        end_date += 15;
+    }
+    // 使用指定的请求载荷格式
+    const data = {
+      beginTime: "2024-03-21",
+      endTime: "2024-03-21"
+    };
+    
+    fetch(url, {
+      method: 'POST', // 指定请求方法
+      headers: {
+        'Content-Type': 'application/json', // 指定内容类型
+        // 这里添加任何其他必要的请求头
+      },
+      body: JSON.stringify(data) // 将请求体转换为JSON字符串
+    })
+    .then(response => {
+      if (response.ok) {
+        return response.json(); // 如果响应状态码为200，解析响应体为JSON
+      }
+      throw new Error('Network response was not ok.');
+    })
+    .then(data => console.log(data)) // 处理返回的数据
+    .catch(error => console.error('There has been a problem with your fetch operation:', error));
+  }
+  
