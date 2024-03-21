@@ -31,13 +31,13 @@ document.getElementById('calcRange').addEventListener('input', function() {
 
 function saveOptions() {
     var calcRange = document.getElementById('calcRange').value;
-    var welcomeMsg = document.getElementById('welcomeMsg').value;
+    //var welcomeMsg = document.getElementById('welcomeMsg').value;
     var autoHide = document.getElementById('autoHide').checked;
     var autoHide_Condition = document.getElementById('autoHide_Condition').value;
 
     var user_preference = {
         calcRange: parseInt(calcRange, 10),
-        welcomeMsg: welcomeMsg,
+        //welcomeMsg: welcomeMsg,
         autoHide: autoHide,
         autoHide_Condition: parseInt(autoHide_Condition, 10)
     };
