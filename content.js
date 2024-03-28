@@ -610,21 +610,49 @@ function showStateAtLoginPageMain(tmp,estate) {
         
     } 
 }
-
 function diyHomepage(){
     chrome.storage.local.get('user_preference', function(result) {
         var source = result.user_preference.homeSrc;
-        try {
-            //targ2 = document.getElementsByClassName("ng-scope fe-apps-login-__bgWhite--17b4s19HLx5VBdUGMT5Gz0")[0];
-            //targ2.style.backgroundImage = "url("+source+")";
-            targ = document.getElementsByClassName("fe-components-stu-business-login-enter-box-__schoolBackground--2S3KJugj_l_m7T5hRdY_cv")[0];
-            targ.children[0].innerHTML = "<div id='video-wrapper' style='width: 100%; height: 100%; position: relative; overflow: hidden;'><video style='width: 100%; height: 100%; object-fit: cover;' autoplay loop muted><source src='"+source+"' type='video/mp4'>Your browser does not support the video tag.</video></div>"
-        } catch (error) {
-            
+        if(result.user_preference.advLogPage){
+            setTimeout(() => {
+                beautyLoginPage(source,0);
+            }, 1);
+            return;
         }
-    })
+        try {
+            var targ = document.getElementsByClassName("fe-components-stu-business-login-enter-box-__schoolBackground--2S3KJugj_l_m7T5hRdY_cv")[0];
+            if(source.includes(".jpg")||source.includes("image")||source.includes(".jpeg")||source.includes(".png")||source.includes(".webp")||source.includes(".svg")||source.includes("tiff")||source.includes("bmp")||source.includes("gif")){
+                var img = new Image();
+                img.onload = function() {
+                    // Get the dimensions of the image and the container
+                    var imgWidth = img.width;
+                    var imgHeight = img.height;
+                    var containerWidth = targ.children[0].offsetWidth;
+                    var containerHeight = targ.children[0].offsetHeight;
 
+                    // Decide which background size to use based on the dimensions
+                    if (imgWidth > containerWidth || imgHeight > containerHeight) {
+                        targ.children[0].style.backgroundSize = "cover";
+                    } else {
+                        targ.children[0].style.backgroundSize = "contain";
+                    }
+
+                    // Center the background image and prevent repetition
+                    targ.children[0].style.backgroundPosition = "center center";
+                    targ.children[0].style.backgroundRepeat = "no-repeat";
+                    targ.children[0].style.backgroundImage = "url("+source+")";
+                };
+                img.src = source;
+            } else {
+                targ.children[0].innerHTML = "<div id='video-wrapper' style='width: 100%; height: 100%; position: relative; overflow: hidden;'><video style='width: 100%; height: 100%; object-fit: cover;' autoplay loop muted><source src='"+source+"' type='video/mp4'>Your browser does not support the video tag.</video></div>";
+            }
+        }
+        catch (error) {
+            // Consider logging the error or handling it as required
+        }
+    });
 }
+
 
 function gpaClaced(){
     var langSet = (navigator.language || navigator.userLanguage).startsWith('zh') ? 'cn' : 'en';
@@ -654,4 +682,66 @@ function ntwLoginMain(){
     window.location.href = "http://4.3.2.1/ac_portal/20210314173759/pc.html?template=20210314173759&tabs=qrcode-pwd-dingtalk&vlanid=0&_ID_=0&switch_url=&url=";
     dticon = document.getElementsByClassName("auth-way-item-icon dingtalk")[0];
     dticon.src = chrome.runtime.getURL("res/disablev2.png")
+}
+
+
+function beautyLoginPage(loginPageSrc,redotimes){
+    try {
+        if(loginPageSrc.length<2){
+            loginPageSrc = "https://wallpapercave.com/wp/wp4469554.jpg";
+        }
+        var enterBoxs = document.getElementsByClassName("fe-components-stu-business-login-enter-box-__inputWrap--2OI0SgF-iDEHZborbYzrNZ ");
+        document.getElementsByClassName('ng-scope fe-components-stu-business-login-enter-box-__headMain--7bzuRu-Sq5O2sOCFgPNQH')[0].children[0].src = "https://n.sinaimg.cn/edu/transform/138/w550h388/20190416/Bm46-hvsckth7031121.png";
+        document.getElementsByClassName("ng-scope fe-apps-login-__bgWhite--17b4s19HLx5VBdUGMT5Gz0")[0].style.backgroundSize = "cover";
+        document.getElementsByClassName("fe-components-stu-business-login-enter-box-__schoolBackground--2S3KJugj_l_m7T5hRdY_cv")[0].remove();
+        enterBoxs[0].style.borderRadius='10px'
+        enterBoxs[0].style.backdropFilter="blur(10px)"
+        enterBoxs[0].style.background="rgba(255, 255, 255, .01)"
+        enterBoxs[1].style.borderRadius='10px'
+        enterBoxs[1].style.backdropFilter="blur(10px)"
+        enterBoxs[1].style.background="rgba(255, 255, 255, .01)"
+        document.getElementsByClassName("ng-binding fe-components-stu-business-login-enter-box-__signBtn--2VrsqhNGgcjYTh7LuAGzve")[0].style.borderRadius='10px'
+        //document.getElementsByClassName("ng-binding fe-components-stu-business-login-enter-box-__signBtn--2VrsqhNGgcjYTh7LuAGzve")[0].style.background='rgba(91,138,249,0.5)'
+        document.getElementsByClassName('ng-scope fe-components-stu-business-login-enter-box-__headMain--7bzuRu-Sq5O2sOCFgPNQH')[0].children[0].style.maxHeight="95px"
+        document.getElementsByClassName("fe-components-stu-business-login-enter-box-__accountContainer--22PmjI_OEsahZLiUEgL4zr")[0].style.paddingTop = "40px"
+        document.getElementsByClassName("fe-components-stu-business-login-enter-box-__loginInformation--W2yiibeHcVKj_lJeq1rW_")[0].style.paddingTop = "52px"
+        document.querySelector(".fe-components-stu-business-login-enter-box-__loginInformation--W2yiibeHcVKj_lJeq1rW_").style.backdropFilter="blur(10px)"
+        document.querySelector(".fe-components-stu-business-login-enter-box-__loginInformation--W2yiibeHcVKj_lJeq1rW_").style.background="rgba(255, 255, 255, .70)"
+        if(loginPageSrc.includes(".jpg")||loginPageSrc.includes("image")||loginPageSrc.includes(".jpeg")||loginPageSrc.includes(".png")||loginPageSrc.includes(".webp")||loginPageSrc.includes(".svg")||loginPageSrc.includes("tiff")||loginPageSrc.includes("bmp")||loginPageSrc.includes("gif")){
+            document.getElementsByClassName("ng-scope fe-apps-login-__bgWhite--17b4s19HLx5VBdUGMT5Gz0")[0].style.backgroundImage = "url("+loginPageSrc+")";
+        } else {
+            // 假设 targ 是目标元素，source 是视频源URL
+            var targ = document.querySelector('div[ng-controller="login"]'); // 或者用来定位背景元素的其它选择器
+            var source = loginPageSrc; // 替换为实际视频URL
+
+            // 创建一个空的div作为视频容器
+            var videoContainer = document.createElement('div');
+            videoContainer.style.position = 'absolute';
+            videoContainer.style.top = '0';
+            videoContainer.style.left = '0';
+            videoContainer.style.width = '100%';
+            videoContainer.style.height = '100%';
+            videoContainer.style.overflow = 'hidden';
+            videoContainer.style.zIndex = '-1'; // 确保视频在其他内容之下
+
+            // 设置视频HTML字符串
+            videoContainer.innerHTML = "<video style='width: 100%; height: 100%; object-fit: cover;' autoplay loop muted><source src='" + source + "' type='video/mp4'>Your browser does not support the video tag.</video>";
+
+            // 将视频容器追加到目标元素
+            if (targ) {
+                targ.style.background = 'none'; // 移除原背景
+                targ.appendChild(videoContainer); // 添加视频容器
+            }
+
+    
+        }
+    } catch (error) {
+        if(redotimes<50){
+            setTimeout(() => {
+                console.log(redotimes)
+                beautyLoginPage(loginPageSrc,redotimes);
+            }, redotimes<6 ? 1 : redotimes);
+        }
+    }
+    
 }

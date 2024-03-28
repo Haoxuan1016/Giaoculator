@@ -32,6 +32,7 @@ document.getElementById('calcRange').addEventListener('input', function() {
 });
 
 function saveOptions() {
+    var advLogPage = document.getElementById('advLogPage').checked;
     var calcRange = document.getElementById('calcRange').value;
     var welcomeMsg = document.getElementById('welcomeMsg').value;
     var autoHide = document.getElementById('autoHide').checked;
@@ -40,6 +41,7 @@ function saveOptions() {
     var user_preference = {
         calcRange: parseInt(calcRange, 10),
         welcomeMsg: welcomeMsg,
+        advLogPage: advLogPage,
         autoHide: autoHide,
         autologNtw: autologNtw,
         autoHide_Condition: parseInt(autoHide_Condition, 10),
@@ -93,6 +95,7 @@ function loadOptions() {
             
             document.getElementById('welcomeMsg').value = data.user_preference.homeSrc;
             document.getElementById('autoHide').checked = data.user_preference.autoHide;
+            document.getElementById('advLogPage').checked = data.user_preference.advLogPage;
             document.getElementById('autoHide_Condition').value = data.user_preference.autoHide_Condition;
             var input = document.getElementById('autoHide_Condition');
             var label = document.getElementById('autoHide_Condition_Label');
@@ -111,7 +114,7 @@ function loadOptions() {
             setTimeout(() => {
                 newWindow.close();
                 location.reload(true);
-            }, 10);
+            }, 100);
 
         }
         
@@ -148,6 +151,7 @@ function setLanguage() {
             'enableLabel2': 'Enable',
             'autoHide_Condition_Label': 'When score is below',
             'save': 'Save',
+            'advLogPageLabel': 'Better HomePage',
             'updateLabel': 'Enable Update Notification',
         },
         'zh': {
@@ -157,6 +161,7 @@ function setLanguage() {
             'autoHideGradesLabel': '自动隐藏不满意的成绩',
             'enableLabel': '启用',
             'enableLabel2': '启用',
+            'advLogPageLabel': '启用美化',
             'autoHide_Condition_Label': '当分数低于',
             'save': '保存',
             'updateLabel': '启用更新提示',

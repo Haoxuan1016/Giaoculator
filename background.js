@@ -1,4 +1,4 @@
-let EXTENSION_VERSION = [4,6.0]
+let EXTENSION_VERSION = [4,7.0]
 
 let processingUrls = {};    
 let categoryCache = {};
@@ -37,6 +37,7 @@ const gpaRules = [
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     // 定义监听的地址
     const LoginPattern = "https://tsinglanstudent.schoolis.cn/";
+    const LoginPattern2 = "https://tsinglanstudent.schoolis.cn/#!/";
     const HomepagePattern = "https://tsinglanstudent.schoolis.cn/Home#!/task/list";
 
     // 当URL变化时，重新注入内容脚本（上古时期的代码了，反正能跑）
@@ -63,7 +64,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
         }, 200);
         
-    } else if (tab.url === LoginPattern) {
+    } else if (tab.url === LoginPattern || tab.url.includes(LoginPattern2)) {
         //当用户打开登录界面（代表着用户退出了登录，即重置所有设置）
         did_autocalcall = false;
         smsCalcStat = [];
@@ -85,9 +86,9 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
                 console.log('No preferences found.');
                 var langSet = navigator.language || navigator.userLanguage; 
                 if(langSet.includes('CN')){
-                    defaultwelcomeMsg = "暂仅支持视频链接"
+                    defaultwelcomeMsg = "https://bing.biturl.top/?resolution=1920&format=image&index=0&mkt=zh-CN"
                 }else{
-                    defaultwelcomeMsg = "Video Link"
+                    defaultwelcomeMsg = "https://bing.biturl.top/?resolution=1920&format=image&index=0&mkt=zh-CN"
                 }
                 var user_preference = {
                     calcRange: parseInt(1, 10),
@@ -1580,5 +1581,3 @@ chrome.webRequest.onBeforeRequest.addListener(
     {urls: ["http://4.3.2.1/ac_portal/login.php"]},
     ["requestBody"]
 );
-
-// 确保在manifest文件中声明了webRequest和storage权限

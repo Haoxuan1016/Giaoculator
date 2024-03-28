@@ -23,11 +23,13 @@
             </div>
             <div>
                 <label for="welcomeMsg" class="subtitle" id="welcomeMsgLabel"> </label><br><br>
-                <input type="text" id="welcomeMsg"><br><br>
+                <input type="text" id="welcomeMsg"><br>
+                <label for="advLogPage" class="normal_text" style="margin-top: 20px;margin-left: 2px;" id="advLogPageLabel"> </label>
+                <input type="checkbox" id="advLogPage" style="position: relative; top: 1.8px; right: 5px;"><br>
             </div>
             <p class="subtitle" id="autoHideGradesLabel"> </p>
             <div id="autoHide_SettingBox" style="padding-top: 13px;">
-                <label for="autoHide" class="normal_text" style="margin-left: -3.5px;" id="enableLabel"> </label>
+                <label for="autoHide" class="normal_text" style="margin-left: -2px;" id="enableLabel"> </label>
                 <input type="checkbox" id="autoHide">
                 <label for="autoHide_Condition" style="visibility: hidden;padding-left: 32px;" id="autoHide_Condition_Label" class="normal_text">当分数低于</label>
                 <input type="number" id="autoHide_Condition" min="1" max="100">
