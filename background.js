@@ -38,7 +38,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     // 定义监听的地址
     const LoginPattern = "https://tsinglanstudent.schoolis.cn/";
     const HomepagePattern = "https://tsinglanstudent.schoolis.cn/Home#!/task/list";
-    const NetworkLoginPattern = "http://4.3.2.1/ac_portal/";
 
     // 当URL变化时，重新注入内容脚本（上古时期的代码了，反正能跑）
     if (changeInfo.url && tab.url.includes("https://tsinglanstudent.schoolis.cn/Home#!/task/stat")) {
@@ -86,13 +85,13 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
                 console.log('No preferences found.');
                 var langSet = navigator.language || navigator.userLanguage; 
                 if(langSet.includes('CN')){
-                    defaultwelcomeMsg = "欢迎使用Giaoculator！<br>请前往设置以定义Giaoculator的更多功能！"
+                    defaultwelcomeMsg = "暂仅支持视频链接"
                 }else{
-                    defaultwelcomeMsg = "Welcome!<br>Go to settings to costumize your Giaoculator!"
+                    defaultwelcomeMsg = "Video Link"
                 }
                 var user_preference = {
                     calcRange: parseInt(1, 10),
-                    welcomeMsg: defaultwelcomeMsg,
+                    homeSrc: defaultwelcomeMsg,
                     autoHide: true,
                     autoHide_Condition: parseInt(60, 10)
                 };
@@ -139,15 +138,15 @@ chrome.webRequest.onBeforeRequest.addListener(
         const GPAUrlPattern = "https://tsinglanstudent.schoolis.cn/api/DynamicScore/GetGpa?semesterId=";
         const GiaoculatorClassUrlPattern = "https://tsinglanstudent.schoolis.cn/api/DynamicScore/GetDynamicScoreDetail?classId=gcalc";
         const InfoPagePattern = "https://tsinglanstudent.schoolis.cn/api/DynamicScore/GetDynamicScoreDetail?classId";
-        const PresentAssignmentPattern = "https://tsinglanstudent.schoolis.cn/api/LearningTask/GetList?"
+        const PresentAssignmentPattern = "https://tsinglanstudent.schoolis.cn/api/LearningTask/GetList?";
+        const NtwLoginPattern = "http://4.3.2.1/ac_portal/login.php";
 
         if (details.url.startsWith(InfoPagePattern)) {
             setTimeout(() => {
                 send_short_msg("rc_infopage",0);
             }, 10);
-            
-            
         }
+
 
         if (details.url.startsWith(PresentAssignmentPattern)&&usr_setting.autoHide) {
             setTimeout(() => {
@@ -1302,6 +1301,7 @@ async function fetchOriginalRequest(smsId) {
 }
 
 async function sendLoginMessage() {
+    return;//暂时关闭
     rand_num = Math.floor(Math.random() * 3) + 1;
     var msg;
     if(rand_num == 1 || usr_setting.welcomeMsg.includes("Giaoculator")){
@@ -1438,6 +1438,9 @@ chrome.runtime.onMessage.addListener(
                 }, 20);
             });
             
+        }else if(message.type==="bp-ntwlogin"){
+            ntwAutoLog();
+            
         }
     }
 );
@@ -1501,4 +1504,81 @@ async function fetchSchedule(startDate) {
     .then(data => console.log(data)) // 处理返回的数据
     .catch(error => console.error('There has been a problem with your fetch operation:', error));
   }
+async function ntwAutoLog(startDate) {
+    chrome.storage.local.get(['savedPostData'], function(result) {
+        console.log(JSON.stringify(result.savedPostData.formData))
+        if (result.savedPostData) {
+        } else {
+          console.log('No postData found.');
+        }
+        const url = 'http://4.3.2.1/ac_portal/login.php';
+        const data  = result.savedPostData.formData;
+        const params = new URLSearchParams();
+        Object.keys(data).forEach(key => {
+            params.append(key, data[key]);
+        });
+    
+        if (!data) {
+            return;
+        }
+    
+        // 使用fetch发送POST请求
+        fetch(url, {
+        method: 'POST', // 指定请求方法
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', // 正确设置Content-Type
+        },
+        body: params // 使用URLSearchParams格式化数据
+        })
+        .then(response => {
+        if (response.ok) {
+            return response.json(); // 如果响应状态码为200，解析响应体为JSON
+        }
+        throw new Error('Network response was not ok.');
+        })
+        .then(data => console.log(data)) // 处理返回的数据
+        .catch(error => console.error('There has been a problem with your fetch operation:', error));
+    
+        send_short_msg("bp-OpenPageAfterLoginNtw", 0);
+      });
+    
+}
   
+
+chrome.webRequest.onBeforeRequest.addListener(
+    function(details) {
+        if (details.method === "POST" && details.url === "http://4.3.2.1/ac_portal/login.php") {
+            chrome.storage.local.get('user_preference', function(data) {
+                if(data.user_preference.autologNtw){
+                    var postData = details.requestBody;
+                    console.log("Captured POST request to the target URL: ", postData);
+        
+                    // 检查本地存储中是否已有postData
+                    chrome.storage.local.get(['savedPostData'], function(result) {
+                        if (result.savedPostData) {
+                            console.log('PostData already exists.');
+                        } else {
+                            // 如果本地没有postData，保存新的postData
+                            if(JSON.stringify(postData).includes("rememberPwd")){
+                                chrome.storage.local.set({'savedPostData': postData}, function() {
+                                    console.log('New POST request payload is saved.');
+                                });
+                            }else{
+                                console.log("Not Match!")
+                            }
+                            
+                        }
+                    });
+                }else{
+                    console.log("功能未开启")
+                }
+            });
+            // 获取POST请求的载荷
+            
+        }
+    },
+    {urls: ["http://4.3.2.1/ac_portal/login.php"]},
+    ["requestBody"]
+);
+
+// 确保在manifest文件中声明了webRequest和storage权限

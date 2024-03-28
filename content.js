@@ -74,6 +74,13 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 gpaClaced();
             } else if (type == "bp-GPANotcalced"){
                 gpaNotClaced();
+            } else if (type == "bp-OpenPageAfterLoginNtw"){
+                setTimeout(() => {
+                    window.location.href="http://4.3.2.1";
+                }, 20);
+                setTimeout(() => {
+                    window.location.href="http://4.3.2.1";
+                }, 60);
             }
         }
     });
@@ -137,20 +144,24 @@ function hideAssignments(settingData) {
     var scorelim = settingData.autoHide_Condition;
     const elements = document.getElementsByClassName('ng-scope fe-components-stu-app-task-list-__listItem--2LlZEXXtXjZzVCV4Ai9B6y');
     for (let element of elements) {
-        var scoreNumElement = element.querySelector('.fe-components-stu-business-task-list-item-__taskScore--13ruwhA6IFpxEaXteLRQco');
-        var totalScoreNum = (element.querySelector('span.ng-binding.ng-scope').textContent.match(/\d+/)[0]) * 1.0;
-        if (scoreNumElement) {
-            //var score = parseFloat(scoreNumElement.innerText) +"|" +totalScoreNum;
-            var score = (parseFloat(scoreNumElement.innerText)/totalScoreNum)*100;
-            if (score < scorelim && settingData.autoHide) {
-                scoreNumElement.innerHTML = '<img src="' + chrome.runtime.getURL("res/disable.png") + '" alt="Disabled" style="width: 70%;padding-top:20px;" />';
-        
-                const scoreInfoElement = element.querySelector('.fe-components-stu-app-realtime-list-__scoreInfo--1d-D_GnPEaK1HTrcgeNURt');
-                if (scoreInfoElement) {
-                    scoreInfoElement.remove();
+        try {
+            var scoreNumElement = element.querySelector('.fe-components-stu-business-task-list-item-__taskScore--13ruwhA6IFpxEaXteLRQco');
+            var totalScoreNum = (element.querySelector('span.ng-binding.ng-scope').textContent.match(/\d+/)[0]) * 1.0;
+            if (scoreNumElement) {
+                //var score = parseFloat(scoreNumElement.innerText) +"|" +totalScoreNum;
+                var score = (parseFloat(scoreNumElement.innerText)/totalScoreNum)*100;
+                if (score < scorelim && settingData.autoHide) {
+                    scoreNumElement.innerHTML = '<img src="' + chrome.runtime.getURL("res/disable.png") + '" alt="Disabled" style="width: 70%;padding-top:20px;" />';
+            
+                    const scoreInfoElement = element.querySelector('.fe-components-stu-app-realtime-list-__scoreInfo--1d-D_GnPEaK1HTrcgeNURt');
+                    if (scoreInfoElement) {
+                        scoreInfoElement.remove();
+                    }
                 }
             }
+        } catch (error) {
         }
+        
     }
 }
 
@@ -638,4 +649,9 @@ function gpaNotClaced(){
         document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__gpaContentTitle--JYXIB_rCNvSgM5wWcEYdJ")[0].innerText = "学期GPA";
     }
 }
-    
+
+function ntwLoginMain(){
+    window.location.href = "http://4.3.2.1/ac_portal/20210314173759/pc.html?template=20210314173759&tabs=qrcode-pwd-dingtalk&vlanid=0&_ID_=0&switch_url=&url=";
+    dticon = document.getElementsByClassName("auth-way-item-icon dingtalk")[0];
+    dticon.src = chrome.runtime.getURL("res/disablev2.png")
+}

@@ -1,5 +1,5 @@
 let EXTENSION_VERSION = [4,5,5]
-var exp_homevod
+var autologNtw;
 var langSet = (navigator.language || navigator.userLanguage).startsWith('zh') ? 'cn' : 'en';
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -41,8 +41,9 @@ function saveOptions() {
         calcRange: parseInt(calcRange, 10),
         welcomeMsg: welcomeMsg,
         autoHide: autoHide,
+        autologNtw: autologNtw,
         autoHide_Condition: parseInt(autoHide_Condition, 10),
-        homeSrc: exp_homevod
+        homeSrc: welcomeMsg
     };
 
     // Use chrome.storage.local to save the user preferences
@@ -55,8 +56,6 @@ function saveOptions() {
             document.getElementById('showReloadTip').innerText = "Saved, re-login to apply changes.";
         }
     });
-
-    
 
 }
 
@@ -87,12 +86,12 @@ function loadOptions() {
                 document.getElementById('calcRangeValue').textContent =  "计算最近 " + document.getElementById('calcRange').value + " 个学期的数据";
             }
             try {
-                exp_homevod = data.user_preference.homeSrc;
+                autologNtw = data.user_preference.autologNtw;
             } catch (error) {
-                exp_homevod = "无";
+                autologNtw = 0;
             }
             
-            document.getElementById('welcomeMsg').value = data.user_preference.welcomeMsg;
+            document.getElementById('welcomeMsg').value = data.user_preference.homeSrc;
             document.getElementById('autoHide').checked = data.user_preference.autoHide;
             document.getElementById('autoHide_Condition').value = data.user_preference.autoHide_Condition;
             var input = document.getElementById('autoHide_Condition');
@@ -143,7 +142,7 @@ function setLanguage() {
         'en': {
             'main_header': 'General',
             'calcRangeLabel': 'Auto-Calc Range',
-            'welcomeMsgLabel': 'Custom Welcome Message',
+            'welcomeMsgLabel': 'Custom Loginpage Banner',
             'autoHideGradesLabel': 'Auto-Hide Unsatisfactory Grades',
             'enableLabel': 'Enable',
             'enableLabel2': 'Enable',
@@ -154,7 +153,7 @@ function setLanguage() {
         'zh': {
             'main_header': '基本设置',
             'calcRangeLabel': '自动计算范围',
-            'welcomeMsgLabel': '自定义欢迎语',
+            'welcomeMsgLabel': '自定义登录界面资源',
             'autoHideGradesLabel': '自动隐藏不满意的成绩',
             'enableLabel': '启用',
             'enableLabel2': '启用',
@@ -176,12 +175,27 @@ function setLanguage() {
 }
 
 function initExpSettings(){
-    var link = prompt("[实验功能]自定义主页背景图为视频链接\n当前设置:"+exp_homevod+"\n请输入一个链接:");
-    if (link === "" || link === null) {
-        link = "null";
-        alert("已关闭该功能！");
-    }else{
-        alert("设置成功！\n"+link);
-    }
-    exp_homevod = link;
+    chrome.storage.local.get('user_preference', function(data) {
+        var tmp = data.user_preference.autologNtw;
+        if(data.user_preference.autologNtw == 0){
+            tmp = "已关闭❌"
+        }else{
+            tmp = "已开启✅"
+        }
+        var uset = prompt("[实验功能]\n自动保存凭据并快捷登录至4.3.2.1\n开启状态: "+tmp+"\n输入0/1/2即可关闭/开启/清除数据");
+        if(uset.includes('0')){
+            autologNtw = 0;
+            chrome.storage.local.remove('savedPostData', function() {
+                alert("已关闭并清除本地数据！");
+            });
+        }else if(uset.includes('1')){
+            autologNtw = 1;
+            alert("功能已开启！");
+        }else if(uset.includes('2')){
+            chrome.storage.local.remove('savedPostData', function() {
+                alert("已重置本地数据！");
+            });
+        }
+    });
+    
 }

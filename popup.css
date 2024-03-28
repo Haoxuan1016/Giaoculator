@@ -31,6 +31,14 @@ body {
 
 }
 
+.addi_text{
+    padding-top: 20px;
+    font-size: 15px;
+    justify-content: center;
+    align-items: center;
+    color: #333;
+}
+
 .footer:hover {
     background-color: #f0f0f0;
 }
