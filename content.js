@@ -33,7 +33,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
             } else if (type == "bp-refresh"){
                 location.reload();
             } else if (type == "bp-logpageState"){
-                showStateAtLoginPage();//NEW
+                //换位置
             } else if (type == "bp-showRefresh"){
                 showHideButtonAtHome();//NEW
             } else if (type == "bp-refresh-click"){
@@ -466,6 +466,7 @@ function hideAseRepeatedly(data, interval, duration) {
 
 
 function showStateAtLoginPage(){
+    console.log("SHOWSTATE");
     chrome.storage.local.get('enable_state', function(estate) {
         chrome.storage.local.get('user_preference', function(tmp) {
             showStateAtLoginPageMain(tmp,estate.enable_state);
@@ -609,9 +610,9 @@ function showStateAtLoginPageMain(tmp,estate) {
         div.insertBefore(container, button);
         
     } 
-}
-function diyHomepage(){
+}function diyHomepage(){
     chrome.storage.local.get('user_preference', function(result) {
+        showStateAtLoginPage();
         var source = result.user_preference.homeSrc;
         if(result.user_preference.advLogPage){
             setTimeout(() => {
@@ -686,27 +687,47 @@ function ntwLoginMain(){
 
 
 function beautyLoginPage(loginPageSrc,redotimes){
+    colormode = 1;
     try {
+        if(!colormode){
+            document.getElementById("autoHideState").children[1].style.color="#D3D3D3"
+            const images = document.querySelectorAll('img');
+            images.forEach(function(img) {
+                if (img.src.includes('hideOn.svg')) {
+                    img.src = img.src.replace('hideOn.svg', 'hideOn_Dark.svg');
+                }else if (img.src.includes('hideOff.svg')) {
+                    img.src = img.src.replace('hideOff.svg', 'hideOff_Dark.svg');
+                }
+            });
+            const textlinks = document.querySelectorAll('a');
+            textlinks.forEach(function(textlink) {
+                textlink.style.color="#D3D3D3";
+            });
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(function(tmp) {
+                tmp.style.color="#D3D3D3";
+            });
+        }
         if(loginPageSrc.length<2){
             loginPageSrc = "https://wallpapercave.com/wp/wp4469554.jpg";
         }
         var enterBoxs = document.getElementsByClassName("fe-components-stu-business-login-enter-box-__inputWrap--2OI0SgF-iDEHZborbYzrNZ ");
-        document.getElementsByClassName('ng-scope fe-components-stu-business-login-enter-box-__headMain--7bzuRu-Sq5O2sOCFgPNQH')[0].children[0].src = "https://n.sinaimg.cn/edu/transform/138/w550h388/20190416/Bm46-hvsckth7031121.png";
+        document.getElementsByClassName('ng-scope fe-components-stu-business-login-enter-box-__headMain--7bzuRu-Sq5O2sOCFgPNQH')[0].children[0].src = colormode?"https://n.sinaimg.cn/edu/transform/138/w550h388/20190416/Bm46-hvsckth7031121.png":"https://cdn.schoolis.cn/sis/upload/file/101/LearningTask/202403302316485196.png";
         document.getElementsByClassName("ng-scope fe-apps-login-__bgWhite--17b4s19HLx5VBdUGMT5Gz0")[0].style.backgroundSize = "cover";
         document.getElementsByClassName("fe-components-stu-business-login-enter-box-__schoolBackground--2S3KJugj_l_m7T5hRdY_cv")[0].remove();
         enterBoxs[0].style.borderRadius='10px'
         enterBoxs[0].style.backdropFilter="blur(10px)"
-        enterBoxs[0].style.background="rgba(255, 255, 255, .01)"
+        enterBoxs[0].style.background=colormode? "rgba(255, 255, 255, .01)" : "rgba(088, 080, 082, .065)"
         enterBoxs[1].style.borderRadius='10px'
         enterBoxs[1].style.backdropFilter="blur(10px)"
-        enterBoxs[1].style.background="rgba(255, 255, 255, .01)"
+        enterBoxs[1].style.background=colormode? "rgba(255, 255, 255, .01)" : "rgba(088, 080, 082, .065)"
         document.getElementsByClassName("ng-binding fe-components-stu-business-login-enter-box-__signBtn--2VrsqhNGgcjYTh7LuAGzve")[0].style.borderRadius='10px'
         //document.getElementsByClassName("ng-binding fe-components-stu-business-login-enter-box-__signBtn--2VrsqhNGgcjYTh7LuAGzve")[0].style.background='rgba(91,138,249,0.5)'
         document.getElementsByClassName('ng-scope fe-components-stu-business-login-enter-box-__headMain--7bzuRu-Sq5O2sOCFgPNQH')[0].children[0].style.maxHeight="95px"
         document.getElementsByClassName("fe-components-stu-business-login-enter-box-__accountContainer--22PmjI_OEsahZLiUEgL4zr")[0].style.paddingTop = "40px"
         document.getElementsByClassName("fe-components-stu-business-login-enter-box-__loginInformation--W2yiibeHcVKj_lJeq1rW_")[0].style.paddingTop = "52px"
         document.querySelector(".fe-components-stu-business-login-enter-box-__loginInformation--W2yiibeHcVKj_lJeq1rW_").style.backdropFilter="blur(10px)"
-        document.querySelector(".fe-components-stu-business-login-enter-box-__loginInformation--W2yiibeHcVKj_lJeq1rW_").style.background="rgba(255, 255, 255, .70)"
+        document.querySelector(".fe-components-stu-business-login-enter-box-__loginInformation--W2yiibeHcVKj_lJeq1rW_").style.background=colormode? "rgba(255, 255, 255, .7)" : "rgba(038, 040, 042, .065)"
         if(loginPageSrc.includes(".jpg")||loginPageSrc.includes("image")||loginPageSrc.includes(".jpeg")||loginPageSrc.includes(".png")||loginPageSrc.includes(".webp")||loginPageSrc.includes(".svg")||loginPageSrc.includes("tiff")||loginPageSrc.includes("bmp")||loginPageSrc.includes("gif")){
             document.getElementsByClassName("ng-scope fe-apps-login-__bgWhite--17b4s19HLx5VBdUGMT5Gz0")[0].style.backgroundImage = "url("+loginPageSrc+")";
         } else {
@@ -738,10 +759,17 @@ function beautyLoginPage(loginPageSrc,redotimes){
     } catch (error) {
         if(redotimes<50){
             setTimeout(() => {
-                console.log(redotimes)
+                console.log(error,redotimes)
                 beautyLoginPage(loginPageSrc,redotimes);
             }, redotimes<6 ? 1 : redotimes);
         }
     }
-    
+    try {
+        if(!colormode){
+            document.getElementsByClassName("fe-components-directive-input-clear-__closeIcon--1-4h2qP26t0bSzIiZPJxT0")[0].remove()
+            document.getElementsByClassName("fe-components-directive-input-clear-__closeIcon--1-4h2qP26t0bSzIiZPJxT0")[0].remove()
+        }
+    } catch (error) {
+        
+    }
 }
