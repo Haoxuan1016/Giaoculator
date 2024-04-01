@@ -687,10 +687,25 @@ function ntwLoginMain(){
 
 
 function beautyLoginPage(loginPageSrc,redotimes){
+    try {
+        if(loginPageSrc.includes("<local/jpg>")){
+            loginPageSrc = chrome.runtime.getURL("usr/1.jpg"); 
+        }
+        if(loginPageSrc.includes("<local/png>")){
+            loginPageSrc = chrome.runtime.getURL("usr/1.png"); 
+        }
+        if(loginPageSrc.includes("<local/mp4>")){
+            loginPageSrc = chrome.runtime.getURL("usr/1.mp4"); 
+        }
+        if(loginPageSrc.includes("<local/mov>")){
+            loginPageSrc = chrome.runtime.getURL("usr/1.mov"); 
+        }
+    }catch (error) {}
     colormode = 1;
     try {
+        document.getElementsByClassName('ng-scope fe-components-stu-business-login-enter-box-__headMain--7bzuRu-Sq5O2sOCFgPNQH')[0].children[0].src = chrome.runtime.getURL(colormode?"res/tsLogo_D.png":"res/tsLogo_W.png");
         if(!colormode){
-            document.getElementById("autoHideState").children[1].style.color="#D3D3D3"
+            document.getElementById("autoHideState").children[1].style.color="#E4E4E4"
             const images = document.querySelectorAll('img');
             images.forEach(function(img) {
                 if (img.src.includes('hideOn.svg')) {
@@ -701,18 +716,17 @@ function beautyLoginPage(loginPageSrc,redotimes){
             });
             const textlinks = document.querySelectorAll('a');
             textlinks.forEach(function(textlink) {
-                textlink.style.color="#D3D3D3";
+                textlink.style.color="#E4E4E4";
             });
             const inputs = document.querySelectorAll('input');
             inputs.forEach(function(tmp) {
-                tmp.style.color="#D3D3D3";
+                tmp.style.color="#E4E4E4";
             });
         }
         if(loginPageSrc.length<2){
             loginPageSrc = "https://wallpapercave.com/wp/wp4469554.jpg";
         }
         var enterBoxs = document.getElementsByClassName("fe-components-stu-business-login-enter-box-__inputWrap--2OI0SgF-iDEHZborbYzrNZ ");
-        document.getElementsByClassName('ng-scope fe-components-stu-business-login-enter-box-__headMain--7bzuRu-Sq5O2sOCFgPNQH')[0].children[0].src = colormode?"https://n.sinaimg.cn/edu/transform/138/w550h388/20190416/Bm46-hvsckth7031121.png":"https://cdn.schoolis.cn/sis/upload/file/101/LearningTask/202403302316485196.png";
         document.getElementsByClassName("ng-scope fe-apps-login-__bgWhite--17b4s19HLx5VBdUGMT5Gz0")[0].style.backgroundSize = "cover";
         document.getElementsByClassName("fe-components-stu-business-login-enter-box-__schoolBackground--2S3KJugj_l_m7T5hRdY_cv")[0].remove();
         enterBoxs[0].style.borderRadius='10px'

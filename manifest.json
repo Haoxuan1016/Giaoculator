@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Giaoculator",
-  "version": "4.7.0",
+  "version": "4.7.2",
   "description": "A chrome extension for calculating your GPA.",
   "options_page":  "options.html",
   "background": {
@@ -26,7 +26,13 @@
     "res/hideOn_Dark.svg",
     "res/visOn.svg",
     "res/visOff.svg",
-    "res/exp_settings.png"
+    "res/exp_settings.png",
+    "res/tsLogo_W.png",
+    "res/tsLogo_D.png",
+    "usr/1.png",
+    "usr/1.jpg",
+    "usr/1.mp4",
+    "usr/1.mov"
   ],
   "browser_action": {
     "default_icon": "icon.png",
