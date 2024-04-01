@@ -81,6 +81,8 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 setTimeout(() => {
                     window.location.href="http://4.3.2.1";
                 }, 60);
+            } else if (type == "stat-RenderText") {
+                replaceTaskStat(data.cont)
             }
         }
     });
@@ -622,7 +624,10 @@ function showStateAtLoginPageMain(tmp,estate) {
         }
         try {
             var targ = document.getElementsByClassName("fe-components-stu-business-login-enter-box-__schoolBackground--2S3KJugj_l_m7T5hRdY_cv")[0];
-            if(source.includes(".jpg")||source.includes("image")||source.includes(".jpeg")||source.includes(".png")||source.includes(".webp")||source.includes(".svg")||source.includes("tiff")||source.includes("bmp")||source.includes("gif")){
+            if(source.includes(".mp4"))  {
+                targ.children[0].innerHTML = "<div id='video-wrapper' style='width: 100%; height: 100%; position: relative; overflow: hidden;'><video style='width: 100%; height: 100%; object-fit: cover;' autoplay loop muted><source src='"+source+"' type='video/mp4'>Your browser does not support the video tag.</video></div>";
+            // } else if(source.includes(".jpg")||source.includes("image")||source.includes(".jpeg")||source.includes(".png")||source.includes(".webp")||source.includes(".svg")||source.includes("tiff")||source.includes("bmp")||source.includes("gif")){
+            } else {
                 var img = new Image();
                 img.onload = function() {
                     // Get the dimensions of the image and the container
@@ -644,9 +649,7 @@ function showStateAtLoginPageMain(tmp,estate) {
                     targ.children[0].style.backgroundImage = "url("+source+")";
                 };
                 img.src = source;
-            } else {
-                targ.children[0].innerHTML = "<div id='video-wrapper' style='width: 100%; height: 100%; position: relative; overflow: hidden;'><video style='width: 100%; height: 100%; object-fit: cover;' autoplay loop muted><source src='"+source+"' type='video/mp4'>Your browser does not support the video tag.</video></div>";
-            }
+            } 
         }
         catch (error) {
             // Consider logging the error or handling it as required
@@ -786,4 +789,11 @@ function beautyLoginPage(loginPageSrc,redotimes){
     } catch (error) {
         
     }
+    
+}
+
+// 替换任务统计处的文字
+function replaceTaskStat(text) {
+    // ng-binding fe-components-stu-app-task-stat-__containerBody--37aNor2CicrLBH0qmwwofX
+    document.getElementsByClassName("ng-binding fe-components-stu-app-task-stat-__containerBody--37aNor2CicrLBH0qmwwofX")[0].innerText = text;
 }
