@@ -68,6 +68,7 @@ body {
     align-items: center; /* 这会垂直居中对齐容器内的所有项 */
 }
 
+
 .settings-modal div {
     margin-bottom: 20px;
 }
@@ -110,20 +111,47 @@ input[type="text"]{
     width: 50%; 
     padding: 8px;
     margin-top: 5px;
+    color: #111111;
+    outline: none;
     border: 1px solid #ccc;
-    border-radius: 4px;
+    border-radius: 8px; /* 添加圆角 */
     box-sizing: border-box;
+    box-shadow: 0 0 0 0px #128A42;
+}
+
+input[type="text"]:focus{
+    box-shadow: 0 0 0 0.8px #128A42;
+}
+
+#darkModeSelect {
+    border-radius: 8px; /* 添加圆角 */
+    padding: 6.3px; /* 扩大框的大小 */
+    color: #111111; /* 主题颜色 */
+    border: 1px solid #ccc; /* 边框颜色 */
+    width: 160px; /* 设置宽度 */
+    outline: none; /* 移除默认的焦点样式 */
+}
+
+#darkModeSelect:focus{
+    box-shadow: 0 0 0 0.8px #128A42;
 }
 
 input[type="number"] {
-    width: 10%; 
-    padding: 5px;
+    width: 7%; 
+    padding: 6px;
     align-items: center;
     position: relative;
     bottom: 2px;
     border: 1px solid #ccc;
-    border-radius: 4px;
     box-sizing: border-box;
+    color: #111111;
+    outline: none;
+    border: 1px solid #ccc;
+    border-radius: 6px; /* 添加圆角 */
+}
+
+input[type="number"]:focus{
+    box-shadow: 0 0 0 0.8px #128A42;
 }
 
 input[type="range"] {

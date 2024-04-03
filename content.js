@@ -615,10 +615,10 @@ function showStateAtLoginPageMain(tmp,estate) {
 }function diyHomepage(){
     chrome.storage.local.get('user_preference', function(result) {
         showStateAtLoginPage();
-        var source = result.user_preference.homeSrc;
+        var sourcedata = result.user_preference;
         if(result.user_preference.advLogPage){
             setTimeout(() => {
-                beautyLoginPage(source,0);
+                beautyLoginPage(sourcedata,0);
             }, 1);
             return;
         }
@@ -689,22 +689,49 @@ function ntwLoginMain(){
 }
 
 
-function beautyLoginPage(loginPageSrc,redotimes){
+function beautyLoginPage(srcData,redotimes){
+    let colormode = srcData.homeDarkMode*1;
+    var loginPageSrc = srcData.homeSrc;
+    if(colormode >= 2){
+        const hours = new Date().getHours();
+        if (hours >= 6 && hours <= 18) {
+            colormode = 1;
+        } else {
+            if(colormode == 3){
+                loginPageSrc = srcData.homeSrcDark;
+            }
+            colormode = 0;
+        }
+    }
+    
+
     try {
-        if(loginPageSrc.includes("<local/jpg>")){
+        if(loginPageSrc.includes("<local/jpg-1>")){
             loginPageSrc = chrome.runtime.getURL("usr/1.jpg"); 
         }
-        if(loginPageSrc.includes("<local/png>")){
+        if(loginPageSrc.includes("<local/png-1>")){
             loginPageSrc = chrome.runtime.getURL("usr/1.png"); 
         }
-        if(loginPageSrc.includes("<local/mp4>")){
+        if(loginPageSrc.includes("<local/mp4-1>")){
             loginPageSrc = chrome.runtime.getURL("usr/1.mp4"); 
         }
-        if(loginPageSrc.includes("<local/mov>")){
+        if(loginPageSrc.includes("<local/mov-1>")){
             loginPageSrc = chrome.runtime.getURL("usr/1.mov"); 
         }
+        if(loginPageSrc.includes("<local/jpg-2>")){
+            loginPageSrc = chrome.runtime.getURL("usr/2.jpg"); 
+        }
+        if(loginPageSrc.includes("<local/png-2>")){
+            loginPageSrc = chrome.runtime.getURL("usr/2.png"); 
+        }
+        if(loginPageSrc.includes("<local/mp4-2>")){
+            loginPageSrc = chrome.runtime.getURL("usr/2.mp4"); 
+        }
+        if(loginPageSrc.includes("<local/mov-2>")){
+            loginPageSrc = chrome.runtime.getURL("usr/2.mov"); 
+        }
     }catch (error) {}
-    colormode = 1;
+
     try {
         document.getElementsByClassName('ng-scope fe-components-stu-business-login-enter-box-__headMain--7bzuRu-Sq5O2sOCFgPNQH')[0].children[0].src = chrome.runtime.getURL(colormode?"res/tsLogo_D.png":"res/tsLogo_W.png");
         if(!colormode){
@@ -726,7 +753,7 @@ function beautyLoginPage(loginPageSrc,redotimes){
                 tmp.style.color="#E4E4E4";
             });
         }
-        if(loginPageSrc.length<2){
+        if(loginPageSrc.length<2 || loginPageSrc =="<default>"){
             loginPageSrc = "https://wallpapercave.com/wp/wp4469554.jpg";
         }
         var enterBoxs = document.getElementsByClassName("fe-components-stu-business-login-enter-box-__inputWrap--2OI0SgF-iDEHZborbYzrNZ ");
@@ -777,7 +804,7 @@ function beautyLoginPage(loginPageSrc,redotimes){
         if(redotimes<50){
             setTimeout(() => {
                 console.log(error,redotimes)
-                beautyLoginPage(loginPageSrc,redotimes);
+                beautyLoginPage(srcData,redotimes);
             }, redotimes<6 ? 1 : redotimes);
         }
     }

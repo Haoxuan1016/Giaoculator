@@ -7,6 +7,38 @@ document.addEventListener('DOMContentLoaded', function() {
     setLanguage();
 });
 
+document.getElementById("darkModeSelect").addEventListener("change", function() {
+    let value = this.value;
+    console.log(value)
+    if(value==3){
+        document.getElementById("welcomeMsg").style.width = "30%";
+        document.getElementById("homeSrcDark").style.width = "30%";
+        document.getElementById("homeSrcDark").style.visibility = 'visible';
+    }else{
+        document.getElementById("welcomeMsg").style.width = "50%";
+        document.getElementById("homeSrcDark").style.width = "1%";  
+        //隐藏homeSrcDark
+        document.getElementById("homeSrcDark").style.visibility = 'hidden';
+    }
+});
+
+document.getElementById('advLogPage').addEventListener('change', function() {
+    var checkbox = this;
+    var input = document.getElementById('darkModeSelect');
+    var label = document.getElementById('darkModeSelect_Label');
+
+    if (checkbox.checked == true) {
+        input.style.display = 'inline-block';
+        label.style.display = 'inline';
+        input.style.visibility = 'visible';
+        label.style.visibility = 'visible';
+    } else {
+        input.style.visibility = 'hidden';
+        label.style.visibility = 'hidden';
+    }
+});
+
+
 document.getElementById('save').addEventListener('click', saveOptions);
 
 document.getElementById('exp_settings').addEventListener('click', initExpSettings);
@@ -45,12 +77,14 @@ function saveOptions() {
         autoHide: autoHide,
         autologNtw: autologNtw,
         autoHide_Condition: parseInt(autoHide_Condition, 10),
-        homeSrc: welcomeMsg
+        homeSrc: welcomeMsg,
+        homeSrcDark: document.getElementById('homeSrcDark').value,
+        homeDarkMode: document.getElementById('darkModeSelect').value // 0:Black 1:White 2:Depends on Time 3:Color&Pic
     };
 
     // Use chrome.storage.local to save the user preferences
     chrome.storage.local.set({user_preference: user_preference}, function() {
-        console.log('Preferences saved');
+        console.log('Preferences saved',user_preference);
         if(langSet == 'cn'){
             document.getElementById('showReloadTip').innerText = "设置已保存，重新登录平台后生效";
         }
@@ -94,6 +128,15 @@ function loadOptions() {
             }
             
             document.getElementById('welcomeMsg').value = data.user_preference.homeSrc;
+            document.getElementById('darkModeSelect').value = data.user_preference.homeDarkMode;
+            if(data.user_preference.homeDarkMode!=3){
+                document.getElementById('homeSrcDark').style.visibility = "hidden";
+                document.getElementById('homeSrcDark').style.width = "1%";
+            }else{
+                document.getElementById('welcomeMsg').style.width = "30%";
+                document.getElementById('homeSrcDark').style.width = "30%";
+            }
+            document.getElementById('homeSrcDark').value = data.user_preference.homeSrcDark;
             document.getElementById('autoHide').checked = data.user_preference.autoHide;
             document.getElementById('advLogPage').checked = data.user_preference.advLogPage;
             document.getElementById('autoHide_Condition').value = data.user_preference.autoHide_Condition;

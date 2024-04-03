@@ -32,7 +32,11 @@
     "usr/1.png",
     "usr/1.jpg",
     "usr/1.mp4",
-    "usr/1.mov"
+    "usr/1.mov",
+    "usr/2.png",
+    "usr/2.jpg",
+    "usr/2.mp4",
+    "usr/2.mov"
   ],
   "browser_action": {
     "default_icon": "icon.png",

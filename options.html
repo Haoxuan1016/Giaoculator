@@ -23,9 +23,17 @@
             </div>
             <div>
                 <label for="welcomeMsg" class="subtitle" id="welcomeMsgLabel"> </label><br><br>
-                <input type="text" id="welcomeMsg"><br>
+                <input type="text" id="welcomeMsg">
+                <input type="text" id="homeSrcDark"><br>
                 <label for="advLogPage" class="normal_text" style="margin-top: 20px;margin-left: 2px;" id="advLogPageLabel"> </label>
-                <input type="checkbox" id="advLogPage" style="position: relative; top: 1.8px; right: 5px;"><br>
+                <input type="checkbox" id="advLogPage" style="position: relative; top: 1.8px; right: 5px;"> 
+                <label id="darkModeSelect_Label" for="darkModeSelect" class="normal_text" style="margin-top: 10px;margin-left: 2px;">深色模式</label>
+                <select id="darkModeSelect" style="margin-top: 10px;">
+                    <option value="0">深色主题</option>
+                    <option value="1">浅色主题</option>
+                    <option value="2">自动变化主题</option>
+                    <option value="3">自动变化主题与背景</option>
+                </select>
             </div>
             <p class="subtitle" id="autoHideGradesLabel"> </p>
             <div id="autoHide_SettingBox" style="padding-top: 13px;">
