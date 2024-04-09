@@ -123,18 +123,22 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         send_short_msg("bp-showRefresh",0);
         if(localStorage.length < 2 && enable_state === true){
             if(!did_autocalcall){
-                chrome.storage.local.get('enable_state', function(result) {
-                    if (result.enable_state === true) {
-                        did_autocalcall = true;
-                        console.log("Do autocalc");
-                        console.log("[HPPattern] Do autocalc");
-                        AutoCalcAll();
-                    }
-                });
+                did_autocalcall = true;
+                console.log("Do autocalc");
+                console.log("[HPPattern] Do autocalc");
+                AutoCalcAll();
             }
         }else{
-            console.log("[HPPattern] LS>2, not autocalc");
-            //send_str_msg("tip_suc",`已读取到本地记录，无须再次计算！`,0);
+            var updateDate = getFromLocalStorage("lastUpdate");
+            console.log(Date.parse(new Date()),updateDate,Date.parse(new Date()) - updateDate );
+            if(Date.parse(new Date()) - updateDate> 36000000){//
+                send_str_msg("tip_info",(navigator.language || navigator.userLanguage).includes('CN')?`数据已过期，自动重新计算`:`Data Expired, Calculating...`,0);
+                localStorage.clear();
+                did_autocalcall = false;
+                AutoCalcAll();
+            }else{
+                //send_str_msg("tip_info",Date.parse(new Date()) - updateDate,0)
+            }
         }
         
     }
@@ -1405,6 +1409,7 @@ async function AutoCalcAll() {
             await delay(1000);
         }
         console.log("[AutoCalc]Finished All!",smsId);
+        saveToLocalStorage("lastUpdate",Date.parse(new Date()));
 }
 
 function delay(ms) {
@@ -1443,6 +1448,14 @@ chrome.runtime.onMessage.addListener(
                     refresh_realtime(0);
                     if(did_autocalcall == false && enable_state == true && usrName != false){
                         AutoCalcAll();
+                    }else{
+                        var updateDate = getFromLocalStorage("lastUpdate");
+                        Date.parse(new Date());
+                        if(Date.parse(new Date()) - updateDate > 30){
+                            send_str_msg("tip_info",(navigator.language || navigator.userLanguage).includes('CN')?`数据已过期，自动重新计算`:`Data is expired`,0);
+                            localStorage.clear();
+                            did_autocalcall = false;
+                        }
                     }
                 }, 20);
             });
