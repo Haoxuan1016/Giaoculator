@@ -9,7 +9,7 @@
     "persistent": true
   },
   "content_scripts": [{
-      "matches": ["https://*.schoolis.cn/*","*://4.3.2.1/*"],
+      "matches": ["https://*.schoolis.cn/*","*://4.3.2.1/*","*://view.officeapps.live.com/*"],
       "css": ["lib/notyf.min.css"],
       "js": ["lib/notyf.min.js", "content.js"]
   }],
@@ -29,6 +29,7 @@
     "res/exp_settings.png",
     "res/tsLogo_W.png",
     "res/tsLogo_D.png",
+    "res/download.svg",
     "usr/1.png",
     "usr/1.jpg",
     "usr/1.mp4",

@@ -40,6 +40,10 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     const LoginPattern2 = "https://tsinglanstudent.schoolis.cn/#!/";
     const HomepagePattern = "https://tsinglanstudent.schoolis.cn/Home#!/task/list";
 
+    if(tab.url==undefined){
+        console.log(tab.url,"UNDEFINED!");
+        return;
+    }
     // 当URL变化时，重新注入内容脚本（上古时期的代码了，反正能跑）
     if (changeInfo.url && tab.url.includes("https://tsinglanstudent.schoolis.cn/Home#!/task/stat")) {
         // 清除先前的content.js实例
@@ -94,6 +98,10 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
                     calcRange: parseInt(1, 10),
                     homeSrc: defaultwelcomeMsg,
                     autoHide: true,
+                    advLogPage: false, 
+                    autologNtw: 0,
+                    homeSrcDark: " ",
+                    homeDarkMode: 1,
                     autoHide_Condition: parseInt(60, 10)
                 };
                 chrome.storage.local.set({user_preference: user_preference});

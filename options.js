@@ -117,9 +117,20 @@ function loadOptions() {
         if (data.user_preference) {
             document.getElementById('calcRange').value = data.user_preference.calcRange;
             if(document.getElementById('calcRange').value == 1){
-                document.getElementById('calcRangeValue').textContent = "仅计算现学期的数据"
+                if(langSet == 'cn'){
+                    document.getElementById('calcRangeValue').textContent = "仅计算当前学期的数据";
+                }
+                else{
+                    document.getElementById('calcRangeValue').textContent = "Calculate the Current Semester Only";
+                }
             }else{
-                document.getElementById('calcRangeValue').textContent =  "计算最近 " + document.getElementById('calcRange').value + " 个学期的数据";
+                if(langSet == 'cn'){
+                    document.getElementById('calcRangeValue').textContent =  "计算最近 " + document.getElementById('calcRange').value + " 个学期的数据";
+                }
+                else{
+                    document.getElementById('calcRangeValue').textContent =  "Calculate Last " + document.getElementById('calcRange').value + " Semesters' Scores";
+        
+                }
             }
             try {
                 autologNtw = data.user_preference.autologNtw;
@@ -188,13 +199,14 @@ function setLanguage() {
         'en': {
             'main_header': 'General',
             'calcRangeLabel': 'Auto-Calc Range',
-            'welcomeMsgLabel': 'Custom Loginpage Banner',
+            'welcomeMsgLabel': 'Custom Loginpage Background',
             'autoHideGradesLabel': 'Auto-Hide Unsatisfactory Grades',
             'enableLabel': 'Enable',
             'enableLabel2': 'Enable',
             'autoHide_Condition_Label': 'When score is below',
             'save': 'Save',
             'advLogPageLabel': 'Better HomePage',
+            'darkModeSelect_Label': 'Theme',
             'updateLabel': 'Enable Update Notification',
         },
         'zh': {
@@ -204,6 +216,7 @@ function setLanguage() {
             'autoHideGradesLabel': '自动隐藏不满意的成绩',
             'enableLabel': '启用',
             'enableLabel2': '启用',
+            'darkModeSelect_Label': '颜色主题',
             'advLogPageLabel': '启用美化',
             'autoHide_Condition_Label': '当分数低于',
             'save': '保存',
@@ -220,6 +233,13 @@ function setLanguage() {
             element.textContent = data[id];
         }
     }
+    if(!userLang.startsWith('zh')){
+        document.getElementById('darkModeSelect').children[0].textContent = "Light Theme";
+        document.getElementById('darkModeSelect').children[1].textContent = "Dark Theme";
+        document.getElementById('darkModeSelect').children[2].textContent = "Theme Depends on Time";
+        document.getElementById('darkModeSelect').children[3].textContent = "Theme and Background Depends on Time";
+    }
+    
 }
 
 function initExpSettings(){

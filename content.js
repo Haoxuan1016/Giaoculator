@@ -7,6 +7,8 @@ var clicked_disclamer = false;
 
 if(window.location.href==="http://4.3.2.1/homepage/login.html"){
     window.location.href="http://4.3.2.1";
+}else if(window.location.href.includes("view.officeapps.live.com")){
+    directDownloadFile_AddBtn();
 }
 
 
@@ -40,6 +42,9 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 simulateClickRefresh(0);
             } else if (type == "replace_context"){
                 updateContent();
+                setTimeout(() => {
+                    updateContent();
+                }, 100);
             } else if (type == "sim_login"){
                 if(disable_autologin == false){
                     simulateClickLogin();
@@ -182,6 +187,7 @@ function updateContent_DetailPage() {
         }
     } 
     engPage_opti();
+    setTimeout(engPage_opti, 30);
 }
 
 function engPage_opti(){
@@ -803,8 +809,7 @@ function beautyLoginPage(srcData,redotimes){
     } catch (error) {
         if(redotimes<50){
             setTimeout(() => {
-                console.log(error,redotimes)
-                beautyLoginPage(srcData,redotimes);
+                beautyLoginPage(srcData,redotimes+1);
             }, redotimes<6 ? 1 : redotimes);
         }
     }
@@ -823,4 +828,45 @@ function beautyLoginPage(srcData,redotimes){
 function replaceTaskStat(text) {
     // ng-binding fe-components-stu-app-task-stat-__containerBody--37aNor2CicrLBH0qmwwofX
     document.getElementsByClassName("ng-binding fe-components-stu-app-task-stat-__containerBody--37aNor2CicrLBH0qmwwofX")[0].innerText = text;
+}
+
+function directDownloadFile() {
+    const fullUrl = window.location.href;
+    const urlObj = new URL(fullUrl);
+    const params = new URLSearchParams(urlObj.search);
+    const src = params.get('src');
+    
+    if (src) {
+        window.location.href = src;
+    } else {
+        console.error('src参数不存在');
+    }
+}
+
+function directDownloadFile_AddBtn() {
+    // 创建按钮
+    const btn = document.createElement('button');
+    let text =(navigator.language || navigator.userLanguage).startsWith('zh') ? '下载' : 'Download';
+    btn.innerHTML = '<img src='+chrome.runtime.getURL("res/download.svg")+' alt="下载" style="height: 20px; vertical-align: middle;"> '+text;
+    btn.style.position = 'fixed';
+    btn.style.right = '10px';
+    btn.id = 'gcalcDownloadBtn';
+    btn.style.bottom = '30px';
+    btn.style.zIndex = '10000'; // 确保按钮在最顶层
+    btn.style.padding = '5px 10px';
+    btn.style.border = 'none';
+    btn.style.cursor = 'pointer';
+    btn.style.borderRadius = '5px';
+    // '#007bff'
+    btn.style.backgroundColor = '#4CAF50';
+    btn.style.color = 'white';
+    btn.style.fontSize = '10px';
+    btn.style.fontWeight = 'bold';
+    btn.onclick = function() {
+        directDownloadFile();
+    };
+    document.body.appendChild(btn);
+    if(document.getElementsByClassName("ms-Button root-163").length>4){
+        document.getElementById('gcalcDownloadBtn').remove()
+    }
 }
