@@ -152,7 +152,6 @@ chrome.webRequest.onBeforeRequest.addListener(
         const GiaoculatorClassUrlPattern = "https://tsinglanstudent.schoolis.cn/api/DynamicScore/GetDynamicScoreDetail?classId=gcalc";
         const InfoPagePattern = "https://tsinglanstudent.schoolis.cn/api/DynamicScore/GetDynamicScoreDetail?classId";
         const PresentAssignmentPattern = "https://tsinglanstudent.schoolis.cn/api/LearningTask/GetList?";
-        const NtwLoginPattern = "http://4.3.2.1/ac_portal/login.php";
 
         if (details.url.startsWith(InfoPagePattern)) {
             setTimeout(() => {
@@ -198,7 +197,7 @@ chrome.webRequest.onBeforeRequest.addListener(
 
             let totalCourse = [];
             let template = {"grade":null,"classType":2,"classId":"gcalc","className":"GPA Calculator","classEName":"GPA Calculator","subjectId":100628,"subjectName":"Giaoculator","subjectEName":"Giaoculator","isInGrade":true,"subjectScore":100,"scoreMappingId":4517,"updateDate":"\/Date(0000000000000+0800)\/","subjectTotalScore":100.0,"scoreType":1,"levelString":"A+"};
-
+            
             // 获取所有的course
             let courseInfoList = getAllCourseInfo(targsms);
             if(usr_setting.autoHide){
@@ -336,8 +335,15 @@ chrome.webRequest.onBeforeRequest.addListener(
             const urlParams = new URLSearchParams(new URL(details.url).search);
             let req_subjectId = urlParams.get('subjectId');
             let req_semesterId = urlParams.get('semesterId');
+            const v2data = getFromLocalStorage(req_semesterId + "|S" + req_subjectId);
+            let havePropath = false;
+            if(v2data){
+                havePropath = true;
+            }
+            
             const data = getFromLocalStorage(req_semesterId + "|I" + req_subjectId);
-            console.log(data);
+            
+            console.log("***",data);
             let evaluationProjectList = [];
 
             // 定义一个基础模板
@@ -350,17 +356,60 @@ chrome.webRequest.onBeforeRequest.addListener(
                 evaluationProjectId: 30469, 
                 proPath: "30469"
             };
-
+            let propath_template = {
+                evaluationProjectName: "Name",
+                evaluationProjectEName: "Name",
+                proportion: 100,
+                score: 93,
+                scoreLevel: "Pass",
+                gpa: 0, 
+                scoreIsNull: false,
+                evaluationProjectList: [],
+                levelString: "",
+                code: "78",
+                evaluationProjectId: 30649,
+                proPath: "30468,30649,",
+                parentProId: 30468,
+                evaluationProjectRemark: null
+            }
+            let parentPath = getRandomInt(1,20000);
+            let childPath = getRandomInt(21000,40000);
+            //随机数1~9999
             for (const [key, value] of Object.entries(data)) {
+                parentPath+= 1;
                 let itemTemplate = baseTemplate; // 获取对应的模板或默认模板
+                let proPathslist = [];
+                if(havePropath){
+                    console.log("LINE384",v2data[key]["categories"]);
+                    for (const [pKey, pValue] of Object.entries(v2data[key]["categories"])) {
+                        childPath+=1;
+                        let tmp = propath_template; // 获取对应的模板或默认模板
+                        let newItem = {
+                            ...tmp, // 展开模板中的属性
+                            evaluationProjectName: pKey,
+                            evaluationProjectEName: pKey,
+                            evaluationProjectId: childPath,
+                            proPath: parentPath+","+childPath+",",
+                            proportion: pValue.proportion,
+                            score: pValue.overallPercentage.toFixed(1), 
+                            scoreLevel: calculateGPA(pValue.overallPercentage).displayName,
+                            gpa: calculateGPA(pValue.overallPercentage).gpa,
+                        };
+        
+                        proPathslist.push(newItem);
+                    }
+                }
                 let newItem = {
                     ...itemTemplate, // 展开模板中的属性
                     evaluationProjectName: key,
                     evaluationProjectEName: key,
+                    evaluationProjectId: parentPath,
+                    proPath: parentPath+",",
                     proportion: value.proportion,
                     score: (value.totalScore/value.taskCount).toFixed(1), 
                     scoreLevel: calculateGPA(value.totalScore/value.taskCount).displayName,
-                    gpa: calculateGPA(value.totalScore/value.taskCount).gpa
+                    gpa: calculateGPA(value.totalScore/value.taskCount).gpa,
+                    evaluationProjectList: proPathslist
                 };
 
                 evaluationProjectList.push(newItem);
@@ -465,7 +514,8 @@ chrome.webRequest.onBeforeRequest.addListener(
 chrome.webRequest.onCompleted.addListener(
     async function(details) {
         if (details.url.includes("GetStatistics?") && !processingUrls[details.url]) {
-
+            return;
+            //关闭2024/4/11
             let url = new URL(details.url);
             let semesterId = url.searchParams.get("schoolSemesterId");
             let subjectId = url.searchParams.get("subjectId");
@@ -501,7 +551,6 @@ chrome.webRequest.onCompleted.addListener(
                             extracted_data.push(updatedItem);
                             pendingRequests--;
                             if  (pendingRequests === 0){
-                                console.log(extracted_data);
                                 let gpa = calculateOverallScore(extracted_data);
                                 saveCategorySummary(subjectId,extracted_data,semesterId);  // If you also want to print the summary
                                 console.log("SUBJECT", subjectInfo)
@@ -512,6 +561,7 @@ chrome.webRequest.onCompleted.addListener(
                     }
                     
                     if (pendingRequests === 0) {
+                        
                         console.log(extracted_data);
                         let gpa = calculateOverallScore(extracted_data);
 
@@ -604,17 +654,34 @@ function fetchCategoryAndProportion(taskId, dataItem, callback) {
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4) {
             let response = JSON.parse(xhr.responseText);
-            let category = "Not For GPA / 不计入";
-            let proportion = 0;
+            var category = "Not For GPA / 不计入";
+            var proportion = 0;
             try{
-                category = response.data.evaProjects[0].eName;
-                proportion = response.data.evaProjects[0].proportion;
+                dataItem["child_proportion"] = -1;
+                dataItem["isChild"] = response.data.evaProjects.length>1;
+                if(response.data.evaProjects.length>1){
+                    dataItem["haveSubCategory"] = true;
+                    if(response.data.evaProjects[0].proPath.includes(response.data.evaProjects[1].id)){//代表[0]是子项目。[1]是父项目
+                        dataItem["child_category"] = response.data.evaProjects[0].eName;
+                        dataItem["child_proportion"] = response.data.evaProjects[0].proportion;
+                        proportion = response.data.evaProjects[1].proportion;
+                        category = response.data.evaProjects[1].eName;
+                    }else{                                                                             //代表[1]是子项目。[0]是父项目
+                        dataItem["child_category"] = response.data.evaProjects[1].eName;
+                        dataItem["child_proportion"] = response.data.evaProjects[1].proportion;
+                        proportion = response.data.evaProjects[0].proportion;
+                        category = response.data.evaProjects[0].eName;
+                    }
+                }else{
+                    dataItem["haveSubCategory"] = false;
+                    category = response.data.evaProjects[0].eName;
+                    proportion = response.data.evaProjects[0].proportion;
+                }
             }
             catch(e){
                 proportion = 0;
                 category = "Not For GPA / 不计入";
             }
-
             dataItem["category"] = category;
             dataItem["proportion"] = proportion;
             callback(dataItem);
@@ -627,8 +694,7 @@ async function fetchUsrInfo() {
     return new Promise((resolve, reject) => {
       var xhr = new XMLHttpRequest();
       xhr.open("GET", `https://tsinglanstudent.schoolis.cn/api/MemberShip/GetCurrentStudentInfo`, true);
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4) { // 请求已完成
+      xhr.onreadystatechange = function() {        if (xhr.readyState === 4) { // 请求已完成
           if (xhr.status === 200) { // 请求成功
             try {
               var response = JSON.parse(xhr.responseText); // 解析返回的JSON数据
@@ -656,37 +722,106 @@ async function fetchUsrInfo() {
 
 function saveCategorySummary(subId,data,semesterId) {
     let categorySummary = {};
-    // 0. 分割线
+    var haveSubCategory = false;
     console.log('=============================================')
+    for(let item of data){
+        if(item["haveSubCategory"]){
+            haveSubCategory = true;
+        }
+    }
+    if(haveSubCategory){
+        let propaths = {};
+        for (let item of data) {
+            let father_category = item.category;
+            let child_category = item.child_category;
+            let child_proportion = item.child_proportion;
+            let father_proportion = item.proportion;
+            if (!propaths[father_category]) {
+                propaths[father_category] = {
+                    categories: {},
+                    proportion: father_proportion,
+                    overallPercentage: 0 // 初始化，稍后计算
+                };
+            }
+        
+            if (!propaths[father_category].categories[child_category]) {
+                // 如果child_category不存在，创建新的child_category
+                propaths[father_category].categories[child_category] = {
+                    proportion: child_proportion,
+                    totalScore: (item.score/item.totalScore)*100,
+                    taskCount: 1,
+                    overallPercentage: item.score // 初始的overallPercentage等于score
+                };
+            } else {
+                // 如果child_category已存在，更新其信息
+                let child = propaths[father_category].categories[child_category];
+                child.totalScore += (item.score/item.totalScore)*100;
+                child.taskCount += 1;
+                child.proportion = child_proportion;
+                child.overallPercentage = child.totalScore / child.taskCount;
+            }
+        }
+        
 
-
-    // 1. Group tasks by category
-    for (let item of data) {
-        let category = item.category;
-        let proportion = item.proportion;
-        let percentageScore = (item.score / item.totalScore) * 100;
-
-        if (!categorySummary[category]) {
-            categorySummary[category] = {
-                proportion: proportion,
-                totalScore: 0,
-                taskCount: 0
+        //计算每个大catefory:
+        for (let father_category in propaths) {
+            let totalProportion = 0;
+            let weightedOverallPercentageSum = 0;
+            
+            for (let child_category in propaths[father_category].categories) {
+                let child = propaths[father_category].categories[child_category];
+                totalProportion += child.proportion; // 累加所有child_category的proportion
+                weightedOverallPercentageSum += child.overallPercentage * child.proportion; // 加权的overallPercentage总和
+            }
+        
+            if (totalProportion > 0) { // 防止除以零
+                propaths[father_category].overallPercentage = weightedOverallPercentageSum / totalProportion;
+            } else {
+                propaths[father_category].overallPercentage = 0; // 如果没有child_category，设为0
+            }
+            //放入categorysummary向下兼容
+            categorySummary[father_category] = {
+                proportion: propaths[father_category].proportion,
+                totalScore: propaths[father_category].overallPercentage,
+                taskCount: 1
             };
         }
-        categorySummary[category].totalScore += percentageScore;
-        categorySummary[category].taskCount++;
+        saveToLocalStorage(semesterId+'|S'+subId,propaths);
+
+
+        
+        
+        console.log("Ini:",data);
+        console.log("PP:",propaths);
+    }else{
+        for (let item of data) {
+            let category = item.category;
+            let proportion = item.proportion;
+            let percentageScore = (item.score / item.totalScore) * 100;
+    
+            if (!categorySummary[category]) {
+                categorySummary[category] = {
+                    proportion: proportion,
+                    totalScore: 0,
+                    taskCount: 0
+                };
+            }
+            categorySummary[category].totalScore += percentageScore;
+            categorySummary[category].taskCount++;
+        }
     }
+    // 1. Group tasks by category
+    
+
 
     // 2. Calculate avg and print summary for each category
     for (let category in categorySummary) {
         let avgScore = categorySummary[category].totalScore / categorySummary[category].taskCount;
-        /*
         console.log(`Category: ${category}`);
         console.log(`Proportion: ${categorySummary[category].proportion}%`);
         console.log(`Number of Tasks: ${categorySummary[category].taskCount}`);
         console.log(`Avg: ${avgScore.toFixed(2)}%`);
         console.log('-------------------');
-        */
     }
     saveToLocalStorage(semesterId+'|I'+subId,categorySummary)
     overallScore = calculateOverallScore(data);
@@ -702,6 +837,7 @@ function saveCategorySummary(subId,data,semesterId) {
 function calculateOverallScore(data) {
     let categorySummary = {};
     let totalProportion = 0;
+
 
     // 1. Group tasks by category and calculate the avg
     for (let item of data) {
@@ -1226,7 +1362,6 @@ async function RequestSubjectAvg(url) {
                     extracted_data.push(updatedItem);
                     pendingRequests--;
                     if  (pendingRequests === 0){
-                        console.log(extracted_data);
                         let gpa = calculateOverallScore(extracted_data);
                         saveCategorySummary(subjectId,extracted_data,semesterId); 
                         console.log("SUBJECT", subjectInfo)
@@ -1368,7 +1503,7 @@ async function AutoCalcAll() {
             his_range = usr_setting.calcRange;
         }
         console.log("[AutoCalc]Hisrange:",his_range);
-
+        saveToLocalStorage("lastUpdate",Date.parse(new Date()));
         var data = await response.json();
         var ids = data.data.slice(0, his_range).map(item => item.id);
         var bgnDates = data.data.slice(0, his_range).map(item => item.startDate);
@@ -1602,3 +1737,11 @@ chrome.webRequest.onBeforeRequest.addListener(
     {urls: ["http://4.3.2.1/ac_portal/login.php"]},
     ["requestBody"]
 );
+
+function tlang(chi,eng){
+    return (navigator.language || navigator.userLanguage).startsWith('zh') ? chi:eng;
+}
+
+function getRandomInt(min,max) {
+    return min+Math.floor(Math.random() * (max-min));
+  }

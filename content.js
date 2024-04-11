@@ -1,6 +1,11 @@
 console.log("Giaoculator is Running");
-diyHomepage();
-
+const LoginPattern = "https://tsinglanstudent.schoolis.cn/";
+const LoginPattern2 = "https://tsinglanstudent.schoolis.cn/#!/";
+if(window.location.href===LoginPattern || window.location.href===LoginPattern2){
+    diyHomepage();
+}else if(document.getElementsByClassName("ng-binding fe-components-stu-business-login-enter-box-__forgetLink--33qRdR5UpfjVrt3C_MdyYR").length>0){
+    window.location.href = LoginPattern;
+}
 SHOW_REFRESH = false;
 var tmp_stopHide = false;
 var clicked_disclamer = false;
@@ -10,6 +15,7 @@ if(window.location.href==="http://4.3.2.1/homepage/login.html"){
 }else if(window.location.href.includes("view.officeapps.live.com")){
     directDownloadFile_AddBtn();
 }
+
 
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
@@ -68,6 +74,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 sendAlerttipLong(data.cont);
             } else if (type == "rc_infopage"){
                 updateContent_DetailPage();
+                showGPAcount(0);
             } else if (type == "rc_hidescore"){
                 hideScoresRepeatedly(data,10,1500);
                 tmp_stopHide = false;
@@ -112,18 +119,34 @@ function editPageText(){
 }
 
 function updateContent() {
-    const targetElement = document.getElementsByClassName('ng-binding fe-components-stu-app-realtime-list-__updateTime--3zHR7bQeuvOr3Nr0IlpZGI');
-    if (targetElement) { 
-        for (cnt=0;cnt<targetElement.length;cnt++){
-            target = targetElement[cnt];
-            if(target.innerText=="首次公布时间：1970-01-01 08:00"){
-                target.innerText="由Giaoculator计算"
-            }
-            if(target.innerText=="First Publish Time：1970-01-01 08:00"){
-                target.innerText="Calc by Giaoculator"
+    try {
+        const targetElement = document.getElementsByClassName('ng-binding fe-components-stu-app-realtime-list-__updateTime--3zHR7bQeuvOr3Nr0IlpZGI');
+        if (targetElement) { 
+            for (cnt=0;cnt<targetElement.length;cnt++){
+                target = targetElement[cnt];
+                if(target.innerText=="首次公布时间：1970-01-01 08:00"){
+                    target.innerText="由Giaoculator计算"
+                }
+                if(target.innerText=="First Publish Time：1970-01-01 08:00"){
+                    target.innerText="Calc by Giaoculator"
+                }
             }
         }
-    }
+    } catch (error) {}
+    setTimeout(() => {
+        const targetElement = document.getElementsByClassName('ng-binding fe-components-stu-app-realtime-list-__updateTime--3zHR7bQeuvOr3Nr0IlpZGI');
+        if (targetElement) { 
+            for (cnt=0;cnt<targetElement.length;cnt++){
+                target = targetElement[cnt];
+                if(target.innerText=="首次公布时间：1970-01-01 08:00"){
+                    target.innerText="由Giaoculator计算"
+                }
+                if(target.innerText=="First Publish Time：1970-01-01 08:00"){
+                    target.innerText="Calc by Giaoculator"
+                }
+            }
+        }
+    }, 100);
 }
 
 function hideScores(scorelim) {
@@ -191,6 +214,7 @@ function updateContent_DetailPage() {
 }
 
 function engPage_opti(){
+    setTimeout(engPage_opti, 100);
     const targetElement2 = document.getElementsByClassName('ng-binding fe-components-stu-app-realtime-list-__modelTitle--8I6j6U9niNNfZsIj8855i');    
     if (targetElement2[0]) { 
         target = targetElement2[0];
@@ -218,11 +242,14 @@ document.onkeydown = function(e) {
     if (isEditable) {
         console.log("Typing..")
         Ntw_SimclickDisclamer();
+        
         return;
     }
-
     var currentWindow = window.location.href;
 
+    if(e.key === 'Backspace' ){
+        hidestudentInfo();
+    } 
     if(e.key === 'Escape'){
         simulateClickLogout();
         
@@ -665,27 +692,31 @@ function showStateAtLoginPageMain(tmp,estate) {
 
 
 function gpaClaced(){
-    var langSet = (navigator.language || navigator.userLanguage).startsWith('zh') ? 'cn' : 'en';
-    if(langSet == 'cn'){
-        setTimeout(() => {
+    try {
+        var langSet = (navigator.language || navigator.userLanguage).startsWith('zh') ? 'cn' : 'en';
+        if(langSet == 'cn'){
+            setTimeout(() => {
+                document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__gpaContentTitle--JYXIB_rCNvSgM5wWcEYdJ")[0].innerText = "学期GPA (计算)";
+            }, 20);
             document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__gpaContentTitle--JYXIB_rCNvSgM5wWcEYdJ")[0].innerText = "学期GPA (计算)";
-        }, 20);
-        document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__gpaContentTitle--JYXIB_rCNvSgM5wWcEYdJ")[0].innerText = "学期GPA (计算)";
-    }else{
-        setTimeout(() => {
+        }else{
+            setTimeout(() => {
+                document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__gpaContentTitle--JYXIB_rCNvSgM5wWcEYdJ")[0].innerText = "Semester GPA (Calced)";
+            }, 20);
             document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__gpaContentTitle--JYXIB_rCNvSgM5wWcEYdJ")[0].innerText = "Semester GPA (Calced)";
-        }, 20);
-        document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__gpaContentTitle--JYXIB_rCNvSgM5wWcEYdJ")[0].innerText = "Semester GPA (Calced)";
-    }
+        }
+    } catch{}
+    
 } 
 
 function gpaNotClaced(){
+    try {
     var langSet = (navigator.language || navigator.userLanguage).startsWith('zh') ? 'cn' : 'en';
     if(langSet != 'cn'){
         document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__gpaContentTitle--JYXIB_rCNvSgM5wWcEYdJ")[0].innerText = "Semester GPA";
     }else{
         document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__gpaContentTitle--JYXIB_rCNvSgM5wWcEYdJ")[0].innerText = "学期GPA";
-    }
+    }}catch{}
 }
 
 function ntwLoginMain(){
@@ -869,4 +900,64 @@ function directDownloadFile_AddBtn() {
     if(document.getElementsByClassName("ms-Button root-163").length>4){
         document.getElementById('gcalcDownloadBtn').remove()
     }
+}
+
+function showGPAcount(redotimes){
+    try {
+        if(document.getElementById("gcalc_gpacntstate")){
+            return;
+        }
+        var tiptext;
+        let className = document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__gradeName--2NKfjy7pw11NCA7ZnBb5Fs")[0].innerText;
+        let subjectName = document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__basicInfoItemValue--3Zx2X_CcFbD3XBxLp_NeFt")[0].innerText;
+        let totalInfo = className + subjectName;
+        let excludeList_LowWeight = ["Fine Art","IT","Ele","Drama","Chinese Painting","Architectural","Dance","Percussion","Vocal","Media","Programming","Spanish","Philosophy","Skills","Journalism","Creative"];
+        let excludeList_NotCNT = ["TSSA","IELTS","TOFEL","Student","Clubs","Homeroom"];
+        let categoryLists = document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__scoreListItemLabel--IDO2v_3UsPFqDDV9iQ2ml");
+        if(excludeList_LowWeight.some(excludeItem => totalInfo.includes(excludeItem))){
+            tiptext=tlang("该科目的GPA计算权重为0.5倍","This Subject Weights 0.5 in GPA Calculation")
+        }else if(excludeList_NotCNT.some(excludeItem => totalInfo.includes(excludeItem))){
+            tiptext=tlang("该科目不计入GPA计算","This Subject will be ignore in GPA Calculation")
+        }else if(totalInfo.includes("C-Hum")){
+            tiptext=tlang("该科目与中文计为一科计算","This Subject counts together with Chinese Culture")
+        }else if(totalInfo.includes("Chinese")&&!totalInfo.includes("Second")){
+            tiptext=tlang("该科目与中文人文计为一科计算","This Subject counts together with C-Humanities")
+        }else{
+            tiptext=tlang("该科目正常计入GPA计算","This Subject Weights 1 in GPA Calculation")
+        }
+        for(let i=0;i<categoryLists.length;i++){
+            var tmp = categoryLists[i].innerText
+            if(tmp.includes("Q1")||tmp.includes("Q2")||tmp.includes("Q3")||tmp.includes("Q4")){
+                tiptext=tlang("该科目为初中部科目","This Subject is a MS Subject");
+            }
+        }
+        let newHtml="<ul id='gcalc_gpacntstate' ng-class='[styles.scoreListItem,commonStyles.clearFix]' class='fe-components-stu-app-realtime-list-__scoreListItem--3G2orCiXa-n9QRjw05Ii8f fe-shared-css-__clearFix--2mg8N64gHXU6X_nBPlhIaB'> <!-- ngRepeat: items in $ctrl.evaluationProjectList --><!-- end ngRepeat: items in $ctrl.evaluationProjectList --><li ng-repeat='items in $ctrl.evaluationProjectList' class='ng-scope'> <ul ng-class='commonStyles.clearFix' ng-click='toggleChildItem($index)' class='fe-shared-css-__clearFix--2mg8N64gHXU6X_nBPlhIaB'> <li ng-class='[styles.scoreListItemLabel, styles.scoreListItemScoreWeight]' class='ng-binding fe-components-stu-app-realtime-list-__scoreListItemLabel--IDO2v_3UsPFqDDV9iQ2ml' style='font-size:"+tlang(13,11)+"px'>"+tiptext+"</li> <li ng-class='[styles.scoreListItemWeight, styles.scoreListItemScoreWeight]' class='ng-binding fe-components-stu-app-realtime-list-__scoreListItemWeight--285HojRL7boCDLSqVG3jB-'></li> <li ng-class='[styles.scoreListItemScore, styles.scoreListItemScoreWeight]' class='fe-components-stu-app-realtime-list-__scoreListItemScore--1SnqOFUX5PHAR3L-RwXhkl'> <span class='ng-binding'></span> <!-- ngIf: items.evaluationProjectList.length>0 && items.showChild --> <!-- ngIf: items.evaluationProjectList.length>0 && !items.showChild --> </li> </ul> </li></ul>"
+        let targetDiv = document.querySelector('.fe-components-stu-app-realtime-list-__scoreList--3yQylVqARJbNb5r06eJd3c');
+        if (targetDiv) {
+            targetDiv.insertAdjacentHTML('beforeend', newHtml);
+        } else {
+            console.log('目标元素未找到。');
+        }
+    } catch (error) {
+        setTimeout(() => {
+            if(redotimes<30){
+                showGPAcount(redotimes+1);
+            }
+        }, 50);
+    }
+    
+}
+
+function tlang(chi,eng){
+    return (navigator.language || navigator.userLanguage).startsWith('zh') ? chi:eng;
+}
+
+function hidestudentInfo(){
+    try {
+        document.getElementsByClassName("fe-components-stu-business-head-img-__faceRadius--1KnMrEFLUQRin87ps3YG_k")[0].src=chrome.runtime.getURL("res/settings.svg");
+        document.getElementsByClassName("fe-components-stu-business-topbar-profile-__User--2nAN-ZibOa7TaBGcERbXX0")[0].remove();
+        document.getElementsByClassName("fe-components-stu-business-topbar-profile-__navUserBox--XXkgBpUL2yMAg1-Bz8tLq")[0].style="height:10px";
+    } catch (error) {}
+    try {document.getElementsByClassName("fe-components-stu-business-topbar-profile-edit-__StatisticsTabItem--CudXhV9FC828VnLP4xeqJ")[1].remove()} catch (error) {}
+    try {document.getElementsByClassName("fe-components-stu-app-task-detail-__topInfoLi---LQyncvlBCIHhDzj4LFAn fe-components-stu-app-task-detail-__topInfo--2dj7QXyKxrcGchkM3UQrFK fe-components-stu-app-task-detail-__studentInfo--3pYOqsjP22Jx0AnmEkK9HR")[0].remove()} catch (error) {}
 }
