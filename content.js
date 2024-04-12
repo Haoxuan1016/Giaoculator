@@ -140,6 +140,7 @@ function updateContent() {
         if (targetElement) { 
             for (cnt=0;cnt<targetElement.length;cnt++){
                 target = targetElement[cnt];
+                // BUG: 如果使用了搜索功能，重新回来这个不会生效
                 if(target.innerText=="首次公布时间：1970-01-01 08:00"){
                     target.innerText="由Giaoculator计算"
                 }
@@ -158,6 +159,7 @@ function hideScores(scorelim) {
     if (scoreNumElement) {
       const score = parseFloat(scoreNumElement.innerText);
       if (score < scorelim) {
+        // TODO 加入小眼睛临时显示分数..?
         scoreNumElement.innerHTML = '<img src="' + chrome.runtime.getURL("res/disablev2.png") + '" alt="Disabled" style="width: 190%;" />';
 
         const scoreInfoElement = element.querySelector('.fe-components-stu-app-realtime-list-__scoreInfo--1d-D_GnPEaK1HTrcgeNURt');
