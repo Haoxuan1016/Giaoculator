@@ -20,6 +20,7 @@
   },"web_accessible_resources": [
     "res/disablev2.png",
     "res/disable.png",
+    "res/icon.png",
     "res/hideOff.svg",
     "res/hideOn.svg",
     "res/hideOff_Dark.svg",

@@ -84,6 +84,8 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 hideAseRepeatedly(data,100,3000);
             } else if (type == "bp-GPAcalced"){
                 gpaClaced();
+            } else if (type == "append2Scores"){
+                appendAvgMaxScoresInPage(data,0);
             } else if (type == "bp-GPANotcalced"){
                 gpaNotClaced();
             } else if (type == "bp-OpenPageAfterLoginNtw"){
@@ -960,4 +962,48 @@ function hidestudentInfo(){
     } catch (error) {}
     try {document.getElementsByClassName("fe-components-stu-business-topbar-profile-edit-__StatisticsTabItem--CudXhV9FC828VnLP4xeqJ")[1].remove()} catch (error) {}
     try {document.getElementsByClassName("fe-components-stu-app-task-detail-__topInfoLi---LQyncvlBCIHhDzj4LFAn fe-components-stu-app-task-detail-__topInfo--2dj7QXyKxrcGchkM3UQrFK fe-components-stu-app-task-detail-__studentInfo--3pYOqsjP22Jx0AnmEkK9HR")[0].remove()} catch (error) {}
+}
+
+function appendAvgMaxScoresInPage(data,redotimes){
+    try {
+        let elementToAppend;
+        let targetElement = document.getElementsByClassName("fe-components-stu-app-task-detail-__itemClassInfo--2Ist05O25K5lXA-9nAmiDO")[0]; // 找到目标元素
+        if(document.getElementsByClassName("ng-binding ng-scope fe-components-stu-app-task-detail-__itemClassInfoShow--359Ece2CkimkinYlmlxVbP").length==2){
+            return;
+        }else if(document.getElementsByClassName("ng-binding ng-scope fe-components-stu-app-task-detail-__itemClassInfoShow--359Ece2CkimkinYlmlxVbP").length==1){
+            document.getElementsByClassName("ng-binding ng-scope fe-components-stu-app-task-detail-__itemClassInfoShow--359Ece2CkimkinYlmlxVbP")[0].remove();
+        }
+        let maxS=data.maxS;
+        let avgS=data.avgS;
+        let iconModel = "<img src="+chrome.runtime.getURL("res/icon.png")+" id='gcalc2ScoresIcon' alt='Ico' style='vertical-align: middle; margin-right: 5px; height: 24px;'>"
+        let maxScoreModel = "<p ng-class='styles.itemClassInfoShow' ng-if='taskDetailInfo.displayClassAvgScore' class='ng-binding ng-scope fe-components-stu-app-task-detail-__itemClassInfoShow--359Ece2CkimkinYlmlxVbP'>"+tlang("班级最高成绩:","Class Highest:")+maxS+"</p>"
+        let avgScoreModel = "<p ng-class='styles.itemClassInfoShow' ng-if='taskDetailInfo.displayClassAvgScore' class='ng-binding ng-scope fe-components-stu-app-task-detail-__itemClassInfoShow--359Ece2CkimkinYlmlxVbP'>"+tlang("班级平均成绩:","Class Average:")+avgS+"</p>"
+        let tempDiv = document.createElement('div'); // 创建一个临时的div元素
+
+        tempDiv.innerHTML = iconModel;
+        elementToAppend = tempDiv.firstChild; 
+        targetElement.appendChild(elementToAppend);
+
+        tempDiv.innerHTML = avgScoreModel;
+        elementToAppend = tempDiv.firstChild; 
+        targetElement.appendChild(elementToAppend);
+        
+        tempDiv.innerHTML = maxScoreModel;
+        elementToAppend = tempDiv.firstChild; 
+        targetElement.appendChild(elementToAppend);
+        setTimeout(() => {
+            if(!document.getElementById("gcalc2ScoresIcon")){
+                appendAvgMaxScoresInPage(data,redotimes+1)
+            }   
+        }, 200);
+        
+    } catch (error) {
+        setTimeout(() => {
+            if(redotimes<10){
+                appendAvgMaxScoresInPage(data,redotimes+1)
+            }
+            
+        }, redotimes*20);
+    }
+    
 }

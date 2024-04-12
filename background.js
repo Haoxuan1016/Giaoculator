@@ -1,5 +1,3 @@
-let EXTENSION_VERSION = [4,7.2]
-
 let processingUrls = {};    
 let categoryCache = {};
 var gpaExistenceMap = {};
@@ -13,6 +11,8 @@ var working_sms_sequenceId = 1;
 var isFetchOriginal = false;
 var sequenceDic = {24700:0, 24699:1, 21208:2, 21207:3}; 
 var smsCalcStat = new Array();
+
+var usrAssignments = [];
 
 const gpaRules = [
     {"displayName":"A+","minValue":97.00,"maxValue":9999.90,"sort":0,"gpa":4.30},
@@ -456,11 +456,47 @@ chrome.webRequest.onBeforeRequest.addListener(
 );
 
 
+// 监听请求并根据特定URL模式修改响应
+chrome.webRequest.onBeforeRequest.addListener(
+    async (details) => {
+      // 这里假设 `assignmentInfoPattern` 是一个字符串或正则表达式，用于匹配相关URL
+      const assignmentInfoPattern = "https://tsinglanstudent.schoolis.cn/api/LearningTask/GetDetail?learningTaskId=";
+      if (details.url.startsWith(assignmentInfoPattern)) {
+        // 为避免无限循环，检查请求是否已经被修改过
+        if (details.url.includes("noRedirect")) {
+          return; // 如果URL包含标记，则不进行处理，直接放行
+        }
+  
+        try {
+            // Fetch原始数据
+            const response = await fetch(details.url+"&gcalc=noRedirect");
+            let data = await response.json();
+            data = data.data;
+            if (data.finishstate === null ||data.classAvgScore === null||data.classMaxScore === null) {
+                console.log("Some are null");
+                return;
+            }
+            await delay(10);
+            let tmpdata={
+                "avgS":data.classAvgScore,
+                "maxS":data.classMaxScore,
+                "totalS":data.totalScore,
+                "usrS":data.score
+            }
+            send_comp_msg("append2Scores",tmpdata,0);
+
+        } catch (error) {console.log(error)}
+      }
+    },
+    { urls: ["<all_urls>"] }, // 根据需要调整监听的URL模式
+    ["blocking", "requestBody"]
+  );
+
 
 chrome.webRequest.onBeforeRequest.addListener(
     async (details) => {
         const detailsUrlPattern = "https://tsinglanstudent.schoolis.cn/api/DynamicScore/GetStuSemesterDynamicScore?semesterId=";
-        
+        const subjectsStatisticsPattern = "https://tsinglanstudent.schoolis.cn/api/LearningTask/GetStatistics?schoolSemesterId=";
         // 检查请求的URL是否匹配
         if (details.url.startsWith(detailsUrlPattern+working_sms)) {
             return; // 先暂时关闭
@@ -500,6 +536,11 @@ chrome.webRequest.onBeforeRequest.addListener(
                 }, 25);
                 console.log("PartB:List>1,donothing");
             }
+        }else if (details.url.startsWith(subjectsStatisticsPattern)) {
+            let url = new URL(details.url);
+            let semesterId = url.searchParams.get("schoolSemesterId");
+            let subjectId = url.searchParams.get("subjectId");
+
         }
     },
     
@@ -1316,6 +1357,31 @@ function send_str_msg(msgtype,cont,redotimes){
                 setTimeout(() => { 
                     send_str_msg(msgtype,cont,redotimes+1);
                  }, redotimes*1000+500);
+                
+            }
+            
+        });
+    }
+
+}
+
+
+function send_comp_msg(msgtype,data,redotimes){
+    if(redotimes<8){
+        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+            let message = {
+                type: msgtype,
+                data: data
+            };
+            try{
+                chrome.tabs.sendMessage(tabs[0].id, message);
+                //console.log(`[${msgtype}]:failed to send,${redotimes}`)
+            }catch(e){
+                //console.log(`[${msgtype}]:failed to send,${redotimes}`)
+                console.log(message);
+                setTimeout(() => { 
+                    send_str_msg(msgtype,cont,redotimes+1);
+                 }, redotimes*500+100);
                 
             }
             
