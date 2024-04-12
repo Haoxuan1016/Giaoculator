@@ -924,6 +924,8 @@ function showGPAcount(redotimes){
             tiptext=tlang("该科目与中文计为一科计算","This Subject counts together with Chinese Culture")
         }else if(totalInfo.includes("Chinese")&&!totalInfo.includes("Second")){
             tiptext=tlang("该科目与中文人文计为一科计算","This Subject counts together with C-Humanities")
+        }else if(totalInfo.includes("AP")&&!totalInfo.includes("Second")){
+            tiptext=tlang("该科目为AP科目，加权0.5计入GPA","This Subject Weights +0.5 in GPA Calculation")
         }else{
             tiptext=tlang("该科目正常计入GPA计算","This Subject Weights 1 in GPA Calculation")
         }
