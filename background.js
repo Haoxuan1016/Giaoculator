@@ -461,7 +461,7 @@ chrome.webRequest.onBeforeRequest.addListener(
     async (details) => {
       // 这里假设 `assignmentInfoPattern` 是一个字符串或正则表达式，用于匹配相关URL
       const assignmentInfoPattern = "https://tsinglanstudent.schoolis.cn/api/LearningTask/GetDetail?learningTaskId=";
-      if (details.url.startsWith(assignmentInfoPattern)) {
+      if (details.url.startsWith(assignmentInfoPattern)&&!details.url.includes("&gcalcSysFetch")) {
         // 为避免无限循环，检查请求是否已经被修改过
         if (details.url.includes("noRedirect")) {
           return; // 如果URL包含标记，则不进行处理，直接放行
@@ -473,7 +473,6 @@ chrome.webRequest.onBeforeRequest.addListener(
             let data = await response.json();
             data = data.data;
             if (data.finishstate === null ||data.classAvgScore === null||data.classMaxScore === null) {
-                console.log("Some are null");
                 return;
             }
             await delay(10);
@@ -690,7 +689,7 @@ async function checkVersion(){
 // 函数作用写在这里
 function fetchCategoryAndProportion(taskId, dataItem, callback) {
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", `https://tsinglanstudent.schoolis.cn/api/LearningTask/GetDetail?learningTaskId=${taskId}`, true);
+    xhr.open("GET", `https://tsinglanstudent.schoolis.cn/api/LearningTask/GetDetail?learningTaskId=${taskId}`+'&gcalcSysFetch', true);
     resetUI();
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4) {

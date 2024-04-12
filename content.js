@@ -1,6 +1,8 @@
 console.log("Giaoculator is Running");
-const LoginPattern = "https://tsinglanstudent.schoolis.cn/";
-const LoginPattern2 = "https://tsinglanstudent.schoolis.cn/#!/";
+if(!LoginPattern&&!LoginPattern){
+    var LoginPattern = "https://tsinglanstudent.schoolis.cn/";
+    var LoginPattern2 = "https://tsinglanstudent.schoolis.cn/#!/";
+}
 if(window.location.href===LoginPattern || window.location.href===LoginPattern2){
     diyHomepage();
 }else if(document.getElementsByClassName("ng-binding fe-components-stu-business-login-enter-box-__forgetLink--33qRdR5UpfjVrt3C_MdyYR").length>0){
@@ -19,6 +21,7 @@ if(window.location.href==="http://4.3.2.1/homepage/login.html"){
 
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+
     // 尝试结合两个版本的功能：使用chrome.storage.local来检查enable_state，并保留disable_autologin逻辑。
     chrome.storage.local.get('enable_state', function(result) {
         let type = message.type;
@@ -103,6 +106,8 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 });
 
 function Ntw_SimclickDisclamer(){
+    console.log("RUNNING ntwDis")
+
     if(!clicked_disclamer){
         var targ = document.getElementById("password_disclaimer");//用于快速点击disclamer选项
         if(targ){
@@ -114,6 +119,8 @@ function Ntw_SimclickDisclamer(){
     }
 }
 function editPageText(){
+    console.log("RUNNING oedit")
+
     changeBarname(0, " (1)")
     changeBarname(1, " (2)")
     changeBarname(2, " (3)")
@@ -121,6 +128,8 @@ function editPageText(){
 }
 
 function updateContent() {
+    console.log("RUNNING updateContent")
+
     try {
         const targetElement = document.getElementsByClassName('ng-binding fe-components-stu-app-realtime-list-__updateTime--3zHR7bQeuvOr3Nr0IlpZGI');
         if (targetElement) { 
@@ -152,6 +161,8 @@ function updateContent() {
 }
 
 function hideScores(scorelim) {
+    console.log("RUNNING hidesorc")
+
   const elements = document.getElementsByClassName('fe-components-stu-app-realtime-list-__content--2keQZ3lLv0HwiGHcw7cEeU');
   for (let element of elements) {
     const scoreNumElement = element.querySelector('.fe-components-stu-app-realtime-list-__scoreNum--toPOhGj5JXhKFaxKzn7G1');
@@ -170,6 +181,8 @@ function hideScores(scorelim) {
 }
 
 function hideAssignments(settingData) {
+    console.log("RUNNING assign")
+
     if(tmp_stopHide==true){
         return;
     }
@@ -199,6 +212,8 @@ function hideAssignments(settingData) {
 
 
 function updateContent_DetailPage() {
+    console.log("RUNNING updateDP")
+
     const targetElement = document.getElementsByClassName('fe-components-stu-app-realtime-list-__basicInfoItem--2mLNqht5xhMaGuOPL1rAei');
     if (targetElement) { 
         for (cnt=0;cnt<targetElement.length;cnt++){
@@ -216,18 +231,34 @@ function updateContent_DetailPage() {
 }
 
 function engPage_opti(){
-    setTimeout(engPage_opti, 100);
-    const targetElement2 = document.getElementsByClassName('ng-binding fe-components-stu-app-realtime-list-__modelTitle--8I6j6U9niNNfZsIj8855i');    
-    if (targetElement2[0]) { 
-        target = targetElement2[0];
-        if(target.innerText=="Grade Details"){
-            target.innerText="Details"
+    setTimeout(() => {
+        console.log("RUNNING englishOpi")
+        const targetElement2 = document.getElementsByClassName('ng-binding fe-components-stu-app-realtime-list-__modelTitle--8I6j6U9niNNfZsIj8855i');    
+        if (targetElement2[0]) { 
+            target = targetElement2[0];
+            if(target.innerText=="Grade Details"){
+                target.innerText="Details"
+            }
+            return true;
+        } else {
+            setTimeout(engPage_opti, 100);
+            return false;
         }
-        return true;
-    } else {
-        setTimeout(engPage_opti, 100);
-        return false;
-    }
+    }, 10);
+    setTimeout(() => {
+        console.log("RUNNING englishOpi")
+        const targetElement2 = document.getElementsByClassName('ng-binding fe-components-stu-app-realtime-list-__modelTitle--8I6j6U9niNNfZsIj8855i');    
+        if (targetElement2[0]) { 
+            target = targetElement2[0];
+            if(target.innerText=="Grade Details"){
+                target.innerText="Details"
+            }
+            return true;
+        } else {
+            setTimeout(engPage_opti, 100);
+            return false;
+        }
+    }, 120);
 }
 
 
@@ -965,6 +996,7 @@ function hidestudentInfo(){
 }
 
 function appendAvgMaxScoresInPage(data,redotimes){
+    console.log(redotimes);
     try {
         let elementToAppend;
         let targetElement = document.getElementsByClassName("fe-components-stu-app-task-detail-__itemClassInfo--2Ist05O25K5lXA-9nAmiDO")[0]; // 找到目标元素
@@ -996,6 +1028,11 @@ function appendAvgMaxScoresInPage(data,redotimes){
                 appendAvgMaxScoresInPage(data,redotimes+1)
             }   
         }, 200);
+        if((data.usrS/data.totalS)*100>=(data.avgS/data.totalS)*100+10||((data.usrS/data.totalS)*100)>=97){
+            document.getElementsByClassName("ng-binding fe-components-stu-app-task-detail-__itemScore--1nuolF1pAilxxSB6o8b2Rx")[0].style="text-shadow: 0 0 10px #bbffbb";
+        }else if((data.usrS/data.totalS)*100+10<(data.avgS/data.totalS)*100){
+            document.getElementsByClassName("ng-binding fe-components-stu-app-task-detail-__itemScore--1nuolF1pAilxxSB6o8b2Rx")[0].style="text-shadow: 0 0 10px #ffbbbb";
+        }
         
     } catch (error) {
         setTimeout(() => {
