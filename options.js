@@ -163,6 +163,17 @@ function loadOptions() {
                 input.style.visibility = 'hidden';
                 label.style.visibility = 'hidden';
             }
+            input = document.getElementById('darkModeSelect');
+            label = document.getElementById('darkModeSelect_Label');
+            if (data.user_preference.advLogPage == true) {
+                input.style.display = 'inline-block';
+                label.style.display = 'inline';
+                input.style.visibility = 'visible';
+                label.style.visibility = 'visible';
+            } else {
+                input.style.visibility = 'hidden';
+                label.style.visibility = 'hidden';
+            }
         }else{
             var newWindow = window.open('https://tsinglanstudent.schoolis.cn', '_blank');
             setTimeout(() => {

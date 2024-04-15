@@ -12,7 +12,8 @@ var isFetchOriginal = false;
 var sequenceDic = {24700:0, 24699:1, 21208:2, 21207:3}; 
 var smsCalcStat = new Array();
 
-var usrAssignments = [];
+var usrAssignmentsInfo = {};
+var usrAssignmentsBriefInfo = [];
 
 const gpaRules = [
     {"displayName":"A+","minValue":97.00,"maxValue":9999.90,"sort":0,"gpa":4.30},
@@ -165,7 +166,7 @@ chrome.webRequest.onBeforeRequest.addListener(
                 send_str_msg("rc_hideasm",usr_setting,0);
                 setTimeout(() => {
                     send_str_msg("rc_hideasm",usr_setting,0);
-                }, 10);
+                }, 50);
             }, 10);
             
         }
@@ -1398,7 +1399,6 @@ async function RequestSubjectAvg(url) {
 
     // Fetch the subject eName
     let subjectInfo = await fetchSubjectEName(semesterId, subjectId);
-    
     // Mark URL as being processed to avoid infinite loop
     processingUrls[url] = true;
     
@@ -1412,6 +1412,12 @@ async function RequestSubjectAvg(url) {
             // Extract the necessary information
             var extracted_data = [];
             var pendingRequests = 0;
+            console.log("rdl",response.data.list);
+            for(var item of usrAssignmentsBriefInfo){
+                if(item.smsid==semesterId&&item.subjectid==subjectId){
+                    response.data.list.push(item);
+                }
+            }
             for (var item of response.data.list) {
                  
                 let dataItem = {
@@ -1423,6 +1429,21 @@ async function RequestSubjectAvg(url) {
                 };
                 
                 pendingRequests++;
+                //如果是用户自定义的任务 apple
+                if(item.id[0]=="g"){
+                    extracted_data.push(usrAssignmentsInfo[item.id].info);
+    
+                    console.log("etcd",extracted_data);
+                    pendingRequests--;
+                    if  (pendingRequests === 0){
+                        let gpa = calculateOverallScore(extracted_data);
+                        saveCategorySummary(subjectId,extracted_data,semesterId); 
+                        console.log("SUBJECT", subjectInfo)
+                        saveSubjectInfo(subjectId, extracted_data, subjectInfo, gpa, semesterId);
+                    }
+                    continue;
+                }
+
                 await fetchCategoryAndProportion(item.id, dataItem, function(updatedItem) {
                     extracted_data.push(updatedItem);
                     pendingRequests--;
@@ -1651,8 +1672,9 @@ chrome.runtime.onMessage.addListener(
                     }else{
                         var updateDate = getFromLocalStorage("lastUpdate");
                         Date.parse(new Date());
-                        if(Date.parse(new Date()) - updateDate > 30){
+                        if(Date.parse(new Date()) - updateDate > 36000000){
                             send_str_msg("tip_info",(navigator.language || navigator.userLanguage).includes('CN')?`数据已过期，自动重新计算`:`Data is expired`,0);
+                            AutoCalcAll();
                             localStorage.clear();
                             did_autocalcall = false;
                         }
@@ -1809,4 +1831,56 @@ function tlang(chi,eng){
 
 function getRandomInt(min,max) {
     return min+Math.floor(Math.random() * (max-min));
-  }
+}
+
+function addNewUsrAssignment(smsid,subjectid,name, percentageScore,proportion,cataName) {
+    let tmplength = Object.keys(usrAssignmentsInfo).length
+    let usrAssignmentInfo = {
+        smsId: smsid,
+        subjectId: subjectid,
+        info: {
+            id: "g" + (tmplength + 1016),
+            learningTaskName: "[G]" + name,
+            totalScore: 100,
+            score: percentageScore,
+            studentName: "用户自定义任务",
+            studentEName: "Created by User",
+            taskName:"[G]" + name,
+            typeName: "用户自定义任务",
+            typeEName: "Created by User",
+            isChild: false,
+            category: cataName,
+            proportion: proportion,
+            child_proportion: -1,
+            finishState: 1,
+            evaProjects: [
+                {
+                  isDisplayProportion: true,
+                  proportion: proportion,
+                  proPath: "30468,",
+                  parentProId: 0,
+                  id: 30468,
+                  name: cataName,
+                  eName: cataName
+                }
+            ]
+        },
+        
+    };
+    let usrAssignmentStatisticsInfo = {
+        smsid: smsid,
+        subjectid: subjectid,
+        id: "g" + (tmplength + 1016),
+        learningTaskName: name,
+        learningTaskTypeName: "用户自定义任务",
+        learningTaskTypeEName: "Created by User",
+        score: percentageScore,
+        totalScore: 100,
+        scoringAverage: percentageScore,
+        endDate: "/Date(1000000000000+0800)/"
+    }
+    usrAssignmentsInfo["g" + (tmplength + 1016)]=usrAssignmentInfo;
+    usrAssignmentsBriefInfo.push(usrAssignmentStatisticsInfo);
+
+}
+

@@ -1,10 +1,11 @@
 console.log("Giaoculator is Running");
+diyHomepage();
 if(!LoginPattern&&!LoginPattern){
     var LoginPattern = "https://tsinglanstudent.schoolis.cn/";
     var LoginPattern2 = "https://tsinglanstudent.schoolis.cn/#!/";
 }
-if(window.location.href===LoginPattern || window.location.href===LoginPattern2){
-    diyHomepage();
+if(window.location.href===LoginPattern || window.location.href.includes(LoginPattern2)){
+    console.log("HP");
 }else if(document.getElementsByClassName("ng-binding fe-components-stu-business-login-enter-box-__forgetLink--33qRdR5UpfjVrt3C_MdyYR").length>0){
     window.location.href = LoginPattern;
 }
