@@ -12,6 +12,12 @@ var isFetchOriginal = false;
 var sequenceDic = {24700:0, 24699:1, 21208:2, 21207:3}; 
 var smsCalcStat = new Array();
 
+var smsDateList = [];
+if(getFromLocalStorage("Info-SmsDateList")){
+     smsDateList = getFromLocalStorage("Info-SmsDateList");
+}
+
+
 var usrAssignmentsInfo = {};
 var usrAssignmentsBriefInfo = [];
 
@@ -74,6 +80,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         did_autocalcall = false;
         smsCalcStat = [];
         localStorage.clear();
+        usrAssignmentsInfo = {};
+        usrAssignmentsBriefInfo = [];
         send_short_msg("bp-logpageState",0);
         setTimeout(() => {
             send_short_msg("bp-logpageState",0);
@@ -135,6 +143,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
             if(Date.parse(new Date()) - updateDate> 36000000){//
                 send_str_msg("tip_info",(navigator.language || navigator.userLanguage).includes('CN')?`数据已过期，自动重新计算`:`Data Expired, Calculating...`,0);
                 localStorage.clear();
+                
                 did_autocalcall = false;
                 AutoCalcAll();
             }else{
@@ -156,7 +165,14 @@ chrome.webRequest.onBeforeRequest.addListener(
 
         if (details.url.startsWith(InfoPagePattern)) {
             setTimeout(() => {
-                send_short_msg("rc_infopage",0);
+                const urlParams = new URLSearchParams(new URL(details.url).search);
+                let req_subjectId = urlParams.get('subjectId');
+                let req_semesterId = urlParams.get('semesterId');
+                let data = {
+                    smsId: req_semesterId,
+                    subjectId: req_subjectId
+                }
+                send_comp_msg("rc_infopage",data,0);
             }, 10);
         }
 
@@ -240,8 +256,12 @@ chrome.webRequest.onBeforeRequest.addListener(
             for (let courseInfo of courseInfoList) {
                 let course = JSON.parse(JSON.stringify(template));
                 if(courseInfo.source == "calc" && courseInfo.gpa >= 0){
-                    course.className = courseInfo.ename;
-                    course.classEName = courseInfo.ename;
+                    let changedClassname = courseInfo.ename;
+                    if (changedClassname.includes("[Edited] ")) {
+                        changedClassname = changedClassname.replace("[Edited] ", "");
+                    }
+                    course.className = changedClassname;
+                    course.classEName = changedClassname;
                     course.subjectName = courseInfo.ename;
                     course.subjectEName = courseInfo.ename;
                     course.scoreMappingId = (courseInfo.ename.includes("AP")||courseInfo.ename.includes("AS"))? 6799:4517;
@@ -991,7 +1011,7 @@ async function fetchSubjectEName(semesterId, subjectId) {
 }
 
 
-function saveSubjectInfo(subjectId, dataCollect, dataInfo, gpa, semesterId){
+function saveSubjectInfo(subjectId, dataCollect, dataInfo, gpa, semesterId,sname){
     let data = {
         gpaInfo: dataInfo,
         gpa: gpa,
@@ -1002,6 +1022,9 @@ function saveSubjectInfo(subjectId, dataCollect, dataInfo, gpa, semesterId){
         source: "calc"
     }
     saveToLocalStorage(semesterId+'|'+subjectId, data);
+    if(sname.includes("[Edited]")){
+        send_str_msg("gb-finishedCalc",gpa,0);
+    }
 }
 
 // 将对象保存到localStorage的函数
@@ -1225,7 +1248,7 @@ async function CalcBySmsId(semesterId,bgn_info,end_info) {
                 if(localStorage.getItem(semesterId+'|'+subject.id) === null){
                     let subjectRequestUrl = `https://tsinglanstudent.schoolis.cn/api/LearningTask/GetStatistics?schoolSemesterId=${semesterId}&subjectId=${subject.id}&learningTaskTypeId=null&beginDate=${bgn_year}-${bgn_mon}-${bgn_date}&endDate=${end_year}-${end_mon}-${end_date}&page.pageIndex=1&page.pageSize=500`;
                     // 假设 RequestSubjectAvg 也是异步函数
-                    await RequestSubjectAvg(subjectRequestUrl);
+                    await RequestSubjectAvg(subjectRequestUrl,0);
                 }else{
                     console.log("[CalcBySmsId]学科数据已存在，无需重复计算。" + subject.id);
                 }
@@ -1391,7 +1414,7 @@ function send_comp_msg(msgtype,data,redotimes){
 }
 
 
-async function RequestSubjectAvg(url) {
+async function RequestSubjectAvg(url,mode) {
     console.log("Suc_Request_NewFunc")
     let urlObj = new URL(url);
     let semesterId = urlObj.searchParams.get("schoolSemesterId");
@@ -1399,6 +1422,9 @@ async function RequestSubjectAvg(url) {
 
     // Fetch the subject eName
     let subjectInfo = await fetchSubjectEName(semesterId, subjectId);
+    if(mode==1&&!(subjectInfo.ename.includes("[Edited]"))){
+        subjectInfo.ename = "[Edited] " + subjectInfo.ename;
+    }
     // Mark URL as being processed to avoid infinite loop
     processingUrls[url] = true;
     
@@ -1439,7 +1465,7 @@ async function RequestSubjectAvg(url) {
                         let gpa = calculateOverallScore(extracted_data);
                         saveCategorySummary(subjectId,extracted_data,semesterId); 
                         console.log("SUBJECT", subjectInfo)
-                        saveSubjectInfo(subjectId, extracted_data, subjectInfo, gpa, semesterId);
+                        saveSubjectInfo(subjectId, extracted_data, subjectInfo, gpa, semesterId,subjectInfo.ename);
                     }
                     continue;
                 }
@@ -1451,7 +1477,7 @@ async function RequestSubjectAvg(url) {
                         let gpa = calculateOverallScore(extracted_data);
                         saveCategorySummary(subjectId,extracted_data,semesterId); 
                         console.log("SUBJECT", subjectInfo)
-                        saveSubjectInfo(subjectId, extracted_data, subjectInfo, gpa, semesterId);
+                        saveSubjectInfo(subjectId, extracted_data, subjectInfo, gpa, semesterId,subjectInfo.ename);
 
                     }
                 });
@@ -1460,8 +1486,7 @@ async function RequestSubjectAvg(url) {
             if (pendingRequests === 0) {
                 console.log(extracted_data);
                 let gpa = calculateOverallScore(extracted_data);
-
-                saveSubjectInfo(subjectId, extracted_data, subjectInfo, gpa,semesterId);
+                saveSubjectInfo(subjectId, extracted_data, subjectInfo, gpa,semesterId,subjectInfo.ename);
 
                 saveCategorySummary(subjectId,extracted_data,semesterId);  
             }
@@ -1473,7 +1498,7 @@ async function RequestSubjectAvg(url) {
     xhr.send();
 }
 
-async function fetchOriginalRequest(smsId) {
+async function  fetchOriginalRequest(smsId) {
     isFetchOriginal = true;
     // 如果没有提供 semesterId 或 subjectId，可以直接返回 null 或抛出错误
     if (!smsId) {
@@ -1522,6 +1547,7 @@ async function fetchOriginalRequest(smsId) {
                 isOriginal : true,
                 source : "original"
             }
+            
             saveToLocalStorage(smsId+'|'+courseInfo.subjectId, course);
         }
     }catch (error) {
@@ -1606,6 +1632,10 @@ async function AutoCalcAll() {
             
             console.log("[AutoCalc]Start Calc",smsId);
             smsCalcStat[smsId] = -1;
+            smsDateList[smsId] ={
+                bgnDate:bgnDates[i],
+                endDate:endDates[i]
+            };
             if(await CalcBySmsId(smsId,bgnDates[i],endDates[i])){
                 await isExistGPA(smsId);
                 await fetchSchedule(bgnDates[i]);
@@ -1629,6 +1659,7 @@ async function AutoCalcAll() {
             
             await delay(1000);
         }
+        saveToLocalStorage("Info-SmsDateList",smsDateList);
         console.log("[AutoCalc]Finished All!",smsId);
         saveToLocalStorage("lastUpdate",Date.parse(new Date()));
 }
@@ -1677,6 +1708,7 @@ chrome.runtime.onMessage.addListener(
                             AutoCalcAll();
                             localStorage.clear();
                             did_autocalcall = false;
+                            
                         }
                     }
                 }, 20);
@@ -1685,9 +1717,71 @@ chrome.runtime.onMessage.addListener(
         }else if(message.type==="bp-ntwlogin"){
             ntwAutoLog();
             
+        }else if(message.type==="gb_addtoUsrList"){
+            let tmplist = message.data;
+            for(var i=0;i<tmplist.length;i++){
+                addNewUsrAssignment(tmplist[i].smsId,tmplist[i].subjectId,tmplist[i].name,tmplist[i].percentageScore,tmplist[i].proportion,tmplist[i].cataname);
+                console.log(tmplist[i].smsId,tmplist[i].subjectId,tmplist[i].name,tmplist[i].percentageScore,tmplist[i].proportion,tmplist[i].cataname);
+                console.log(message.additionalData);
+            }
+            gpaExistenceMap[tmplist[0].smsId] = false;
+            calcSubjectAvg(tmplist[0].smsId,tmplist[0].subjectId);
+        }else if(message.type==="gb_getSavedData"){
+            let smsId = message.data.smsId;
+            let subjectId = message.data.subjectId;
+            let data = [];
+            for(let i=0;i<usrAssignmentsBriefInfo.length;i++){
+                if(usrAssignmentsBriefInfo[i].smsId == smsId && usrAssignmentsBriefInfo[i].subjectId == subjectId){
+                    let assignmentInfo = usrAssignmentsInfo[usrAssignmentsBriefInfo[i].info.id];
+                    let assignment = {
+                        cataName: assignmentInfo.category,
+                        proportion: assignmentInfo.proportion,
+                        score: assignmentInfo.score,
+                        smsId: smsId,
+                        subjectId: subjectId,
+                        name: assignmentInfo.taskName
+                    }
+                    data.push(assignment);
+                }
+            }
+            let msg={
+                smsId: smsId,
+                subjectId: subjectId,
+                subjectName:message.data.subjectName,
+                model:message.data.model,
+                list: data
+            }
+            console.log("MSG:",msg);
+            send_comp_msg("gb-savedData",msg,0);
         }
     }
 );
+
+
+
+
+async function calcSubjectAvg(smsId,subjectId){
+    const bgn_parsed = parseDateInfo(smsDateList[smsId].bgnDate);
+    const end_parsed = parseDateInfo(smsDateList[smsId].endDate);
+    if(!bgn_parsed || !end_parsed){
+        send_str_msg("tip_err","计算时出现问题：SmsId不存在或未定义",0);
+        console.log("SmsIdError,Smsid:",semesterId)
+        return false;
+    }
+    // 新建变量并赋值
+    let bgn_year = bgn_parsed.year;
+    let bgn_mon = bgn_parsed.mon;
+    let bgn_date = bgn_parsed.date;
+
+    let end_year = end_parsed.year;
+    let end_mon = end_parsed.mon;
+    let end_date = end_parsed.date;
+
+    let subjectRequestUrl = `https://tsinglanstudent.schoolis.cn/api/LearningTask/GetStatistics?schoolSemesterId=${smsId}&subjectId=${subjectId}&learningTaskTypeId=null&beginDate=${bgn_year}-${bgn_mon}-${bgn_date}&endDate=${end_year}-${end_mon}-${end_date}&page.pageIndex=1&page.pageSize=500`;
+    await RequestSubjectAvg(subjectRequestUrl,1);
+}
+
+
 
 async function isExistGPA(smsId) {
     const url = `https://tsinglanstudent.schoolis.cn/api/DynamicScore/GetGpa?semesterId=${smsId}`;

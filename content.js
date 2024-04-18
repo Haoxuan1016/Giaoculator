@@ -78,7 +78,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 sendAlerttipLong(data.cont);
             } else if (type == "rc_infopage"){
                 updateContent_DetailPage();
-                showGPAcount(0);
+                showGPAcount(0,data);
             } else if (type == "rc_hidescore"){
                 hideScoresRepeatedly(data,10,1500);
                 tmp_stopHide = false;
@@ -101,6 +101,10 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 }, 60);
             } else if (type == "stat-RenderText") {
                 replaceTaskStat(data.cont)
+            } else if (type == "gb-finishedCalc"){
+                document.getElementById("gb_newnum").innerText = parseInt(data.cont).toFixed(1);
+            } else if (type == "gb-savedData"){
+                showDiyScoresBox(data.smsId, data.subjectId, data.subjectName,data.model,data.list);
             }
         }
     });
@@ -163,7 +167,6 @@ function updateContent() {
 }
 
 function hideScores(scorelim) {
-    console.log("RUNNING hidesorc")
 
   const elements = document.getElementsByClassName('fe-components-stu-app-realtime-list-__content--2keQZ3lLv0HwiGHcw7cEeU');
   for (let element of elements) {
@@ -172,13 +175,16 @@ function hideScores(scorelim) {
       const score = parseFloat(scoreNumElement.innerText);
       if (score < scorelim) {
         // TODO 加入小眼睛临时显示分数..?
-        scoreNumElement.innerHTML = '<img src="' + chrome.runtime.getURL("res/disablev2.png") + '" alt="Disabled" style="width: 190%;" />';
-
         const scoreInfoElement = element.querySelector('.fe-components-stu-app-realtime-list-__scoreInfo--1d-D_GnPEaK1HTrcgeNURt');
-        if (scoreInfoElement) {
-          scoreInfoElement.remove();
+        console.log(scoreNumElement,scoreInfoElement);
+        if (scoreInfoElement!=null) {
+            console.log(scoreInfoElement,"is not NULL");
+            scoreNumElement.innerHTML = '<img src="' + chrome.runtime.getURL("res/disablev2.png") + '" alt="Disabled" style="width: 190%;" />';
+            scoreInfoElement.remove();
+        }else{
+            scoreNumElement.innerHTML = '<img src="' + chrome.runtime.getURL("res/disablev2.png") + '" alt="Disabled" style="position: relative; left: -13px;width: 70%;" />';//初中部样式
         }
-      }
+     }
     }
   }
 }
@@ -229,11 +235,14 @@ function updateContent_DetailPage() {
             }
         }
     } 
-    engPage_opti();
-    setTimeout(engPage_opti, 30);
+    engPage_opti(0);
+    setTimeout(engPage_opti(0), 30);
 }
 
-function engPage_opti(){
+function engPage_opti(redotimes){
+    if(redotimes>30){
+        return;
+    }
     setTimeout(() => {
         console.log("RUNNING englishOpi")
         const targetElement2 = document.getElementsByClassName('ng-binding fe-components-stu-app-realtime-list-__modelTitle--8I6j6U9niNNfZsIj8855i');    
@@ -244,7 +253,7 @@ function engPage_opti(){
             }
             return true;
         } else {
-            setTimeout(engPage_opti, 100);
+            setTimeout(engPage_opti(redotimes+1), 100);
             return false;
         }
     }, 10);
@@ -258,7 +267,7 @@ function engPage_opti(){
             }
             return true;
         } else {
-            setTimeout(engPage_opti, 100);
+            setTimeout(engPage_opti(redotimes+1), 100);
             return false;
         }
     }, 120);
@@ -938,8 +947,10 @@ function directDownloadFile_AddBtn() {
     }
 }
 
-function showGPAcount(redotimes){
+function showGPAcount(redotimes,data){
     try {
+        let showGB = true;
+        let GBModel = 0;
         if(document.getElementById("gcalc_gpacntstate")){
             return;
         }
@@ -950,6 +961,12 @@ function showGPAcount(redotimes){
         let excludeList_LowWeight = ["Fine Art","IT","Ele","Drama","Chinese Painting","Architectural","Dance","Percussion","Vocal","Media","Programming","Spanish","Philosophy","Skills","Journalism","Creative"];
         let excludeList_NotCNT = ["TSSA","IELTS","TOFEL","Student","Clubs","Homeroom"];
         let categoryLists = document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__scoreListItemLabel--IDO2v_3UsPFqDDV9iQ2ml");
+        if(totalInfo.includes("Drama")){
+            showGB = false;
+        }
+        if(totalInfo.includes("Physical Education")){
+            GBModel = 1;
+        }
         if(excludeList_LowWeight.some(excludeItem => totalInfo.includes(excludeItem))){
             tiptext=tlang("该科目的GPA计算权重为0.5倍","This Subject Weights 0.5 in GPA Calculation")
         }else if(excludeList_NotCNT.some(excludeItem => totalInfo.includes(excludeItem))){
@@ -967,19 +984,24 @@ function showGPAcount(redotimes){
             var tmp = categoryLists[i].innerText
             if(tmp.includes("Q1")||tmp.includes("Q2")||tmp.includes("Q3")||tmp.includes("Q4")){
                 tiptext=tlang("该科目为初中部科目","This Subject is a MS Subject");
+                showGB = false;
             }
         }
-        let newHtml="<ul id='gcalc_gpacntstate' ng-class='[styles.scoreListItem,commonStyles.clearFix]' class='fe-components-stu-app-realtime-list-__scoreListItem--3G2orCiXa-n9QRjw05Ii8f fe-shared-css-__clearFix--2mg8N64gHXU6X_nBPlhIaB'> <!-- ngRepeat: items in $ctrl.evaluationProjectList --><!-- end ngRepeat: items in $ctrl.evaluationProjectList --><li ng-repeat='items in $ctrl.evaluationProjectList' class='ng-scope'> <ul ng-class='commonStyles.clearFix' ng-click='toggleChildItem($index)' class='fe-shared-css-__clearFix--2mg8N64gHXU6X_nBPlhIaB'> <li ng-class='[styles.scoreListItemLabel, styles.scoreListItemScoreWeight]' class='ng-binding fe-components-stu-app-realtime-list-__scoreListItemLabel--IDO2v_3UsPFqDDV9iQ2ml' style='font-size:"+tlang(13,11)+"px'>"+tiptext+"</li> <li ng-class='[styles.scoreListItemWeight, styles.scoreListItemScoreWeight]' class='ng-binding fe-components-stu-app-realtime-list-__scoreListItemWeight--285HojRL7boCDLSqVG3jB-'></li> <li ng-class='[styles.scoreListItemScore, styles.scoreListItemScoreWeight]' class='fe-components-stu-app-realtime-list-__scoreListItemScore--1SnqOFUX5PHAR3L-RwXhkl'> <span class='ng-binding'></span> <!-- ngIf: items.evaluationProjectList.length>0 && items.showChild --> <!-- ngIf: items.evaluationProjectList.length>0 && !items.showChild --> </li> </ul> </li></ul>"
+        let newHtml="<ul id='gcalc_gpacntstate' ng-class='[styles.scoreListItem,commonStyles.clearFix]' class='fe-components-stu-app-realtime-list-__scoreListItem--3G2orCiXa-n9QRjw05Ii8f fe-shared-css-__clearFix--2mg8N64gHXU6X_nBPlhIaB'> <!-- ngRepeat: items in $ctrl.evaluationProjectList --><!-- end ngRepeat: items in $ctrl.evaluationProjectList --><li ng-repeat='items in $ctrl.evaluationProjectList' class='ng-scope'> <ul ng-class='commonStyles.clearFix' ng-click='toggleChildItem($index)' class='fe-shared-css-__clearFix--2mg8N64gHXU6X_nBPlhIaB'> <li ng-class='[styles.scoreListItemLabel, styles.scoreListItemScoreWeight]' class='ng-binding fe-components-stu-app-realtime-list-__scoreListItemLabel--IDO2v_3UsPFqDDV9iQ2ml' style='font-size:"+tlang(13,11)+"px'>"+tiptext+"</li> <li ng-class='[styles.scoreListItemWeight, styles.scoreListItemScoreWeight]' class='ng-binding fe-components-stu-app-realtime-list-__scoreListItemWeight--285HojRL7boCDLSqVG3jB-'></li> <li ng-class='[styles.scoreListItemScore, styles.scoreListItemScoreWeight]' id='gcalc_diyboxbtn' class='fe-components-stu-app-realtime-list-__scoreListItemScore--1SnqOFUX5PHAR3L-RwXhkl'> <span class='ng-binding'></span> <!-- ngIf: items.evaluationProjectList.length>0 && items.showChild --> <!-- ngIf: items.evaluationProjectList.length>0 && !items.showChild --> </li> </ul> </li></ul>"
         let targetDiv = document.querySelector('.fe-components-stu-app-realtime-list-__scoreList--3yQylVqARJbNb5r06eJd3c');
         if (targetDiv) {
             targetDiv.insertAdjacentHTML('beforeend', newHtml);
+            
         } else {
             console.log('目标元素未找到。');
+        }
+        if(showGB){
+            addBtnforshowDisScoresBox(data.smsId,data.subjectId,className,GBModel);
         }
     } catch (error) {
         setTimeout(() => {
             if(redotimes<30){
-                showGPAcount(redotimes+1);
+                showGPAcount(redotimes+1,data);
             }
         }, 50);
     }
@@ -1003,6 +1025,14 @@ function hidestudentInfo(){
 function appendAvgMaxScoresInPage(data,redotimes){
     console.log(redotimes);
     try {
+
+        if((data.usrS/data.totalS)*100>=(data.avgS/data.totalS)*100+10||((data.usrS/data.totalS)*100)>=97){
+            document.getElementsByClassName("ng-binding fe-components-stu-app-task-detail-__itemScore--1nuolF1pAilxxSB6o8b2Rx")[0].style="text-shadow: 0 0 10px #bbffbb";
+        }else if((data.usrS/data.totalS)*100+10<(data.avgS/data.totalS)*100){
+            document.getElementsByClassName("ng-binding fe-components-stu-app-task-detail-__itemScore--1nuolF1pAilxxSB6o8b2Rx")[0].style="text-shadow: 0 0 10px #ff9999";
+        }
+
+        
         let elementToAppend;
         let targetElement = document.getElementsByClassName("fe-components-stu-app-task-detail-__itemClassInfo--2Ist05O25K5lXA-9nAmiDO")[0]; // 找到目标元素
         if(document.getElementsByClassName("ng-binding ng-scope fe-components-stu-app-task-detail-__itemClassInfoShow--359Ece2CkimkinYlmlxVbP").length==2){
@@ -1033,11 +1063,7 @@ function appendAvgMaxScoresInPage(data,redotimes){
                 appendAvgMaxScoresInPage(data,redotimes+1)
             }   
         }, 200);
-        if((data.usrS/data.totalS)*100>=(data.avgS/data.totalS)*100+10||((data.usrS/data.totalS)*100)>=97){
-            document.getElementsByClassName("ng-binding fe-components-stu-app-task-detail-__itemScore--1nuolF1pAilxxSB6o8b2Rx")[0].style="text-shadow: 0 0 10px #bbffbb";
-        }else if((data.usrS/data.totalS)*100+10<(data.avgS/data.totalS)*100){
-            document.getElementsByClassName("ng-binding fe-components-stu-app-task-detail-__itemScore--1nuolF1pAilxxSB6o8b2Rx")[0].style="text-shadow: 0 0 10px #ffbbbb";
-        }
+        
         
     } catch (error) {
         setTimeout(() => {
@@ -1048,4 +1074,261 @@ function appendAvgMaxScoresInPage(data,redotimes){
         }, redotimes*20);
     }
     
+}
+function addBtnforshowDisScoresBox(smsid,subjectid,subjectname,model){
+    let tmpBtn = `<p id="gcalc_clicktoshowDiyBox" style="font-size: 13px; display: inline-block; padding: 0px 11px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">任务自定义</p>`;
+    document.getElementById("gcalc_gpacntstate").children[0].children[0].children[0].style = "font-size:13px;position: relative;top: 1px;";
+    document.getElementById("gcalc_diyboxbtn").insertAdjacentHTML('beforeend', tmpBtn);
+
+    document.getElementById("gcalc_clicktoshowDiyBox").addEventListener('click', function() {
+        getUsrAssignmentInfoBeforeshowDiyBox(smsid,subjectid,subjectname,model);
+    });
+}
+
+function getUsrAssignmentInfoBeforeshowDiyBox(smsid, subjectid,subjectName,model){
+    let data={
+        smsId:smsid,
+        subjectId:subjectid,
+        subjectName:subjectName,
+        model:model
+    }
+    console.log("SendMSG:",data);
+    send_comp_msg("gb_getSavedData",data,0);
+}
+
+
+function showDiyScoresBox(smsId,subjectId,subjectName,model,existList){
+    let tmp_target = document.getElementsByClassName("ng-scope fe-components-stu-app-realtime-list-__xbDialogModal--32pq02X2epeJa2CLnNeez5")[0];
+    if(!tmp_target){
+        console.log("[ShowDiyScoresBox]Target Not Found");
+        return;
+    }
+    selectionList = `
+    <option value="Comprehensive Assessments">${tlang("综合性评估","Comprehensive Assessments")}</option>
+    <option value="Continuous Assessments">${tlang("连续性评估","Continuous Assessments")}</option>
+    <option value="Progressive Assessments">${tlang("渐进式评估","Progressive Assessments")}</option>
+    <option value="Final exam">${tlang("期末考试","Final Exam")}</option>
+    `
+    if(model == 1){
+        selectionList = `<option value="Comprehensive Assessments">${tlang("综合性评估","Comprehensive Assessments")}</option>`
+    }
+    mainHtml = `<div ng-class="styles.xbDialogModal" ng-if="$ctrl.showDialog" class="ng-scope fe-components-stu-app-realtime-list-__xbDialogModal--32pq02X2epeJa2CLnNeez5">
+	<div ng-class="styles.xbDialogModalBox" style="width:990px"class="fe-components-stu-app-realtime-list-__xbDialogModalBox--1hItMXot7XJyswrPjZ2WjQ">
+		<div ng-class="[styles.header, commonStyles.clearFix]" class="fe-components-stu-app-realtime-list-__header--2llDMOt0zjGNFxFvoV5VBp fe-shared-css-__clearFix--2mg8N64gHXU6X_nBPlhIaB">
+			<span ng-class="styles.modelTitle" class="ng-binding fe-components-stu-app-realtime-list-__modelTitle--8I6j6U9niNNfZsIj8855i">导入任务</span>
+			<span ng-class="styles.closeIcon" ng-click="closeModal()" class="fe-components-stu-app-realtime-list-__closeIcon--21rEx3pvaQh2o8ssUTWfBv"></span>
+		</div>
+		<div id="gb-body" ng-class="styles.body" class="fe-components-stu-app-realtime-list-__body--KTwHV_4KFA0kqa0udu2GW">
+            <br><br>
+            <div style="margin-bottom: 20px;">
+            	<p style="font-size: 14px; margin-right: 8px;">学期ID：${smsId}&nbsp&nbsp&nbsp&nbsp科目：${subjectName} </p>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="font-size: 14px; margin-right: 4px;">任务名称:</label>
+                <input id="gb_aName" type="text" style="line-height: 20px; padding: 3px 5px; border: 1px solid #ccc; border-radius: 4px; margin-right: 24px;">
+                <label style="font-size: 14px; margin-right: 4px;">得分:</label>
+                <input id="gb_aScore" type="number" style="line-height: 20px; padding: 3px 5px; border: 1px solid #ccc; border-radius: 4px; width: 60px;margin-right: 24px;">
+                <label style="font-size: 14px; margin-right: 4px;">分类:</label>
+                <select id="gb_cataSelect" style="padding: 3px 5px; border: 1px solid #ccc; border-radius: 4px;margin-right: 20px;">
+                    ${selectionList}
+                </select>
+                <p id="gb_propDis" style="font-size: 14px; margin-right: 4px;display: inline-block;">占比: -%</p>
+                <button id="gb_appendBtn" style="font-size: 12px;background-color: #4CAF50; color: white; padding: 6px 9px; border: none; border-radius: 4px; margin-left: 62px; cursor: pointer;">添加到列表</button>
+            </div>
+            <div style="margin-bottom: 20px;">
+            	<div style="border: 0.2px solid #ccc; border-radius: 4px;width: 100%; margin: 0 auto; overflow-x: hidden; overflow-y: auto;">
+                <div style="width: 100%; height: 370px; border: 1px solid #ccc; overflow-y: auto;">
+                  <ul id="gb_listbox">
+                    
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <button id="gb_nextStepBtn" style="font-size: 14px;background-color: #4CAF50; color: white; padding: 7px 10px; border: none; border-radius: 4px; position:absolute; bottom:10; right:31px; cursor: pointer;">下一步</button>
+		</div>
+	</div>
+    </div>
+    `; //Main Html of the box
+    let oriScore = document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__score--1e6GrTtGfRHkKF-12OE_J3")[0].innerText;
+    tmp_target.innerHTML = mainHtml;
+    var listitem_Html = 'H';
+    document.getElementsByClassName("fe-components-stu-app-realtime-list-__closeIcon--21rEx3pvaQh2o8ssUTWfBv")[0].addEventListener("click", function() {
+        closeGcalcBox();
+    });
+
+    
+    const selectElement = document.getElementById("gb_cataSelect");
+    const pElement = document.getElementById("gb_propDis");
+
+    
+    if(model == 0){
+        switch (selectElement.value) {
+            case "Comprehensive Assessments":
+                pElement.textContent = "占比: 20%";
+                break;
+            case "Continuous Assessments":
+            case "Progressive Assessments":
+                pElement.textContent = "占比: 30%";
+                break;
+            case "Final exam":
+                pElement.textContent = "占比: 20%";
+                break;
+            default:
+                pElement.textContent = "占比: 30%";
+        }
+    }else{
+        pElement.textContent = "占比: 100%";
+    }
+
+    // 监听 select 元素的 change 事件
+    selectElement.addEventListener("change", function() {
+        // 根据选中的值设置 p 元素的内容
+        if(model == 0){
+            switch (selectElement.value) {
+                case "Comprehensive Assessments":
+                    pElement.textContent = "占比: 20%";
+                    break;
+                case "Continuous Assessments":
+                case "Progressive Assessments":
+                    pElement.textContent = "占比: 30%";
+                    break;
+                case "Final exam":
+                    pElement.textContent = "占比: 20%";
+                    break;
+                default:
+                    pElement.textContent = "占比: 30%";
+            }
+        }else{
+            pElement.textContent = "占比: 100%";
+        }
+        
+    });
+    var pendingAssignmentList = [];     
+    document.getElementById("gb_appendBtn").addEventListener("click", function() {
+        const assignmentName = document.getElementById("gb_aName").value;
+        const assignmentScore = document.getElementById("gb_aScore").value;
+        const assignmentCata = document.getElementById("gb_cataSelect").value;
+        let assignmentProp=0;
+        switch (assignmentCata) {
+            case "Comprehensive Assessments":
+                assignmentProp = 20;
+                break;
+            case "Continuous Assessments":
+            case "Progressive Assessments":
+                assignmentProp = 30;
+                break;
+            case "Final exam":
+                assignmentProp = 20;
+                break;
+            default:
+                assignmentProp = 30;
+        }
+                               
+        let inputInfo = {
+            smsId: smsId,
+            subjectId: subjectId,
+            name: assignmentName,
+            percentageScore: assignmentScore,
+            cataname: assignmentCata,
+            proportion: assignmentProp
+        }
+        pendingAssignmentList.push(inputInfo);                     
+        const paddedAssignmentName = padSpaces(assignmentName, 30);
+        const paddedAssignmentScore = padSpaces(assignmentScore, 4)+'%';
+        const paddedAssignmentCata = padSpaces(assignmentCata, 15);
+        const paddedAssignmentProp = padSpaces('('+assignmentProp, 4)+'%)';
+        const itemStr = "&nbsp;" + paddedAssignmentName + "&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[&ensp;&ensp;" + paddedAssignmentScore + "&emsp;-&emsp;" + paddedAssignmentCata + "&ensp;" + paddedAssignmentProp+"&ensp;&ensp;]";
+        listitem_Html = `<div class="added_assignment_showBox" style="display: flex; align-items: center; text-align: center; justify-content: space-between; padding: 10px; background-color: rgba(255,255,255, 0.85); margin-bottom: 3px;margin-top: 3px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); cursor: pointer;"><span>${itemStr}</span></div>`;
+        document.getElementById("gb_listbox").insertAdjacentHTML('beforeend', listitem_Html);
+        console.log(pendingAssignmentList);
+    });
+    document.getElementById("gb_nextStepBtn").addEventListener("click", function() {
+            if(pendingAssignmentList.length==0){
+                alert("请添加至少一个作业");
+            }else{
+                send_comp_msg("gb_addtoUsrList",pendingAssignmentList,oriScore);
+                showState2DiyScoresBox(smsId,subjectId,subjectName,oriScore);
+            }
+    });
+
+}
+function padSpaces(str, targetLength) {
+    //return str.padEnd(6)
+    const paddingLength = Math.max(0, targetLength - str.length);
+    return str + "&ensp;".repeat(paddingLength);
+}
+
+//addNewUsrAssignment(smsid,subjectid,name, percentageScore,proportion,cataName)
+
+function send_comp_msg(msgtype, data, addData) {
+    chrome.runtime.sendMessage({
+        type: msgtype,
+        data: data,
+        additionalData: addData
+    });
+
+}
+
+function showState2DiyScoresBox(smsId,subjectId,subjectName,oriScore){
+    if (subjectName.includes("[Edited] ")) {
+        subjectName = subjectName.replace("[Edited] ", "");
+    }
+    mainHtml = `<div id="gb-s2-body" ng-class="styles.body" class="fe-components-stu-app-realtime-list-__body--KTwHV_4KFA0kqa0udu2GW" style="display: flex; flex-direction: column;">
+    <br><br>
+    <div style="font-size: 28px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); ;padding: 20px; display: flex; flex-direction: row;">
+  <div ng-if="$ctrl.listInfo.length!=0" ng-class="[styles.item, styles.listItem]" ng-repeat="item in $ctrl.listInfo" ng-click="actionRealtime(item)" class="ng-scope fe-components-stu-app-realtime-list-__item--15ati0uVXaVfuWcqrnMUMw fe-components-stu-app-realtime-list-__listItem--3XdXNo9J8YyN2Z4GL0lpGz">
+			<p ng-class="styles.title" xb-title="${subjectName}" class="ng-isolate-scope fe-components-stu-app-realtime-list-__title--2-qR61O6OMCyK_cqZXD1EC"><ng-transclude>${subjectName}</ng-transclude>
+<div ng-class="styles['bubble-tips']" ng-show="show" style="" class="ng-hide fe-components-directive-xb-title-__bubble-tips--1rVlv__7CL6h6fs0m5wLMm">
+	<!-- ngRepeat: text in xbTitle.split('</br>') track by $index --><p ng-repeat="text in xbTitle.split('</br>') track by $index" style="" class="ng-binding ng-scope">${subjectName}</p><!-- end ngRepeat: text in xbTitle.split('</br>') track by $index -->
+	<em ng-class="styles[isUp?'title-arrows-up':'title-arrows-down']" class="fe-components-directive-xb-title-__title-arrows-down--1OqcUAwVxF4Rv0iZgjyYvH"></em>
+</div></p>
+			<p ng-class="styles.grade" xb-title="${subjectName}" class="ng-isolate-scope fe-components-stu-app-realtime-list-__grade--2wJch67b4uOYNPgwNpRCm8"><ng-transclude>${subjectName}</ng-transclude>
+<div ng-class="styles['bubble-tips']" ng-show="show" style="" class="ng-hide fe-components-directive-xb-title-__bubble-tips--1rVlv__7CL6h6fs0m5wLMm">
+	<!-- ngRepeat: text in xbTitle.split('</br>') track by $index --><p ng-repeat="text in xbTitle.split('</br>') track by $index" style="" class="ng-binding ng-scope">${subjectName}</p>
+	<em ng-class="styles[isUp?'title-arrows-up':'title-arrows-down']" class="fe-components-directive-xb-title-__title-arrows-down--1OqcUAwVxF4Rv0iZgjyYvH"></em>
+</div></p>
+<div ng-class="styles.content" ng-if="item.scoreType==1" class="ng-scope fe-components-stu-app-realtime-list-__content--2keQZ3lLv0HwiGHcw7cEeU">
+				<div ng-class="[styles.scoreNum,(item.subjectScore=='--')?styles.noneScore:'',(item.gpa!= null || item.level)?'':styles.scoreCenter]" class="ng-binding fe-components-stu-app-realtime-list-__scoreNum--toPOhGj5JXhKFaxKzn7G1 fe-components-stu-app-realtime-list-__scoreCenter--qsS5Rck5H9C3EHLPt3XUF">
+					${oriScore}</div>
+				<div style="clear:both;"></div>
+			</div>
+			<div ng-class="styles.updateTime" class="ng-binding fe-components-stu-app-realtime-list-__updateTime--3zHR7bQeuvOr3Nr0IlpZGI">原始成绩</div>
+		</div>
+        
+<div ng-if="$ctrl.listInfo.length!=0" ng-class="[styles.item, styles.listItem]" ng-repeat="item in $ctrl.listInfo" ng-click="actionRealtime(item)" class="ng-scope fe-components-stu-app-realtime-list-__item--15ati0uVXaVfuWcqrnMUMw fe-components-stu-app-realtime-list-__listItem--3XdXNo9J8YyN2Z4GL0lpGz">
+			<p ng-class="styles.title" xb-title="[Edited] ${subjectName}" class="ng-isolate-scope fe-components-stu-app-realtime-list-__title--2-qR61O6OMCyK_cqZXD1EC"><ng-transclude>[Edited] ${subjectName}</ng-transclude>
+<div ng-class="styles['bubble-tips']" ng-show="show" style="" class="ng-hide fe-components-directive-xb-title-__bubble-tips--1rVlv__7CL6h6fs0m5wLMm">
+	<!-- ngRepeat: text in xbTitle.split('</br>') track by $index --><p ng-repeat="text in xbTitle.split('</br>') track by $index" style="" class="ng-binding ng-scope">[Edited] ${subjectName}</p><!-- end ngRepeat: text in xbTitle.split('</br>') track by $index -->
+	<em ng-class="styles[isUp?'title-arrows-up':'title-arrows-down']" class="fe-components-directive-xb-title-__title-arrows-down--1OqcUAwVxF4Rv0iZgjyYvH"></em>
+</div></p>
+			<p ng-class="styles.grade" xb-title="${subjectName}" class="ng-isolate-scope fe-components-stu-app-realtime-list-__grade--2wJch67b4uOYNPgwNpRCm8"><ng-transclude>${subjectName}</ng-transclude>
+<div ng-class="styles['bubble-tips']" ng-show="show" style="" class="ng-hide fe-components-directive-xb-title-__bubble-tips--1rVlv__7CL6h6fs0m5wLMm">
+	<!-- ngRepeat: text in xbTitle.split('</br>') track by $index --><p ng-repeat="text in xbTitle.split('</br>') track by $index" style="" class="ng-binding ng-scope">${subjectName}</p>
+	<em ng-class="styles[isUp?'title-arrows-up':'title-arrows-down']" class="fe-components-directive-xb-title-__title-arrows-down--1OqcUAwVxF4Rv0iZgjyYvH"></em>
+</div></p>
+<div ng-class="styles.content" ng-if="item.scoreType==1" class="ng-scope fe-components-stu-app-realtime-list-__content--2keQZ3lLv0HwiGHcw7cEeU">
+				<div id="gb_newnum" ng-class="[styles.scoreNum,(item.subjectScore=='--')?styles.noneScore:'',(item.gpa!= null || item.level)?'':styles.scoreCenter]" class="ng-binding fe-components-stu-app-realtime-list-__scoreNum--toPOhGj5JXhKFaxKzn7G1 fe-components-stu-app-realtime-list-__scoreCenter--qsS5Rck5H9C3EHLPt3XUF">
+					-</div>
+				<div style="clear:both;"></div>
+			</div>
+			<div ng-class="styles.updateTime" class="ng-binding fe-components-stu-app-realtime-list-__updateTime--3zHR7bQeuvOr3Nr0IlpZGI">修改后成绩</div>
+		</div>
+</div>
+    <button id="gb_finishBtn" style="font-size: 14px;background-color: #4CAF50; color: white; padding: 7px 10px; border: none; border-radius: 4px; position:absolute; bottom:25px; right:31px; cursor: pointer;">确认</button>
+</div>
+    `; 
+    document.getElementById("gb-body").remove();
+    document.getElementsByClassName("fe-components-stu-app-realtime-list-__xbDialogModalBox--1hItMXot7XJyswrPjZ2WjQ")[0].insertAdjacentHTML('beforeend', mainHtml);
+    document.getElementsByClassName("fe-components-stu-app-realtime-list-__closeIcon--21rEx3pvaQh2o8ssUTWfBv")[0].addEventListener("click", function() {
+        closeGcalcBox();
+    });
+    document.getElementById("gb_finishBtn").addEventListener("click", function() {
+        closeGcalcBox();
+    });
+
+}
+
+
+function closeGcalcBox(){
+    document.getElementsByClassName("ng-binding ng-scope fe-components-stu-business-topbar-__profileItem--342GOGLPiXlh4W0BfctRIF")[3].click();
 }
