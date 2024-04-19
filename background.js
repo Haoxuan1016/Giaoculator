@@ -1731,15 +1731,16 @@ chrome.runtime.onMessage.addListener(
             let subjectId = message.data.subjectId;
             let data = [];
             for(let i=0;i<usrAssignmentsBriefInfo.length;i++){
-                if(usrAssignmentsBriefInfo[i].smsId == smsId && usrAssignmentsBriefInfo[i].subjectId == subjectId){
-                    let assignmentInfo = usrAssignmentsInfo[usrAssignmentsBriefInfo[i].info.id];
+                if(usrAssignmentsBriefInfo[i].smsid == smsId && usrAssignmentsBriefInfo[i].subjectid == subjectId){
+                    let assignmentInfo = usrAssignmentsInfo[usrAssignmentsBriefInfo[i].id];
+                    console.log("ASSIGNMENTINFO:",assignmentInfo)
                     let assignment = {
-                        cataName: assignmentInfo.category,
-                        proportion: assignmentInfo.proportion,
-                        score: assignmentInfo.score,
+                        cataName: assignmentInfo.info.category,
+                        proportion: assignmentInfo.info.proportion,
+                        score: assignmentInfo.info.score,
                         smsId: smsId,
                         subjectId: subjectId,
-                        name: assignmentInfo.taskName
+                        name: assignmentInfo.info.taskName
                     }
                     data.push(assignment);
                 }

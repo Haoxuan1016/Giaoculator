@@ -102,8 +102,10 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
             } else if (type == "stat-RenderText") {
                 replaceTaskStat(data.cont)
             } else if (type == "gb-finishedCalc"){
-                document.getElementById("gb_newnum").innerText = parseInt(data.cont).toFixed(1);
+                console.log(data)
+                document.getElementById("gb_newnum").innerText = parseFloat(data.cont).toFixed(1);
             } else if (type == "gb-savedData"){
+                console.log("gb-savedData:",data);
                 showDiyScoresBox(data.smsId, data.subjectId, data.subjectName,data.model,data.list);
             }
         }
@@ -1098,6 +1100,7 @@ function getUsrAssignmentInfoBeforeshowDiyBox(smsid, subjectid,subjectName,model
 
 
 function showDiyScoresBox(smsId,subjectId,subjectName,model,existList){
+    console.log(existList,"sdad");
     let tmp_target = document.getElementsByClassName("ng-scope fe-components-stu-app-realtime-list-__xbDialogModal--32pq02X2epeJa2CLnNeez5")[0];
     if(!tmp_target){
         console.log("[ShowDiyScoresBox]Target Not Found");
@@ -1155,7 +1158,7 @@ function showDiyScoresBox(smsId,subjectId,subjectName,model,existList){
     document.getElementsByClassName("fe-components-stu-app-realtime-list-__closeIcon--21rEx3pvaQh2o8ssUTWfBv")[0].addEventListener("click", function() {
         closeGcalcBox();
     });
-
+    
     
     const selectElement = document.getElementById("gb_cataSelect");
     const pElement = document.getElementById("gb_propDis");
@@ -1203,7 +1206,19 @@ function showDiyScoresBox(smsId,subjectId,subjectName,model,existList){
         }
         
     });
-    var pendingAssignmentList = [];     
+    var pendingAssignmentList = [];    
+
+    console.log("exl:",existList,existList.length);
+    for(let i=0;i<existList.length;i++){
+        const paddedAssignmentName = padSpaces(existList[i].name.replace("[G]", ""), 30);
+        const paddedAssignmentScore = padSpaces(existList[i].score, 4)+'%';
+        const paddedAssignmentCata = padSpaces(existList[i].cataName, 15);
+        const paddedAssignmentProp = padSpaces('('+existList[i].proportion, 4)+'%)';
+        const itemStr = "&nbsp;" + paddedAssignmentName + "&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[&ensp;&ensp;" + paddedAssignmentScore + "&emsp;-&emsp;" + paddedAssignmentCata + "&ensp;" + paddedAssignmentProp+"&ensp;&ensp;]";
+        listitem_Html = `<div class="added_assignment_showBox" style="display: flex; align-items: center; text-align: center; justify-content: space-between; padding: 10px; background-color: rgba(255,255,255, 0.85); margin-bottom: 3px;margin-top: 3px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); cursor: pointer;"><span>${itemStr}</span></div>`;
+        document.getElementById("gb_listbox").insertAdjacentHTML('beforeend', listitem_Html);
+    }
+
     document.getElementById("gb_appendBtn").addEventListener("click", function() {
         const assignmentName = document.getElementById("gb_aName").value;
         const assignmentScore = document.getElementById("gb_aScore").value;
