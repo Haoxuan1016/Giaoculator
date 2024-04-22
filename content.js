@@ -66,6 +66,8 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 }
             } else if (type == "tip_suc"){
                 sendSeccesstip(data.cont);
+            } else if (type == "show_process"){
+                addCalcState(data);
             } else if (type == "tip_congrat"){
                 sendCongrat(data.cont);
             } else if (type == "tip_err"){
@@ -1397,6 +1399,29 @@ function ribbon_Fireworks(duration_Seconds){
     confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
     confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
     }, 250);
+}
+
+function addCalcState(data){
+    let cur = data.cur;
+    let oval = data.oval;
+    let targ = document.getElementById("gcalc_proc");
+    if(!targ){
+        let mainHtml = `<span id="gcalc_proc" ng-class="$ctrl.styles.gotoText" ng-show="showCourse" ng-click="" class="ng-binding fe-components-stu-business-topbar-__gotoText--abWs2AncUsOC7EPXLLEaK" style="
+    display: flex;
+    justify-content: center;
+    margin-top: -30px;
+    margin-left: -15px;
+    ">计算中 (NaN)</span>`
+        document.getElementsByClassName("fe-components-stu-business-topbar-__navBar--2Au2lL_QIAwQu9fN70vAd4")[0].insertAdjacentHTML('beforeend', mainHtml);
+    }
+    targ = document.getElementById("gcalc_proc");
+    targ.innerText = tlang(`计算中 (${cur}/${oval})`,`Processing (${cur}/${oval})`)
+    if(cur == oval){
+        targ.innerText = tlang(`计算已完成`,`All Done`)
+        setTimeout(() => {
+            targ.remove();
+        }, 2000);
+    }
 }
 /*<span ng-class="$ctrl.styles.gotoText" ng-show="showCourse" ng-click="" class="ng-binding fe-components-stu-business-topbar-__gotoText--abWs2AncUsOC7EPXLLEaK" style="
   display: flex;

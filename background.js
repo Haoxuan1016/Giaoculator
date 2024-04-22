@@ -1631,6 +1631,11 @@ async function AutoCalcAll() {
         var ids = data.data.slice(0, his_range).map(item => item.id);
         var bgnDates = data.data.slice(0, his_range).map(item => item.startDate);
         var endDates = data.data.slice(0, his_range).map(item => item.endDate);
+        let tmpdata={
+            cur: 0,
+            oval: his_range
+        }
+        send_comp_msg("show_process",tmpdata,0);
         for (var i=0;i<his_range;i++){
             if(ids[i] == null){
                 ids = data.data.slice(0, his_range).map(item => item.id);
@@ -1657,6 +1662,11 @@ async function AutoCalcAll() {
                 await fetchSchedule(bgnDates[i]);
                 console.log("[AutoCalc]Finished Calc",smsId);
                 smsCalcStat[smsId] = 1;
+                let data={
+                    cur: i+1,
+                    oval: his_range
+                }
+                send_comp_msg("show_process",data,0);
                 if((i+1) == his_range){
                     //if(his_range>1) send_str_msg("tip_suc",(navigator.language || navigator.userLanguage).includes('CN')? `已完成第${i+1}/${his_range}个学期计算，所有计算已完成！`:`All Calculation is Finished! ${i+1}/${his_range}`,0);
                     //else send_str_msg("tip_suc",(navigator.language || navigator.userLanguage).includes('CN')? `所有计算已完成！${i+1}/${his_range}`:`All Calculation is Finished! ${i+1}/${his_range}`,0);
