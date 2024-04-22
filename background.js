@@ -1666,7 +1666,7 @@ async function AutoCalcAll() {
                     cur: i+1,
                     oval: his_range
                 }
-                send_comp_msg("show_process",data,0);
+                send_comp_msg("show_process",data,-999999);
                 if((i+1) == his_range){
                     //if(his_range>1) send_str_msg("tip_suc",(navigator.language || navigator.userLanguage).includes('CN')? `已完成第${i+1}/${his_range}个学期计算，所有计算已完成！`:`All Calculation is Finished! ${i+1}/${his_range}`,0);
                     //else send_str_msg("tip_suc",(navigator.language || navigator.userLanguage).includes('CN')? `所有计算已完成！${i+1}/${his_range}`:`All Calculation is Finished! ${i+1}/${his_range}`,0);
