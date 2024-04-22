@@ -66,6 +66,8 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 }
             } else if (type == "tip_suc"){
                 sendSeccesstip(data.cont);
+            } else if (type == "tip_congrat"){
+                sendCongrat(data.cont);
             } else if (type == "tip_err"){
                 sendErrortip(data.cont);
             } else if (type == "tip_info"){ // 合并tip_info和tip_info_long的处理
@@ -79,6 +81,8 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
             } else if (type == "rc_infopage"){
                 updateContent_DetailPage();
                 showGPAcount(0,data);
+            } else if (type == "rib_fwk"){
+                ribbon_Fireworks(parseFloat(data.cont));
             } else if (type == "rc_hidescore"){
                 hideScoresRepeatedly(data,10,1500);
                 tmp_stopHide = false;
@@ -296,6 +300,7 @@ document.onkeydown = function(e) {
 
     if(e.key === 'Backspace' ){
         hidestudentInfo();
+        
     } 
     if(e.key === 'Escape'){
         simulateClickLogout();
@@ -399,6 +404,29 @@ function sendSeccesstip(cont){
     })
 }
 
+function sendCongrat(cont){
+    const notyf = new Notyf({
+        types: [
+          {
+            type: 'congrat',
+            background: "#52c41a",
+            icon: false
+          }
+        ]
+      });
+
+    notyf.open({
+        type: 'congrat',
+        duration: 3300,
+        position: {
+          x: 'center',
+          y: 'top',
+        },
+        dismissible: false,
+        message : cont
+    })
+}
+
 function sendErrortip(cont){
     const notyf = new Notyf
     notyf.error({
@@ -471,7 +499,7 @@ function sendAlerttipLong(cont){
 
     notyf.open({
         type: 'warning',
-        duration: 6000,
+        duration: 20000,
         position: {
           x: 'right',
           y: 'top',
@@ -978,7 +1006,7 @@ function showGPAcount(redotimes,data){
         }else if(totalInfo.includes("Chinese")&&!totalInfo.includes("Second")){
             tiptext=tlang("该科目与中文人文计为一科计算","This Subject counts together with C-Humanities")
         }else if(totalInfo.includes("AP")&&!totalInfo.includes("Second")){
-            tiptext=tlang("该科目为AP科目，加权0.5计入GPA","This Subject Weights +0.5 in GPA Calculation")
+            tiptext=tlang("该科目为AP科目，正常计入GPA计算","This Subject Weights 1 in GPA Calculation")
         }else{
             tiptext=tlang("该科目正常计入GPA计算","This Subject Weights 1 in GPA Calculation")
         }
@@ -1347,3 +1375,32 @@ function showState2DiyScoresBox(smsId,subjectId,subjectName,oriScore){
 function closeGcalcBox(){
     document.getElementsByClassName("ng-binding ng-scope fe-components-stu-business-topbar-__profileItem--342GOGLPiXlh4W0BfctRIF")[3].click();
 }
+
+function ribbon_Fireworks(duration_Seconds){
+    var duration = duration_Seconds * 1000;
+    var animationEnd = Date.now() + duration;
+    var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+    function randomInRange(min, max) {
+    return Math.random() * (max - min) + min;
+    }
+
+    var interval = setInterval(function() {
+    var timeLeft = animationEnd - Date.now();
+
+    if (timeLeft <= 0) {
+        return clearInterval(interval);
+    }
+
+    var particleCount = 200 * (timeLeft / duration);
+    // since particles fall down, start a bit higher than random
+    confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+    confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+    }, 250);
+}
+/*<span ng-class="$ctrl.styles.gotoText" ng-show="showCourse" ng-click="" class="ng-binding fe-components-stu-business-topbar-__gotoText--abWs2AncUsOC7EPXLLEaK" style="
+  display: flex;
+  justify-content: center;
+  margin-top: -30px;
+  margin-left: -15px;
+  ">计算中 (1/3)</span>*/

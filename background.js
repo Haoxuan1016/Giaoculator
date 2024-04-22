@@ -12,9 +12,13 @@ var isFetchOriginal = false;
 var sequenceDic = {24700:0, 24699:1, 21208:2, 21207:3}; 
 var smsCalcStat = new Array();
 
+var zeroAmounts = 0;
+var fullScoreAmounts = 0;
+var zeroAssignmentList = [];
+
 var smsDateList = [];
 if(getFromLocalStorage("Info-SmsDateList")){
-     smsDateList = getFromLocalStorage("Info-SmsDateList");
+    smsDateList = getFromLocalStorage("Info-SmsDateList");
 }
 
 
@@ -1445,7 +1449,13 @@ async function RequestSubjectAvg(url,mode) {
                 }
             }
             for (var item of response.data.list) {
-                 
+                if(item.score<=0){
+                    zeroAmounts = zeroAmounts + 1;
+                    zeroAssignmentList.push(item.learningTaskName);
+                }
+                if(item.score==item.totalScore){
+                    fullScoreAmounts = fullScoreAmounts + 1;
+                }
                 let dataItem = {
                     "id": item.id,
                     "taskName": item.learningTaskName,
@@ -1455,7 +1465,7 @@ async function RequestSubjectAvg(url,mode) {
                 };
                 
                 pendingRequests++;
-                //如果是用户自定义的任务 apple
+                //如果是用户自定义的任务
                 if(item.id[0]=="g"){
                     extracted_data.push(usrAssignmentsInfo[item.id].info);
     
@@ -1605,6 +1615,7 @@ async function sendLoginMessage() {
 
 async function AutoCalcAll() {
     did_autocalcall = true;
+    const usrName = await fetchUsrInfo();
     const response = await fetch("https://tsinglanstudent.schoolis.cn/api/School/GetSchoolSemesters");
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -1636,16 +1647,47 @@ async function AutoCalcAll() {
                 bgnDate:bgnDates[i],
                 endDate:endDates[i]
             };
+            if(i==0){ 
+                zeroAmounts = 0;
+                fullScoreAmounts = 0;
+                zeroAssignmentList = [];
+            }
             if(await CalcBySmsId(smsId,bgnDates[i],endDates[i])){
                 await isExistGPA(smsId);
                 await fetchSchedule(bgnDates[i]);
                 console.log("[AutoCalc]Finished Calc",smsId);
                 smsCalcStat[smsId] = 1;
                 if((i+1) == his_range){
-                    if(his_range>1) send_str_msg("tip_suc",(navigator.language || navigator.userLanguage).includes('CN')? `已完成第${i+1}/${his_range}个学期计算，所有计算已完成！`:`All Calculation is Finished! ${i+1}/${his_range}`,0);
-                    else send_str_msg("tip_suc",(navigator.language || navigator.userLanguage).includes('CN')? `所有计算已完成！${i+1}/${his_range}`:`All Calculation is Finished! ${i+1}/${his_range}`,0);
+                    //if(his_range>1) send_str_msg("tip_suc",(navigator.language || navigator.userLanguage).includes('CN')? `已完成第${i+1}/${his_range}个学期计算，所有计算已完成！`:`All Calculation is Finished! ${i+1}/${his_range}`,0);
+                    //else send_str_msg("tip_suc",(navigator.language || navigator.userLanguage).includes('CN')? `所有计算已完成！${i+1}/${his_range}`:`All Calculation is Finished! ${i+1}/${his_range}`,0);
                 }else{
-                    send_str_msg("tip_suc",(navigator.language || navigator.userLanguage).includes('CN')?`已完成第${i+1}/${his_range}个学期的计算`:`Scheduled Calc Process:${i+1}/${his_range}`,0);
+                    //send_str_msg("tip_suc",(navigator.language || navigator.userLanguage).includes('CN')?`已完成第${i+1}/${his_range}个学期的计算`:`Scheduled Calc Process:${i+1}/${his_range}`,0);
+                }
+                if(i==0&&zeroAmounts>0){ 
+                    let zeroStr = "";
+                    for(let i=0;i<zeroAssignmentList.length;i++){
+                        zeroStr = zeroStr + "<br>" + zeroAssignmentList[i];
+                    }
+                    send_str_msg("tip_alert_long",tlang(`发现 ${zeroAmounts} 个零分任务，请及时补交：${zeroStr}`,`${zeroAmounts} Assignment(s) are Scored Zero: ${zeroStr}`),0);
+                }
+                console.log(`TEST ${fullScoreAmounts} 个满分任务`);
+                if(i==0){ 
+                    chrome.storage.local.get(`[FullScoreCount]${usrName}`, function(data) {
+                        let count = data ? data[`[FullScoreCount]${usrName}`] : 0;
+                        if(count === undefined){
+                            count = 0;
+                        }
+                        console.log(count,fullScoreAmounts);
+                        if (fullScoreAmounts > count) {
+                            let objToStore = {};
+                            objToStore[`[FullScoreCount]${usrName}`] = fullScoreAmounts;
+                            send_str_msg("rib_fwk",3,0);
+                            send_str_msg("tip_congrat",tlang(`恭喜！新增了 ${fullScoreAmounts-count} 个满分任务`,`Congrats！You got ${fullScoreAmounts-count} more Full Mark(s).`),0);
+                            chrome.storage.local.set(objToStore, function() {
+                                console.log("New score has been stored.");
+                            });
+                        }
+                    });
                 }
                 await delay(1000);
             }else{
