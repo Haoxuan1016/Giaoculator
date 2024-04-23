@@ -1685,14 +1685,19 @@ async function AutoCalcAll() {
                     chrome.storage.local.get(`[FullScoreCount]${usrName}`, function(data) {
                         let count = data ? data[`[FullScoreCount]${usrName}`] : 0;
                         if(count === undefined){
-                            count = 0;
+                            count = -1;
                         }
                         console.log(count,fullScoreAmounts);
                         if (fullScoreAmounts > count) {
+                            if(count != -1){
+                                send_str_msg("rib_fwk",3,0);
+                                send_str_msg("tip_congrat",tlang(`恭喜！新增了 ${fullScoreAmounts-count} 个满分任务`,`Congrats！You got ${fullScoreAmounts-count} more Full Mark(s).`),0);
+                            }else{
+                                count = fullScoreAmounts;
+                            }
                             let objToStore = {};
                             objToStore[`[FullScoreCount]${usrName}`] = fullScoreAmounts;
-                            send_str_msg("rib_fwk",3,0);
-                            send_str_msg("tip_congrat",tlang(`恭喜！新增了 ${fullScoreAmounts-count} 个满分任务`,`Congrats！You got ${fullScoreAmounts-count} more Full Mark(s).`),0);
+                            
                             chrome.storage.local.set(objToStore, function() {
                                 console.log("New score has been stored.");
                             });
