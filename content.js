@@ -48,7 +48,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 //换位置
             } else if (type == "bp-showRefresh"){
                 showHideButtonAtHome();//NEW
-                MB_insertEditedDiv()
+                // MB_insertEditedDiv()
             } else if (type == "bp-refresh-click"){
                 simulateClickRefresh(0);
             } else if (type == "replace_context"){
