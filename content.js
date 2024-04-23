@@ -115,6 +115,8 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
             } else if (type == "gb-savedData"){
                 console.log("gb-savedData:",data);
                 showDiyScoresBox(data.smsId, data.subjectId, data.subjectName,data.model,data.list);
+            } else if(type=="showSubmitLinkAnsBtn"){
+                addSubmitLinkBtn(data.cont,0);
             }
         }
     });
@@ -1061,9 +1063,9 @@ function appendAvgMaxScoresInPage(data,redotimes){
     console.log(redotimes);
     try {
 
-        if((data.usrS/data.totalS)*100>=(data.avgS/data.totalS)*100+10||((data.usrS/data.totalS)*100)>=97){
+        if((data.usrS/data.totalS)*100>=(data.avgS/data.totalS)*100+10||((data.usrS/data.totalS)*100)>=97||data.usrS>=data.maxS){
             document.getElementsByClassName("ng-binding fe-components-stu-app-task-detail-__itemScore--1nuolF1pAilxxSB6o8b2Rx")[0].style="text-shadow: 0 0 10px #bbffbb";
-        }else if((data.usrS/data.totalS)*100+10<(data.avgS/data.totalS)*100){
+        }else if((data.usrS/data.totalS)*100+10<(data.avgS/data.totalS)*100||data.usrS==0){
             document.getElementsByClassName("ng-binding fe-components-stu-app-task-detail-__itemScore--1nuolF1pAilxxSB6o8b2Rx")[0].style="text-shadow: 0 0 10px #ff9999";
         }
 
@@ -1462,4 +1464,39 @@ function MB_insertEditedDiv() {
     console.log('No element with class "ng-isolate-scope" found.');
   }
   
+}
+
+function addSubmitLinkBtn(assignmentId,redotimes){
+    try{
+        let mHtml = `<button sync-click="$ctrl.clickFun()" ng-disabled="$ctrl.isDisabled" ng-class="[$ctrl.styles.cancel,$ctrl.styles[$ctrl.isDisabled?'disabled':'']]" style="height:30px;margin-left: 10px;" title="加入链接" class="ng-binding fe-components-xb-rest-btn-__cancel--GAK6A0SPZh0p3LOnXTukB" id="gcalc_addLink">
+        <img ng-if="$ctrl.src" ng-class="$ctrl.styles.img" ng-src="//cdn.schoolis.cn/sis/release/student/fe_stu/fe_build/images/iconUpload.e12a6658cac5bd82cf3279f0edd086da.png" class="ng-scope fe-components-xb-rest-btn-__img--lETa8z2YkhgS2-Jzh69Al" 
+        src="${chrome.runtime.getURL("icon.png")}"style="width: 19px;"> 加入链接
+        </button>`
+    
+        document.querySelector("xb-rest-btn.ng-scope.ng-isolate-scope button img.ng-scope.fe-components-xb-rest-btn-__img--lETa8z2YkhgS2-Jzh69Al").parentElement.parentElement.insertAdjacentHTML('beforeend', mHtml);
+        document.getElementById("gcalc_addLink").onclick = function() {
+            let link = prompt("【提交后将覆盖原有内容】\n老师端点击后将直接跳转\n请输入一个链接 (如：Canva共享链接):");
+            if(!link.includes("http")) link = "http://" + link;
+            if(link.length>3){
+                let cont = prompt("输入补充说明(对应平台[内容]一栏)(可留空):");
+                sendSeccesstip("任务已提交！");
+                let sdata={link:link,id:assignmentId,cont:cont};
+                send_comp_msg("submitLinkAssign",sdata,"1");
+                if(window.location.href === "https://tsinglanstudent.schoolis.cn/Home#!/task/list/detail"){
+                    document.getElementsByClassName("ng-binding ng-scope fe-components-xb-location-__router--nsd2ZgXX2cpKLO-r5y7lv")[0].click();
+                }
+            }else{
+                sendAlerttip("[操作已取消] 链接过短");
+            }
+            
+        }
+    }catch(e){
+        if(redotimes<10){
+            setTimeout(() => {
+                addSubmitLinkBtn(assignmentId,redotimes+1);
+            }, 10+redotimes*5);
+        }else{
+            return;
+        }
+    }
 }
