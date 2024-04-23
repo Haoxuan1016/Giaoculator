@@ -497,10 +497,14 @@ chrome.webRequest.onBeforeRequest.addListener(
             const response = await fetch(details.url+"&gcalc=noRedirect");
             let data = await response.json();
             data = data.data;
-            if (data.finishstate === null ||data.classAvgScore === null||data.classMaxScore === null) {
+            await delay(10);
+            if(data.finishState === null){
+                send_str_msg("showSubmitLinkAnsBtn",data.id,0);
+                console.log("SEND  addSubmitLinkBtn");
+                return;
+            }else if (data.classAvgScore === null||data.classMaxScore === null) {
                 return;
             }
-            await delay(10);
             let tmpdata={
                 "avgS":data.classAvgScore,
                 "maxS":data.classMaxScore,
@@ -1811,6 +1815,13 @@ chrome.runtime.onMessage.addListener(
             }
             console.log("MSG:",msg);
             send_comp_msg("gb-savedData",msg,0);
+        }else if(message.type==="submitLinkAssign"){
+            let data = message.data;
+            let linkName = "网页链接";
+            if(data.link.includes("canva")){ linkName = "Canva 链接"}
+            else if(data.link.includes("docs.go")){ linkName = "GoogleDocs 链接"}
+            else if(data.link.includes("youtu")){ linkName = "Youtube 链接"}
+            submitAssignment(data.id,data.link,linkName,message.cont);
         }
     }
 );
