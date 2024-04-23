@@ -1972,6 +1972,164 @@ chrome.webRequest.onBeforeRequest.addListener(
     ["requestBody"]
 );
 
+
+async function submitAssignment(learningTaskId,fileUrl,fileName,cont) {
+    const url = 'https://tsinglanstudent.schoolis.cn/api/LearningTask/Save';
+    const data = {
+        learningTaskId: learningTaskId,
+        learningTaskStudentDocuments:[
+            {
+                id : getRandomInt(300000,700000),
+                name : fileName,
+                size : 10,
+                pdfUrl: fileUrl,
+                sort : 1,
+                type : ".pdf",
+                url : fileUrl
+            }
+        ],
+        remark: cont
+    };
+    
+    fetch(url, {
+      method: 'POST', // 指定请求方法
+      headers: {
+        'Content-Type': 'application/json', // 指定内容类型
+        // 这里添加任何其他必要的请求头
+      },
+      body: JSON.stringify(data) // 将请求体转换为JSON字符串
+    })
+    .then(response => {
+      if (response.ok) {
+        return response.json(); // 如果响应状态码为200，解析响应体为JSON
+      }
+      throw new Error('Network response was not ok.');
+    })
+    .then(data => console.log(data)) // 处理返回的数据
+    .catch(error => console.error('There has been a problem with your fetch operation:', error));
+  }
+
+
+
+
+async function fetchSchedule(startDate) {
+    return;//暂时关闭，未完成
+    const url = 'https://tsinglanstudent.schoolis.cn/api/Schedule/ListScheduleByParent';
+    const bgn_parsed = parseDateInfo(startDate);
+    let bgn_year = bgn_parsed.year;
+    let bgn_mon = bgn_parsed.mon;
+    let bgn_date = bgn_parsed.date;
+    let end_date = bgn_date;
+    let end_mon = bgn_mon;
+    if(bgn_date>13){
+        end_mon += 1;
+    }else{
+        end_date += 15;
+    }
+    // 使用指定的请求载荷格式
+    const data = {
+      beginTime: "2024-03-21",
+      endTime: "2024-03-21"
+    };
+    
+    fetch(url, {
+      method: 'POST', // 指定请求方法
+      headers: {
+        'Content-Type': 'application/json', // 指定内容类型
+        // 这里添加任何其他必要的请求头
+      },
+      body: JSON.stringify(data) // 将请求体转换为JSON字符串
+    })
+    .then(response => {
+      if (response.ok) {
+        return response.json(); // 如果响应状态码为200，解析响应体为JSON
+      }
+      throw new Error('Network response was not ok.');
+    })
+    .then(data => console.log(data)) // 处理返回的数据
+    .catch(error => console.error('There has been a problem with your fetch operation:', error));
+  }
+async function ntwAutoLog(startDate) {
+    chrome.storage.local.get(['savedPostData'], function(result) {
+        console.log(JSON.stringify(result.savedPostData.formData))
+        if (result.savedPostData) {
+        } else {
+          console.log('No postData found.');
+        }
+        const url = 'http://4.3.2.1/ac_portal/login.php';
+        const data  = result.savedPostData.formData;
+        const params = new URLSearchParams();
+        Object.keys(data).forEach(key => {
+            params.append(key, data[key]);
+        });
+    
+        if (!data) {
+            return;
+        }
+    
+        // 使用fetch发送POST请求
+        fetch(url, {
+        method: 'POST', // 指定请求方法
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', // 正确设置Content-Type
+        },
+        body: params // 使用URLSearchParams格式化数据
+        })
+        .then(response => {
+        if (response.ok) {
+            return response.json(); // 如果响应状态码为200，解析响应体为JSON
+        }
+        throw new Error('Network response was not ok.');
+        })
+        .then(data => console.log(data)) // 处理返回的数据
+        .catch(error => console.error('There has been a problem with your fetch operation:', error));
+    
+        send_short_msg("bp-OpenPageAfterLoginNtw", 0);
+      });
+    
+}
+  
+
+chrome.webRequest.onBeforeRequest.addListener(
+    function(details) {
+        if (details.method === "POST" && details.url === "http://4.3.2.1/ac_portal/login.php") {
+            chrome.storage.local.get('user_preference', function(data) {
+                if(data.user_preference.autologNtw){
+                    var postData = details.requestBody;
+                    console.log("Captured POST request to the target URL: ", postData);
+        
+                    // 检查本地存储中是否已有postData
+                    chrome.storage.local.get(['savedPostData'], function(result) {
+                        if (result.savedPostData) {
+                            console.log('PostData already exists.');
+                        } else {
+                            // 如果本地没有postData，保存新的postData
+                            if(JSON.stringify(postData).includes("rememberPwd")){
+                                chrome.storage.local.set({'savedPostData': postData}, function() {
+                                    console.log('New POST request payload is saved.');
+                                });
+                            }else{
+                                console.log("Not Match!")
+                            }
+                            
+                        }
+                    });
+                }else{
+                    console.log("功能未开启")
+                }
+            });
+            // 获取POST请求的载荷
+            
+        }
+    },
+    {urls: ["http://4.3.2.1/ac_portal/login.php"]},
+    ["requestBody"]
+);
+
+
+
+
+
 function tlang(chi,eng){
     return (navigator.language || navigator.userLanguage).startsWith('zh') ? chi:eng;
 }
