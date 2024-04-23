@@ -48,6 +48,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 //换位置
             } else if (type == "bp-showRefresh"){
                 showHideButtonAtHome();//NEW
+                MB_insertEditedDiv()
             } else if (type == "bp-refresh-click"){
                 simulateClickRefresh(0);
             } else if (type == "replace_context"){
@@ -68,6 +69,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 sendSeccesstip(data.cont);
             } else if (type == "show_process"){
                 addCalcState(data);
+                // MB_insertEditedDiv();
             } else if (type == "tip_congrat"){
                 sendCongrat(data.cont);
             } else if (type == "tip_err"){
@@ -579,6 +581,7 @@ function hideAseRepeatedly(data, interval, duration) {
 
 function showStateAtLoginPage(){
     console.log("SHOWSTATE");
+    
     chrome.storage.local.get('enable_state', function(estate) {
         chrome.storage.local.get('user_preference', function(tmp) {
             showStateAtLoginPageMain(tmp,estate.enable_state);
@@ -1429,3 +1432,34 @@ function addCalcState(data){
   margin-top: -30px;
   margin-left: -15px;
   ">计算中 (1/3)</span>*/
+
+function MB_insertEditedDiv() {
+  // 查找第一个具有 'ng-isolate-scope' 类的元素
+  var target = document.querySelector('.fe-components-stu-app-task-list-__listItemBox--3elHWcZSeppt-hG2vNGaZz');
+  var already = document.querySelector('#my_status_bar');
+  // 确保找到了目标元素
+  if (target && !already) {
+    // 创建一个新的div元素，并设置其内容和样式
+    var newDiv = `
+    <div id="my_status_bar" style="border: 1px solid #e5e5e5; border-radius: 3px; background-color: #fff; margin-top: 8px; padding: 15px; font-family: Arial, sans-serif; font-size: 14px; display: flex; justify-content: space-between; height: auto;">
+      <div style="width: 50%; margin-right: 10px;">
+        <ul style="margin: 0; padding: 0; list-style: none;">
+          <li>这是一条消息</li>
+        </ul>
+      </div>
+      <div style="width: 50%;">
+        <ul style="margin: 0; padding: 0; list-style: none;">
+          <li>这是一条消息</li>
+        </ul>
+      </div>
+    </div>`;
+    
+  
+    // 在找到的元素后面插入新的div
+    target.insertAdjacentHTML('beforebegin', newDiv);
+    console.log("done")
+  } else {
+    console.log('No element with class "ng-isolate-scope" found.');
+  }
+  
+}

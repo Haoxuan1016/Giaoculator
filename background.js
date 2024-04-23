@@ -188,6 +188,7 @@ chrome.webRequest.onBeforeRequest.addListener(
                     send_str_msg("rc_hideasm",usr_setting,0);
                 }, 50);
             }, 10);
+            // TODO: 加上用户设置的判断
             
         }
 
