@@ -1991,22 +1991,34 @@ chrome.webRequest.onBeforeRequest.addListener(
 
 
 async function submitAssignment(learningTaskId,fileUrl,fileName,cont) {
+    
     const url = 'https://tsinglanstudent.schoolis.cn/api/LearningTask/Save';
-    const data = {
-        learningTaskId: learningTaskId,
-        learningTaskStudentDocuments:[
-            {
-                id : getRandomInt(300000,700000),
-                name : fileName,
-                size : 10,
-                pdfUrl: fileUrl,
-                sort : 1,
-                type : ".pdf",
-                url : fileUrl
-            }
-        ],
-        remark: cont
-    };
+    if(cont == "del"){
+        var data = {
+            learningTaskId: learningTaskId,
+            learningTaskStudentDocuments:[],
+            remark: ``
+        };
+    }else{
+        var data = {
+            learningTaskId: learningTaskId,
+            learningTaskStudentDocuments:[
+                {
+                    id : getRandomInt(300000,700000),
+                    name : fileName,
+                    size : 10,
+                    pdfUrl: fileUrl,
+                    sort : 1,
+                    type : ".pdf",
+                    url : fileUrl
+                }
+            ],
+            remark: cont
+        };
+    }
+    
+
+    
     
     fetch(url, {
       method: 'POST', // 指定请求方法
