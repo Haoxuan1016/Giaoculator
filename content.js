@@ -1,5 +1,125 @@
 console.log("Giaoculator is Running");
 diyHomepage();
+
+// ================== 悬浮窗 ===================
+POP_addPopComponent();
+
+const totalUpdates = 1;
+let currentUpdate = 0;
+
+// 设置SVG圆环的初始状态
+const circle = document.querySelector('.progress-ring__circle');
+const radius = circle.r.baseVal.value;
+const circumference = 2 * Math.PI * radius;
+const maxOffset = circumference;
+
+circle.style.strokeDasharray = `${circumference} ${circumference}`;
+circle.style.strokeDashoffset = maxOffset;
+
+// 更新进度的函数
+function upgradeProgress() {
+    if (currentUpdate < totalUpdates) {
+        currentUpdate++;
+
+        let newOffset = maxOffset - (currentUpdate / totalUpdates) * circumference;
+
+        circle.style.transition = 'stroke-dashoffset 0.5s ease-out';
+
+        circle.style.strokeDashoffset = newOffset;
+    }
+}
+
+function resetRing(){
+    currentUpdate = 0;
+    circle.style.transition = 'stroke-dashoffset 0.5s ease-out';
+    circle.style.strokeDashoffset = maxOffset;
+}
+
+const floatingBall = document.querySelector('.floating-ball');
+const infoBox = document.querySelector('.info-box');
+const closeBtn = document.querySelector('.close-btn');
+const infoContent = document.querySelector('.info-content');
+
+// let unreadMessageCount = 0;
+let isInfoBoxOpen = false;
+let processingBox = false;
+
+let messageList = [];
+let messageReadState = [];
+let htmlContent = '<p>No message avaliable.</p>';
+
+function showInfoBox() {
+    processingBox = true
+    infoContent.innerHTML = htmlContent;
+    infoBox.style.display = 'block';
+    setTimeout(() => { infoBox.style.opacity = 1; }, 10); 
+    isInfoBoxOpen = true;
+    processingBox = false;
+}
+
+function hideInfoBox() {
+    processingBox = true
+    infoBox.style.opacity = 0;
+    setTimeout(() => { infoBox.style.display = 'none'; }, 300);
+    isInfoBoxOpen = false;
+    processingBox = false;
+}
+
+closeBtn.addEventListener('click', () => {
+    hideInfoBox();
+});
+
+
+floatingBall.addEventListener('click', () => {
+    if (processingBox) return;
+    if (isInfoBoxOpen) {
+        hideInfoBox();
+    } else {
+        showInfoBox();
+        hideDot();
+
+    }
+});
+
+function showDot(){
+    document.querySelector('.alert-dot').style.display = 'block';
+    // 设置opacity
+    setTimeout(() => { document.querySelector('.alert-dot').style.opacity = 1; }, 10);
+}
+
+function hideDot(){
+    document.querySelector('.alert-dot').style.display = 'none';
+    // 设置opacity
+    document.querySelector('.alert-dot').style.opacity = 0;
+}
+
+function showNumber(number){
+    document.querySelector('.number-span').innerText = number;
+    document.querySelector('.alert-number').style.display = 'block';
+    // 设置opacity
+    setTimeout(() => { document.querySelector('.alert-number').style.opacity = 1; }, 10);
+}
+
+function hideNumber(){
+    document.querySelector('.alert-number').style.display = 'none';
+    // 设置opacity
+    document.querySelector('.alert-number').style.opacity = 0;
+}
+
+function sendFloatingMessage(message, type){
+    hideInfoBox()
+    if(type=="dot"){
+        showDot();
+        htmlContent = message;
+    }
+    else if (type=="force"){
+        htmlContent = message;
+        showInfoBox();
+    }
+}   
+
+// =============================== 悬浮窗代码结束
+
 if(!LoginPattern&&!LoginPattern){
     var LoginPattern = "https://tsinglanstudent.schoolis.cn/";
     var LoginPattern2 = "https://tsinglanstudent.schoolis.cn/#!/";
@@ -1465,6 +1585,166 @@ function MB_insertEditedDiv() {
   }
   
 }
+
+function POP_addPopComponent(){
+    let mainHtml = `
+        <div>
+            <div class="floating-ball">
+                <div class="alert-dot"></div>
+                <div class="alert-number">
+                    <span class="number-span">1</span>
+                </div>
+                <svg class="progress-ring" width="70" height="70">
+                    <circle class="progress-ring__circle" stroke="rgb(86,194,90)" stroke-width="6" fill="transparent" r="30.75" cx="35" cy="35"/>
+                </svg>
+                <div class="content-container">
+                    <img src="`+chrome.runtime.getURL("res/icon.png")+`" alt="Logo" id="xfc-logo">
+                </div>
+            </div>
+            <div class="info-box">
+                <div class="close-btn">×</div>
+                <div class="info-content"></div>
+            </div>
+        </div>
+    `
+    var styleElement = document.createElement('style');
+    let manCss = `
+    .floating-ball {
+        position: fixed;
+        z-index: 999;
+        right: 40px;
+        bottom: 40px;
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+        background-color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        /* 不可复制，不可拖动图片 */
+        user-select: none;
+        /* overflow: hidden; */
+    }
+
+    .content-container {
+        position: relative;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .progress-ring {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+    }
+
+    .progress-ring__circle {
+        transition: stroke-dashoffset 4s linear;
+        transform: rotate(-90deg);
+        transform-origin: 50% 50%;
+    }
+
+    @keyframes fillProgress {
+        from {
+            stroke-dashoffset: 193.20794819577225; /* Full circumference */
+        }
+        to {
+            stroke-dashoffset: 0;
+        }
+    }
+
+    #xfc-logo {
+        position: relative;
+        top: 3px;
+        width: 40px;
+        height: 40px;
+        /* border-radius: 50%; */
+    }
+
+    .info-box {
+        position: fixed;
+        right: 75px;
+        bottom: 80px;
+        width: 230px;
+        /* height: 250px; */
+        border-radius: 10px;
+        box-shadow: 0 0px 15px rgba(0, 0, 0, 0.08);
+        background-color: #fff;
+        padding: 20px;
+        display: none;
+        opacity: 0; /* 初始透明度 */
+        transition: opacity 0.09s ease-in-out; /* 渐变效果 */
+        font-size: 15px;
+    }
+
+
+    .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 14px;
+        cursor: pointer;
+        font-size: 20px;
+        user-select: none;
+        color: #333;
+    }
+
+    .alert-dot {
+        position: absolute;
+        z-index: 1000;
+        top: 5px;
+        right: 56px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: rgb(240, 0, 0);
+        display: none;
+        opacity: 0;
+    }
+
+    .alert-number {
+        position: absolute;
+        z-index: 1000;
+        top: 5px;
+        right: 56px;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background-color: rgb(240, 0, 0);
+        color: #fff;
+        font-size: 11px;
+        display: none;
+        opacity: 0;
+    }
+    .number-span {
+        position: relative;
+        top: 1px;
+        left: 4px;
+    }
+    `
+    styleElement.type = 'text/css';
+
+    if (styleElement.styleSheet){
+      styleElement.styleSheet.cssText = manCss;
+    } else {
+      styleElement.appendChild(document.createTextNode(manCss));
+    }
+    
+    // 将<style>元素添加到<head>标签中
+    document.head.appendChild(styleElement);
+
+    var pop_component = document.createElement('div');
+    pop_component.innerHTML = mainHtml;
+    document.body.appendChild(pop_component);
+    
+}
+
 
 function addSubmitLinkBtn(assignmentId,redotimes){
     try{
