@@ -2,9 +2,13 @@ console.log("Giaoculator is Running");
 diyHomepage();
 
 // ================== 悬浮窗 ===================
-POP_addPopComponent();
+// 这个是添加悬浮窗代码的入口，负责给网页添加悬浮窗的HTML和CSS代码。
+// 如果不需要只需要在这里不添加即可，但是可能下面的dom操作会报错（就是document.xxx的那些）
+POP_addPopComponent(); 
 
-const totalUpdates = 1;
+// totalUpdate是很重要的，他负责了进度条的总更新次数
+// 比如有4个学期，这里就填写4。每一次使用进度条的地方都需要设置这个值和清零currentUpdate
+let totalUpdates = 1;
 let currentUpdate = 0;
 
 // 设置SVG圆环的初始状态
@@ -16,7 +20,7 @@ const maxOffset = circumference;
 circle.style.strokeDasharray = `${circumference} ${circumference}`;
 circle.style.strokeDashoffset = maxOffset;
 
-// 更新进度的函数
+// 更新进度的函数，每次调用会+1，可以写到后端发消息的地方或者啥的。
 function upgradeProgress() {
     if (currentUpdate < totalUpdates) {
         currentUpdate++;
@@ -29,6 +33,7 @@ function upgradeProgress() {
     }
 }
 
+// 重置环，比如在计算完成后调用这个函数
 function resetRing(){
     currentUpdate = 0;
     circle.style.transition = 'stroke-dashoffset 0.5s ease-out';
@@ -46,8 +51,12 @@ let processingBox = false;
 
 let messageList = [];
 let messageReadState = [];
+
+// 信息框里的东西，支持html代码，每次要展示的时候首先更新这个变量
+// 当然建议用下方的封装函数实现显示消息红点的效果
 let htmlContent = '<p>No message avaliable.</p>';
 
+// 展示信息框，一般不手动调用
 function showInfoBox() {
     processingBox = true
     infoContent.innerHTML = htmlContent;
@@ -57,6 +66,8 @@ function showInfoBox() {
     processingBox = false;
 }
 
+
+// 隐藏信息框，一般不手动调用
 function hideInfoBox() {
     processingBox = true
     infoBox.style.opacity = 0;
@@ -65,11 +76,12 @@ function hideInfoBox() {
     processingBox = false;
 }
 
+// 点击叉叉关闭信息框
 closeBtn.addEventListener('click', () => {
     hideInfoBox();
 });
 
-
+// 点击悬浮窗展示信息框
 floatingBall.addEventListener('click', () => {
     if (processingBox) return;
     if (isInfoBoxOpen) {
@@ -81,18 +93,21 @@ floatingBall.addEventListener('click', () => {
     }
 });
 
+// 展示红点
 function showDot(){
     document.querySelector('.alert-dot').style.display = 'block';
     // 设置opacity
     setTimeout(() => { document.querySelector('.alert-dot').style.opacity = 1; }, 10);
 }
 
+// 隐藏红点
 function hideDot(){
     document.querySelector('.alert-dot').style.display = 'none';
     // 设置opacity
     document.querySelector('.alert-dot').style.opacity = 0;
 }
 
+// 展示像微信那样未读消息数字，但是目前还没想好怎么调用
 function showNumber(number){
     document.querySelector('.number-span').innerText = number;
     document.querySelector('.alert-number').style.display = 'block';
@@ -106,6 +121,10 @@ function hideNumber(){
     document.querySelector('.alert-number').style.opacity = 0;
 }
 
+// 发送悬浮窗消息，这个是让外部调用的接口
+// 第一个message参数是要展示的消息，第二个type是展示的类型，目前支持dot和force两种
+// dot就是显示一个红点，提示用户要打开，force就是直接弹出窗口
+// 注意调用这个函数的时候，先前打开的窗口会被关闭
 function sendFloatingMessage(message, type){
     hideInfoBox()
     if(type=="dot"){
@@ -1529,6 +1548,14 @@ function ribbon_Fireworks(duration_Seconds){
 function addCalcState(data){
     let cur = data.cur;
     let oval = data.oval;
+
+    // 悬浮窗更新代码
+    totalUpdates = oval;
+    if(cur > currentUpdate){
+        upgradeProgress();
+        currentUpdate = cur;
+    }
+
     let targ = document.getElementById("gcalc_proc");
     if(!targ){
         let mainHtml = `<span id="gcalc_proc" ng-class="$ctrl.styles.gotoText" ng-show="showCourse" ng-click="" class="ng-binding fe-components-stu-business-topbar-__gotoText--abWs2AncUsOC7EPXLLEaK" style="
@@ -1544,6 +1571,7 @@ function addCalcState(data){
     if(cur == oval){
         targ.innerText = tlang(`计算已完成`,`All Done`)
         setTimeout(() => {
+            resetRing(); // 重置环
             targ.remove();
         }, 2000);
     }
