@@ -1226,6 +1226,7 @@ function getAllCourseInfo(targsms) {
 
 
 async function CalcBySmsId(semesterId,bgn_info,end_info) {
+    send_comp_msg("show_smsCalc_process",{cur: 1,oval: 16},0);   
     const bgn_parsed = parseDateInfo(bgn_info);
     const end_parsed = parseDateInfo(end_info);
     if(!bgn_parsed || !end_parsed){
@@ -1252,8 +1253,15 @@ async function CalcBySmsId(semesterId,bgn_info,end_info) {
         const data = await response.json();
         await fetchOriginalRequest(semesterId);
         if (data && data.data && data.data.length > 0) {
+            let pos = 0;
             // 遍历所有科目
             for (const subject of data.data) {
+                pos += 1;
+                let tmpdata={
+                    cur: pos,
+                    oval: data.data.length
+                }
+                send_comp_msg("show_smsCalc_progress",tmpdata,0);
                 if(localStorage.getItem(semesterId+'|'+subject.id) === null){
                     let subjectRequestUrl = `https://tsinglanstudent.schoolis.cn/api/LearningTask/GetStatistics?schoolSemesterId=${semesterId}&subjectId=${subject.id}&learningTaskTypeId=null&beginDate=${bgn_year}-${bgn_mon}-${bgn_date}&endDate=${end_year}-${end_mon}-${end_date}&page.pageIndex=1&page.pageSize=500`;
                     // 假设 RequestSubjectAvg 也是异步函数
@@ -1412,7 +1420,7 @@ function send_comp_msg(msgtype,data,redotimes){
                 //console.log(`[${msgtype}]:failed to send,${redotimes}`)
                 console.log(message);
                 setTimeout(() => { 
-                    send_str_msg(msgtype,cont,redotimes+1);
+                    send_str_msg(msgtype,data,redotimes+1);
                  }, redotimes*500+100);
                 
             }
@@ -1662,6 +1670,7 @@ async function AutoCalcAll() {
                 fullScoreAmounts = 0;
                 zeroAssignmentList = [];
             }
+            
             if(await CalcBySmsId(smsId,bgnDates[i],endDates[i])){
                 await isExistGPA(smsId);
                 await fetchSchedule(bgnDates[i]);
@@ -1685,7 +1694,6 @@ async function AutoCalcAll() {
                     }
                     send_str_msg("tip_alert_long",tlang(`发现 ${zeroAmounts} 个零分任务，请及时补交：${zeroStr}`,`${zeroAmounts} Assignment(s) are Scored Zero: ${zeroStr}`),0);
                 }
-                console.log(`TEST ${fullScoreAmounts} 个满分任务`);
                 if(i==0){ 
                     chrome.storage.local.get(`[FullScoreCount]${usrName}`, function(data) {
                         let count = data ? data[`[FullScoreCount]${usrName}`] : 0;
@@ -1709,7 +1717,7 @@ async function AutoCalcAll() {
                         }
                     });
                 }
-                await delay(1000);
+                await delay(500);
             }else{
                 await delay(2000);
                 send_str_msg("tip_err",`自动计算被异常打断，请重新登录平台`,0);

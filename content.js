@@ -209,7 +209,9 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
             } else if (type == "show_process"){
                 addCalcState(data);
                 // MB_insertEditedDiv();
-            } else if (type == "tip_congrat"){
+            } else if (type == "show_smsCalc_progress"){
+                addSmsCalcState(data);
+            }else if (type == "tip_congrat"){
                 sendCongrat(data.cont);
             } else if (type == "tip_err"){
                 sendErrortip(data.cont);
@@ -1544,17 +1546,33 @@ function ribbon_Fireworks(duration_Seconds){
     confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
     }, 250);
 }
-
-function addCalcState(data){
+function addSmsCalcState(data){
     let cur = data.cur;
     let oval = data.oval;
-
     // 悬浮窗更新代码
     totalUpdates = oval;
     if(cur > currentUpdate){
         upgradeProgress();
         currentUpdate = cur;
     }
+
+    if(cur == oval){
+        setTimeout(() => {
+            resetRing(); // 重置环
+        }, 900);
+    }
+}
+function addCalcState(data){
+    let cur = data.cur;
+    let oval = data.oval;
+
+    // 悬浮窗更新代码
+    /*
+    totalUpdates = oval;
+    if(cur > currentUpdate){
+        upgradeProgress();
+        currentUpdate = cur;
+    }*/
 
     let targ = document.getElementById("gcalc_proc");
     if(!targ){
@@ -1570,18 +1588,12 @@ function addCalcState(data){
     targ.innerText = tlang(`计算中 (${cur}/${oval})`,`Processing (${cur}/${oval})`)
     if(cur == oval){
         targ.innerText = tlang(`计算已完成`,`All Done`)
-        setTimeout(() => {
-            resetRing(); // 重置环
-            targ.remove();
-        }, 2000);
     }
 }
-/*<span ng-class="$ctrl.styles.gotoText" ng-show="showCourse" ng-click="" class="ng-binding fe-components-stu-business-topbar-__gotoText--abWs2AncUsOC7EPXLLEaK" style="
-  display: flex;
-  justify-content: center;
-  margin-top: -30px;
-  margin-left: -15px;
-  ">计算中 (1/3)</span>*/
+
+
+
+
 
 function MB_insertEditedDiv() {
   // 查找第一个具有 'ng-isolate-scope' 类的元素
@@ -1626,7 +1638,7 @@ function POP_addPopComponent(){
                     <circle class="progress-ring__circle" stroke="rgb(86,194,90)" stroke-width="6" fill="transparent" r="30.75" cx="35" cy="35"/>
                 </svg>
                 <div class="content-container">
-                    <img src="`+chrome.runtime.getURL("res/icon.png")+`" alt="Logo" id="xfc-logo">
+                    <img src="`+chrome.runtime.getURL("icon.png")+`" alt="Logo" id="xfc-logo">
                 </div>
             </div>
             <div class="info-box">
@@ -1690,9 +1702,9 @@ function POP_addPopComponent(){
 
     #xfc-logo {
         position: relative;
-        top: 3px;
-        width: 40px;
-        height: 40px;
+        top: 1px;
+        width: 35px;
+        height: 35px;
         /* border-radius: 50%; */
     }
 
