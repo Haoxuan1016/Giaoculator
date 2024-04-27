@@ -11,6 +11,21 @@ POP_addPopComponent();
 let totalUpdates = 1;
 let currentUpdate = 0;
 
+// 监测当前注入是否收到了信息
+let revieveMessage = false;
+
+let longtermMessage = '';
+
+// 如果登录后3秒内没有收到消息，就会自动展示长期消息
+// setTimeout(() => {
+//     setInterval(() => {
+//         if (!revieveMessage)
+//             processLongtermMsg();
+//     }, 1000);
+// }, 3000);
+
+// TODO: 长期设置代码
+
 // 设置SVG圆环的初始状态
 const circle = document.querySelector('.progress-ring__circle');
 const radius = circle.r.baseVal.value;
@@ -69,11 +84,22 @@ function showInfoBox() {
 
 // 隐藏信息框，一般不手动调用
 function hideInfoBox() {
+    console.log("我被关闭了！")
+    console.trace()
     processingBox = true
     infoBox.style.opacity = 0;
     setTimeout(() => { infoBox.style.display = 'none'; }, 300);
     isInfoBoxOpen = false;
     processingBox = false;
+    // setTimeout(() => { processLongtermMsg(); }, 1000);
+}
+
+function processLongtermMsg(){
+    if(longtermMessage){
+        sendFloatingMessage(longtermMessage, 'dot');
+        longtermMessage = '';
+        revieveMessage = true;
+    }
 }
 
 // 点击叉叉关闭信息框
@@ -126,15 +152,19 @@ function hideNumber(){
 // dot就是显示一个红点，提示用户要打开，force就是直接弹出窗口
 // 注意调用这个函数的时候，先前打开的窗口会被关闭
 function sendFloatingMessage(message, type){
+    console.log("发送了信息！",message,type)
     hideInfoBox()
-    if(type=="dot"){
-        showDot();
-        htmlContent = message;
-    }
-    else if (type=="force"){
-        htmlContent = message;
-        showInfoBox();
-    }
+    setTimeout(() => {
+        if(type=="dot"){
+            showDot();
+            htmlContent = message;
+        }
+        else if (type=="force"){
+            htmlContent = message;
+            showInfoBox();
+        }
+    }, 500);
+
 }   
 
 // =============================== 悬浮窗代码结束
@@ -256,7 +286,12 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 showDiyScoresBox(data.smsId, data.subjectId, data.subjectName,data.model,data.list);
             } else if(type=="showSubmitLinkAnsBtn"){
                 addSubmitLinkBtn(data.cont,0);
-            }
+            } else if(type == "send_pop") {
+                revieveMessage = true;
+                sendFloatingMessage(data.message, data.type);
+            } else if(type == "send_pop_longterm") {
+                longtermMessage = data.message;
+            }   
         }
     });
 });
@@ -356,6 +391,7 @@ function hideAssignments(settingData) {
                 //var score = parseFloat(scoreNumElement.innerText) +"|" +totalScoreNum;
                 var score = (parseFloat(scoreNumElement.innerText)/totalScoreNum)*100;
                 if (score < scorelim && settingData.autoHide) {
+                    // 这个判断多余，可以考虑删除后面的代码
                     scoreNumElement.innerHTML = '<img src="' + chrome.runtime.getURL("res/disable.png") + '" alt="Disabled" style="width: 70%;padding-top:20px;" />';
             
                     const scoreInfoElement = element.querySelector('.fe-components-stu-app-realtime-list-__scoreInfo--1d-D_GnPEaK1HTrcgeNURt');
@@ -1201,7 +1237,7 @@ function hidestudentInfo(){
 function appendAvgMaxScoresInPage(data,redotimes){
     console.log(redotimes);
     try {
-
+        // 颜色设置
         if((data.usrS/data.totalS)*100>=(data.avgS/data.totalS)*100+10||((data.usrS/data.totalS)*100)>=97||data.usrS>=data.maxS){
             document.getElementsByClassName("ng-binding fe-components-stu-app-task-detail-__itemScore--1nuolF1pAilxxSB6o8b2Rx")[0].style="text-shadow: 0 0 10px #bbffbb";
         }else if((data.usrS/data.totalS)*100+10<(data.avgS/data.totalS)*100||data.usrS==0){
@@ -1672,6 +1708,9 @@ function POP_addPopComponent(){
         width: 100%;
         height: 100%;
     }
+    .info-content {
+        margin-right: 13px;
+    }
 
     .progress-ring__circle {
         transition: stroke-dashoffset 4s linear;
@@ -1700,7 +1739,7 @@ function POP_addPopComponent(){
         position: fixed;
         right: 75px;
         bottom: 80px;
-        width: 230px;
+        width: 260px;
         /* height: 250px; */
         border-radius: 10px;
         box-shadow: 0 0px 15px rgba(0, 0, 0, 0.08);
@@ -1710,6 +1749,7 @@ function POP_addPopComponent(){
         opacity: 0; /* 初始透明度 */
         transition: opacity 0.09s ease-in-out; /* 渐变效果 */
         font-size: 15px;
+        z-index: 998;
     }
 
 

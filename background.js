@@ -70,13 +70,15 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
             if (!window.contentScriptInjected) {
             chrome.tabs.executeScript(tabId, {file: "content.js"});
             window.contentScriptInjected = true;
+
         }
         });
+
 
     } else if (changeInfo.url && tab.url.includes("https://tsinglanstudent.schoolis.cn/Home#!/realtime/list")) {
         setTimeout(() => {
             send_short_msg("replace_context",0); // 等待200ms后向content.js发送消息
-
+            
         }, 200);
         
     } else if (tab.url === LoginPattern || tab.url.includes(LoginPattern2)) {
@@ -112,6 +114,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
                     homeSrc: defaultwelcomeMsg,
                     autoHide: true,
                     advLogPage: false, 
+                    advScoreShadow: false,
                     autologNtw: 0,
                     homeSrcDark: " ",
                     homeDarkMode: 1,
@@ -190,6 +193,15 @@ chrome.webRequest.onBeforeRequest.addListener(
             }, 10);
             // TODO: 加上用户设置的判断
             
+        }
+
+        if (details.url.startsWith(detailsUrlPattern)&&usr_setting.advScoreShadow) {
+            setTimeout(() => {
+                send_str_msg("up_shadow", usr_setting,0)
+                setTimeout(() => {
+                    send_str_msg("up_shadow", usr_setting,0)
+                }, 50);
+            }, 10);
         }
 
         if (details.url.startsWith(detailsUrlPattern)) {
@@ -1411,6 +1423,7 @@ function send_comp_msg(msgtype,data,redotimes){
             }catch(e){
                 //console.log(`[${msgtype}]:failed to send,${redotimes}`)
                 console.log(message);
+                console.log(e)
                 setTimeout(() => { 
                     send_str_msg(msgtype,cont,redotimes+1);
                  }, redotimes*500+100);
@@ -1683,9 +1696,13 @@ async function AutoCalcAll() {
                     for(let i=0;i<zeroAssignmentList.length;i++){
                         zeroStr = zeroStr + "<br>" + zeroAssignmentList[i];
                     }
-                    send_str_msg("tip_alert_long",tlang(`发现 ${zeroAmounts} 个零分任务，请及时补交：${zeroStr}`,`${zeroAmounts} Assignment(s) are Scored Zero: ${zeroStr}`),0);
+                    popup_send_force(`<p>发现 ${zeroAmounts} 个零分任务，请及时补交：${zeroStr}</p>`)
+                    // send_str_msg("send_pop", `<p>发现 ${zeroAmounts} 个零分任务，请及时补交：${zeroStr}</p>`, 0);
+                    // send_str_msg("tip_alert_long",tlang(`发现 ${zeroAmounts} 个零分任务，请及时补交：${zeroStr}`,`${zeroAmounts} Assignment(s) are Scored Zero: ${zeroStr}`),0);
                 }
                 console.log(`TEST ${fullScoreAmounts} 个满分任务`);
+                popup_send_longterm(`<p>这是一段总结性质的文字，叫做长期文字，主要用来汇总</p>`)
+
                 if(i==0){ 
                     chrome.storage.local.get(`[FullScoreCount]${usrName}`, function(data) {
                         let count = data ? data[`[FullScoreCount]${usrName}`] : 0;
@@ -2218,3 +2235,29 @@ function addNewUsrAssignment(smsid,subjectid,name, percentageScore,proportion,ca
 
 }
 
+function popup_send_dot(message){
+    let data = {
+        type: "dot",
+        message: message
+    }
+    console.log("send_dot",data)
+    send_comp_msg("send_pop", data, -999)
+}
+
+function popup_send_force(message){
+    let data = {
+        type: "force",
+        message: message
+    }
+    console.log("send_force",data)
+    send_comp_msg("send_pop", data, -999)
+}
+
+function popup_send_longterm(message) {
+    let data = {
+        type: "longterm",
+        message: message
+    }
+    console.log("send_longterm",data)
+    send_comp_msg("send_pop_longterm", data, -999)
+}
