@@ -1,2 +1,2 @@
 # Release
-This is a demo release of Giaoculator Stable Version
+稳定版本，请下载该版本
