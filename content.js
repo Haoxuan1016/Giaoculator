@@ -237,7 +237,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
             } else if (type == "tip_suc"){
                 sendSeccesstip(data.cont);
             } else if (type == "show_process"){
-                addCalcState(data);
+                addCalcState(data,0);
                 // MB_insertEditedDiv();
             } else if (type == "show_smsCalc_progress"){
                 addSmsCalcState(data);
@@ -1598,32 +1598,42 @@ function addSmsCalcState(data){
         }, 900);
     }
 }
-function addCalcState(data){
-    let cur = data.cur;
-    let oval = data.oval;
+function addCalcState(data,redotimes){
+    try {
+        let cur = data.cur;
+        let oval = data.oval;
 
-    // 悬浮窗更新代码
-    /*
-    totalUpdates = oval;
-    if(cur > currentUpdate){
-        upgradeProgress();
-        currentUpdate = cur;
-    }*/
+        // 悬浮窗更新代码
+        /*
+        totalUpdates = oval;
+        if(cur > currentUpdate){
+            upgradeProgress();
+            currentUpdate = cur;
+        }*/
 
-    let targ = document.getElementById("gcalc_proc");
-    if(!targ){
-        let mainHtml = `<span id="gcalc_proc" ng-class="$ctrl.styles.gotoText" ng-show="showCourse" ng-click="" class="ng-binding fe-components-stu-business-topbar-__gotoText--abWs2AncUsOC7EPXLLEaK" style="
-    display: flex;
-    justify-content: center;
-    margin-top: -30px;
-    margin-left: -15px;
-    ">计算中 (NaN)</span>`
-        document.getElementsByClassName("fe-components-stu-business-topbar-__navBar--2Au2lL_QIAwQu9fN70vAd4")[0].insertAdjacentHTML('beforeend', mainHtml);
-    }
-    targ = document.getElementById("gcalc_proc");
-    targ.innerText = tlang(`计算中 (${cur}/${oval})`,`Processing (${cur}/${oval})`)
-    if(cur == oval){
-        targ.innerText = tlang(`计算已完成`,`All Done`)
+        let targ = document.getElementById("gcalc_proc");
+        if(!targ){
+            let mainHtml = `<span id="gcalc_proc" ng-class="$ctrl.styles.gotoText" ng-show="showCourse" ng-click="" class="ng-binding fe-components-stu-business-topbar-__gotoText--abWs2AncUsOC7EPXLLEaK" style="
+        display: flex;
+        justify-content: center;
+        margin-top: -30px;
+        margin-left: -15px;
+        ">计算中 (NaN)</span>`
+            document.getElementsByClassName("fe-components-stu-business-topbar-__navBar--2Au2lL_QIAwQu9fN70vAd4")[0].insertAdjacentHTML('beforeend', mainHtml);
+        }
+        targ = document.getElementById("gcalc_proc");
+        targ.innerText = tlang(`计算中 (${cur}/${oval})`,`Processing (${cur}/${oval})`)
+        if(cur == oval){
+            targ.innerText = tlang(`计算已完成`,`All Done`)
+            setTimeout(() => {
+                targ.remove();
+            }, 3000);
+        }
+    } catch (error) {
+        console.log("WaitForAgain");
+        setTimeout(() => {
+            addCalcState(data,redotimes+1)
+        }, 100*redotimes);
     }
 }
 

@@ -1125,20 +1125,6 @@ function getAllGPAValues(targsms) {
             score = parseFloat(data.gpa);
             if(data.gpaInfo.ename.includes("AP")||data.gpaInfo.ename.includes("AS")){
                 weighted_value = 0.5;
-            }else if(data.gpaInfo.ename.includes("C-Humanities")){
-                if(chineseGPA === -1){
-                    chineseGPA = score;
-                }else{
-                    chineseGPA = chineseGPA * 0.66666 + score * 0.33333;
-                }
-                continue;
-            }else if(data.gpaInfo.ename.includes("Chinese")){
-                if(chineseGPA === -1){
-                    chineseGPA = score;
-                }else{
-                    chineseGPA = chineseGPA * 0.33333 + score * 0.66666;
-                }
-                continue;
             }
             //console.log(data.gpaInfo.ename,weighted_value);
         }
@@ -1162,6 +1148,18 @@ function getAllGPAValues(targsms) {
             cnt_lowWeight += 1;
         }else if(excludeList_NotCNT.some(excludeItem => subjectInfos.includes(excludeItem))){
             continue;
+        }else if(subjectInfos.includes("C-Humanities")){
+            if(chineseGPA === -1){
+                chineseGPA = subjectGPA;
+            }else{
+                chineseGPA = chineseGPA * 0.66666 + subjectGPA * 0.33333;
+            }
+        }else if(subjectInfos.includes("Chinese")){
+            if(chineseGPA === -1){
+                chineseGPA = subjectGPA;
+            }else{
+                chineseGPA = chineseGPA * 0.33333 + subjectGPA * 0.66666;
+            }
         }else{
             avg_moderateWeight += subjectGPA;
             cnt_moderateWeight += 1;
@@ -1170,14 +1168,8 @@ function getAllGPAValues(targsms) {
         
     }
     if(chineseGPA > -1){
-        for (let rule of gpaRules) {
-            if (chineseGPA >= rule.minValue && chineseGPA <= rule.maxValue) {
-                var tmp2 = rule.gpa;
-                avg_moderateWeight += tmp2;
-                cnt_moderateWeight += 1;
-                console.log("[GPACALC]Chineses",tmp2);
-            }
-        }
+        avg_moderateWeight += chineseGPA;
+        cnt_moderateWeight += 1;
     }
     var finalGPA = 0;
     console.log(avg_highWeight,avg_moderateWeight,avg_lowWeight,cnt_highWeight,cnt_moderateWeight,cnt_lowWeight);
@@ -1654,9 +1646,18 @@ async function AutoCalcAll() {
         console.log("[AutoCalc]Hisrange:",his_range);
         saveToLocalStorage("lastUpdate",Date.parse(new Date()));
         var data = await response.json();
-        var ids = data.data.slice(0, his_range).map(item => item.id);
-        var bgnDates = data.data.slice(0, his_range).map(item => item.startDate);
-        var endDates = data.data.slice(0, his_range).map(item => item.endDate);
+
+        var startPos = 0;
+        while(data.data[startPos].isNow==false){
+            startPos++;
+        }
+        console.log("[AutoCalcNew]StartPos:",startPos);
+
+
+
+        var ids = data.data.slice(startPos, startPos+his_range).map(item => item.id);
+        var bgnDates = data.data.slice(startPos, startPos+his_range).map(item => item.startDate);
+        var endDates = data.data.slice(startPos, startPos+his_range).map(item => item.endDate);
         let tmpdata={
             cur: 0,
             oval: his_range
@@ -1705,9 +1706,9 @@ async function AutoCalcAll() {
                     for(let i=0;i<zeroAssignmentList.length;i++){
                         zeroStr = zeroStr + "<br>" + zeroAssignmentList[i];
                     }
-                    popup_send_force(`<p>发现 ${zeroAmounts} 个零分任务，请及时补交：${zeroStr}</p>`)
+                    //popup_send_force(`<p>发现 ${zeroAmounts} 个零分任务，请及时补交：${zeroStr}</p>`)
                     // send_str_msg("send_pop", `<p>发现 ${zeroAmounts} 个零分任务，请及时补交：${zeroStr}</p>`, 0);
-                    // send_str_msg("tip_alert_long",tlang(`发现 ${zeroAmounts} 个零分任务，请及时补交：${zeroStr}`,`${zeroAmounts} Assignment(s) are Scored Zero: ${zeroStr}`),0);
+                    send_str_msg("tip_alert_long",tlang(`发现 ${zeroAmounts} 个零分任务，请及时补交：${zeroStr}`,`${zeroAmounts} Assignment(s) are Scored Zero: ${zeroStr}`),0);
                 }
                 console.log(`TEST ${fullScoreAmounts} 个满分任务`);
                 popup_send_longterm(`<p>这是一段总结性质的文字，叫做长期文字，主要用来汇总</p>`)
