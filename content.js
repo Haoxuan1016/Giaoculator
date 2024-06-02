@@ -36,7 +36,7 @@ circle.style.strokeDasharray = `${circumference} ${circumference}`;
 circle.style.strokeDashoffset = maxOffset;
 
 // 更新进度的函数，每次调用会+1，可以写到后端发消息的地方或者啥的。
-function upgradeProgress() {
+function upgradeProgress() {    
     if (currentUpdate < totalUpdates) {
         currentUpdate++;
 
@@ -238,6 +238,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 sendSeccesstip(data.cont);
             } else if (type == "show_process"){
                 addCalcState(data,0);
+                console.log("REC:Showproges")
                 // MB_insertEditedDiv();
             } else if (type == "show_smsCalc_progress"){
                 addSmsCalcState(data);
@@ -1627,7 +1628,8 @@ function addCalcState(data,redotimes){
             targ.innerText = tlang(`计算已完成`,`All Done`)
             setTimeout(() => {
                 targ.remove();
-            }, 3000);
+                resetRing();
+            }, 2300);
         }
     } catch (error) {
         console.log("WaitForAgain");

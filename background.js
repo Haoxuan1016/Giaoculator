@@ -1394,13 +1394,14 @@ function send_str_msg(msgtype,cont,redotimes){
             };
             try{
                 chrome.tabs.sendMessage(tabs[0].id, message);
+                console.log("SuccessSendSTRmsg")
                 //console.log(`[${msgtype}]:failed to send,${redotimes}`)
             }catch(e){
                 //console.log(`[${msgtype}]:failed to send,${redotimes}`)
-                console.log(message);
                 setTimeout(() => { 
                     send_str_msg(msgtype,cont,redotimes+1);
-                 }, redotimes*1000+500);
+                    console.log(`[${msgtype}]:XXsend,${(redotimes>0) ? (redotimes*100+50):1000}`)
+                 }, (redotimes>0) ? (redotimes*100+50):1000);
                 
             }
             
@@ -1411,6 +1412,7 @@ function send_str_msg(msgtype,cont,redotimes){
 
 
 function send_comp_msg(msgtype,data,redotimes){
+   // console.log(`[${msgtype}]:XXsend,${(redotimes>0) ? (redotimes*100+50):1000}`)
     if(redotimes<8){
         chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
             let message = {
@@ -1421,12 +1423,12 @@ function send_comp_msg(msgtype,data,redotimes){
                 chrome.tabs.sendMessage(tabs[0].id, message);
                 //console.log(`[${msgtype}]:failed to send,${redotimes}`)
             }catch(e){
-                //console.log(`[${msgtype}]:failed to send,${redotimes}`)
+                
                 console.log(message);
                 console.log(e)
                 setTimeout(() => { 
                     send_str_msg(msgtype,data,redotimes+1);
-                 }, redotimes*500+100);
+                 }, (redotimes>0) ? (redotimes*100+50):1000);
                 
             }
             
@@ -1662,7 +1664,7 @@ async function AutoCalcAll() {
             cur: 0,
             oval: his_range
         }
-        send_comp_msg("show_process",tmpdata,0);
+        send_comp_msg("show_process",tmpdata,-99999);
         for (var i=0;i<his_range;i++){
             if(ids[i] == null){
                 ids = data.data.slice(0, his_range).map(item => item.id);
@@ -1694,7 +1696,7 @@ async function AutoCalcAll() {
                     cur: i+1,
                     oval: his_range
                 }
-                send_comp_msg("show_process",data,-999999);
+                send_str_msg("show_process",data,-999999);
                 if((i+1) == his_range){
                     //if(his_range>1) send_str_msg("tip_suc",(navigator.language || navigator.userLanguage).includes('CN')? `已完成第${i+1}/${his_range}个学期计算，所有计算已完成！`:`All Calculation is Finished! ${i+1}/${his_range}`,0);
                     //else send_str_msg("tip_suc",(navigator.language || navigator.userLanguage).includes('CN')? `所有计算已完成！${i+1}/${his_range}`:`All Calculation is Finished! ${i+1}/${his_range}`,0);
@@ -1719,7 +1721,7 @@ async function AutoCalcAll() {
                         if(count === undefined){
                             count = -1;
                         }
-                        console.log(count,fullScoreAmounts);
+                        console.log("FullScore:",count,fullScoreAmounts);
                         if (fullScoreAmounts > count) {
                             if(count != -1){
                                 send_str_msg("rib_fwk",3,0);
@@ -1731,8 +1733,16 @@ async function AutoCalcAll() {
                             objToStore[`[FullScoreCount]${usrName}`] = fullScoreAmounts;
                             
                             chrome.storage.local.set(objToStore, function() {
-                                console.log("New score has been stored.");
+                                console.log("[fullscore]New score has been stored.",objToStore);
                             });
+                        } else if((count - 3) > fullScoreAmounts){//如果储存的数量比实际满分数量多出3个，说明出现了问题，重置计数器
+                            let objToStore = {};
+                            objToStore[`[FullScoreCount]${usrName}`] = fullScoreAmounts;
+                            
+                            chrome.storage.local.set(objToStore, function() {
+                                console.log("[fullscore]>3,fix bug");
+                            });
+                            
                         }
                     });
                 }
@@ -1751,6 +1761,8 @@ async function AutoCalcAll() {
         saveToLocalStorage("Info-SmsDateList",smsDateList);
         console.log("[AutoCalc]Finished All!",smsId);
         saveToLocalStorage("lastUpdate",Date.parse(new Date()));
+        tmpdata={cur: his_range,oval: his_range}
+        send_str_msg("show_process",tmpdata,-99999);
 }
 
 function delay(ms) {
@@ -1939,6 +1951,11 @@ async function fetchSchedule(startDate) {
     .then(data => console.log(data)) // 处理返回的数据
     .catch(error => console.error('There has been a problem with your fetch operation:', error));
   }
+
+
+
+
+
 async function ntwAutoLog(startDate) {
     chrome.storage.local.get(['savedPostData'], function(result) {
         console.log(JSON.stringify(result.savedPostData.formData))
