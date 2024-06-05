@@ -1,5 +1,7 @@
 console.log("Giaoculator is Running");
 
+// TODO: Shall we add auto-update function by using shell code? -- Leo
+// TODO: 悬浮窗更新
 
 diyHomepage();
 
