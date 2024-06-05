@@ -1966,7 +1966,7 @@ function addSubmitLinkBtn(assignmentId,redotimes){
     }
 }
 
-// 多彩字符画
+
 const asciiArt = `
    _____ _                        _       _             
   / ____(_)                      | |     | |            
