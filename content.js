@@ -49,11 +49,65 @@ function upgradeProgress() {
 }
 
 // 重置环，比如在计算完成后调用这个函数
-function resetRing(){
+function resetRing_Old(){
     currentUpdate = 0;
     circle.style.transition = 'stroke-dashoffset 0.5s ease-out';
     circle.style.strokeDashoffset = maxOffset;
 }
+function resetRing(isFinal){
+    // 获取旧的图标元素和环形进度条
+    var logo = document.getElementById('xfc-logo');
+    var circle = document.querySelector('.progress-ring__circle');
+
+    // 修改图标图片并添加渐变动画
+    logo.style.transition = isFinal? 'opacity 0.4s ease-out':'opacity 0.3s ease-out';
+    logo.style.opacity = '0';
+    setTimeout(function() {
+        logo.src = chrome.runtime.getURL("res/green-tick.png");
+        logo.style.opacity = '1';
+        setTimeout(function() {
+            logo.style.transition = isFinal? 'opacity 0.5s ease-in':'opacity 0.2s ease-in';
+            logo.style.opacity = '0';
+            if(isFinal){
+                document.getElementById("progress-text").style.transition = 'opacity 0.4s ease-out';
+                document.getElementById("progress-text").style.opacity = '0';
+                document.getElementById("progress-text-shadow").style.transition = 'opacity 0.4s ease-out';
+                document.getElementById("progress-text-shadow").style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById("progress-text").remove();
+                    document.getElementById("progress-text-shadow").remove();
+                    return;
+                }, 500);
+            }
+
+        }, 900+isFinal*300);
+    }, 350); // 等待旧图标淡出后再显示新图标
+
+    
+    setTimeout(function() {
+        logo.src = chrome.runtime.getURL("icon.png");
+        logo.style.opacity = '1';
+        setTimeout(() => {
+            logo.style.transition = '';
+        }, 600);
+    }, 1600+isFinal*400); 
+
+    // 环形进度条动画调整
+    circle.style.transition = 'stroke-dashoffset 0.5s ease-out, stroke-width 0.5s ease-out';
+    //circle.style.strokeDashoffset = circle.getAttribute('r') * Math.PI * 2; // 重置进度条到完整状态
+    circle.style.strokeWidth = '0'; // 使圆环向外圈变细并消失
+    // 重置圆环的边框宽度以便下一次使用
+    setTimeout(function() {
+        currentUpdate=0;
+        circle.style.strokeDashoffset = circle.getAttribute('r') * Math.PI * 2;
+        setTimeout(function() {
+            circle.style.strokeWidth = '6'; // 将strokeWidth重置为原始宽度
+        }, 500);
+    }, 500);
+    
+
+}
+
 
 const floatingBall = document.querySelector('.floating-ball');
 const infoBox = document.querySelector('.info-box');
@@ -1594,9 +1648,7 @@ function addSmsCalcState(data){
     }
 
     if(cur == oval){
-        setTimeout(() => {
-            resetRing(); // 重置环
-        }, 900);
+        //
     }
 }
 function addCalcState(data,redotimes){
@@ -1623,18 +1675,26 @@ function addCalcState(data,redotimes){
             document.getElementsByClassName("fe-components-stu-business-topbar-__navBar--2Au2lL_QIAwQu9fN70vAd4")[0].insertAdjacentHTML('beforeend', mainHtml);
         }*/
         //targ = document.getElementById("gcalc_proc");
-        document.getElementById("progress-text").innerText=`${cur} / ${oval}`;
-        //targ.innerText = tlang(`计算中 (${cur}/${oval})`,`Processing (${cur} / ${oval})`)
-        if(cur == oval){
-           // targ.innerText = tlang(`计算已完成`,`All Done`)
+        if(cur == 0 && oval>1){
             document.getElementById("progress-text").innerText=`${cur} / ${oval}`;
-            setTimeout(() => {
-              //  targ.remove();
-                document.getElementById("progress-text").remove();
-                document.getElementById("progress-text-shadow").remove();
-                resetRing();
-            }, 2300);
         }
+        if(cur>0 && cur<oval && oval>1){
+            setTimeout(() => {
+                resetRing(0); // 重置环
+            }, 500);
+            document.getElementById("progress-text").innerText=`${cur} / ${oval}`;
+            return;
+        }
+        if(cur == oval && cur>=1){
+            // targ.innerText = tlang(`计算已完成`,`All Done`)
+             if(oval>1) document.getElementById("progress-text").innerText=`${cur} / ${oval}`;
+             setTimeout(() => {
+               //  targ.remove();
+                 resetRing(1);
+             }, oval==1? 500:700);
+        }
+        
+        //targ.innerText = tlang(`计算中 (${cur}/${oval})`,`Processing (${cur} / ${oval})`)
     } catch (error) {
         console.log("WaitForAgain",error);
         setTimeout(() => {
@@ -1710,6 +1770,7 @@ function POP_addPopComponent(){
         transform: translate(-50%, 0);
         right: 88px;
         bottom: 55px;
+        opacity: 1;
         z-index: 9998;
         font-size: 16px;
         color: black;
@@ -1720,6 +1781,7 @@ function POP_addPopComponent(){
         transform: translate(-50%, 0);
         right: 41px;
         bottom: 37px;
+        opacity: 1;
         z-index: 9999;
         font-size: 16px;
         color: black;
