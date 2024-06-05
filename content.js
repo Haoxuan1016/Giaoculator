@@ -1611,7 +1611,7 @@ function addCalcState(data,redotimes){
             upgradeProgress();
             currentUpdate = cur;
         }*/
-
+/*
         let targ = document.getElementById("gcalc_proc");
         if(!targ){
             let mainHtml = `<span id="gcalc_proc" ng-class="$ctrl.styles.gotoText" ng-show="showCourse" ng-click="" class="ng-binding fe-components-stu-business-topbar-__gotoText--abWs2AncUsOC7EPXLLEaK" style="
@@ -1621,18 +1621,22 @@ function addCalcState(data,redotimes){
         margin-left: -15px;
         ">计算中 (NaN)</span>`
             document.getElementsByClassName("fe-components-stu-business-topbar-__navBar--2Au2lL_QIAwQu9fN70vAd4")[0].insertAdjacentHTML('beforeend', mainHtml);
-        }
-        targ = document.getElementById("gcalc_proc");
-        targ.innerText = tlang(`计算中 (${cur}/${oval})`,`Processing (${cur}/${oval})`)
+        }*/
+        //targ = document.getElementById("gcalc_proc");
+        document.getElementById("progress-text").innerText=`${cur} / ${oval}`;
+        //targ.innerText = tlang(`计算中 (${cur}/${oval})`,`Processing (${cur} / ${oval})`)
         if(cur == oval){
-            targ.innerText = tlang(`计算已完成`,`All Done`)
+           // targ.innerText = tlang(`计算已完成`,`All Done`)
+            document.getElementById("progress-text").innerText=`${cur} / ${oval}`;
             setTimeout(() => {
-                targ.remove();
+              //  targ.remove();
+                document.getElementById("progress-text").remove();
+                document.getElementById("progress-text-shadow").remove();
                 resetRing();
             }, 2300);
         }
     } catch (error) {
-        console.log("WaitForAgain");
+        console.log("WaitForAgain",error);
         setTimeout(() => {
             addCalcState(data,redotimes+1)
         }, 100*redotimes);
@@ -1693,10 +1697,35 @@ function POP_addPopComponent(){
                 <div class="close-btn">×</div>
                 <div class="info-content"></div>
             </div>
-        </div>
+            <div id="progress-text-shadow" ></div>
+            <div id="progress-text" > </div>
+            
+            </div>
     `
     var styleElement = document.createElement('style');
     let manCss = `
+    #progress-text-shadow {
+        box-shadow: 10px 10px 30px 8px rgba(0, 0, 0, 0.75);
+        position: fixed; /* Changed from absolute to fixed */
+        transform: translate(-50%, 0);
+        right: 88px;
+        bottom: 55px;
+        z-index: 9998;
+        font-size: 16px;
+        color: black;
+    }
+    
+    #progress-text {
+        position: fixed; /* Changed from absolute to fixed */
+        transform: translate(-50%, 0);
+        right: 41px;
+        bottom: 37px;
+        z-index: 9999;
+        font-size: 16px;
+        color: black;
+        text-shadow: -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white, 1px 1px 0 white;
+    }
+    
     .floating-ball {
         position: fixed;
         z-index: 999;

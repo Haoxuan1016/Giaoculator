@@ -1097,37 +1097,43 @@ function getAllGPAValues(targsms) {
         var subjectName = "Houseee";
         var subjectCode = "Houseeeeee";
         var weighted_value = 0;
-        if(data.isOriginal==true){
-            subjectName = data.classEName;
-            subjectCode = data.subjectInfo.subjectCode;
-            score = parseFloat(data.subjectScore);
-            if(data.scoreMappingId=="6799"){
-                weighted_value = 0.5;
-            }else if(data.classEName.includes("C-Humanities")){
-                if(chineseGPA === -1){
-                    chineseGPA = score;
-                }else{
-                    chineseGPA = chineseGPA * 0.666 + score * 0.333;
-                }
-                continue;
-            }else if(data.classEName.includes("Chinese")){
-                if(chineseGPA === -1){
-                    chineseGPA = score;
-                }else{
-                    chineseGPA = chineseGPA * 0.333 + score * 0.666;
-                }
-                continue;
+        console.log("GPACALC:",data)
+        subjectName = data.isOriginal? data.classEName:data.gpaInfo.ename;
+        subjectCode = data.isOriginal? data.subjectInfo.subjectCode:data.gpaInfo.subjectCode;
+        if(subjectName.includes("C-Humanities")){
+            if(chineseGPA === -1){
+                chineseGPA = score;
+            }else{
+                chineseGPA = chineseGPA * 0.666 + score * 0.333;
             }
-            //console.log(data.classEName,data.scoreMappingId,weighted_value);
+            console.log("GET C-hu info:",chineseGPA);
+            continue;
+        }else if(subjectName.includes("Chinese")){
+            if(chineseGPA === -1){
+                chineseGPA = score;
+            }else{
+                chineseGPA = chineseGPA * 0.333 + score * 0.666;
+            }
+            console.log("GET Chinese info:",chineseGPA);
+            continue;
         }else{
-            subjectName = data.gpaInfo.ename;
-            subjectCode = data.gpaInfo.subjectCode;
-            score = parseFloat(data.gpa);
-            if(data.gpaInfo.ename.includes("AP")||data.gpaInfo.ename.includes("AS")){
-                weighted_value = 0.5;
+            if(data.isOriginal==true){
+                score = parseFloat(data.subjectScore);
+                if(data.scoreMappingId=="6799"){
+                    weighted_value = 0.5;
+                }else{}
+                //console.log(data.classEName,data.scoreMappingId,weighted_value);
+            }else{
+                subjectName = data.gpaInfo.ename;
+                subjectCode = data.gpaInfo.subjectCode;
+                score = parseFloat(data.gpa);
+                if(data.gpaInfo.ename.includes("AP")||data.gpaInfo.ename.includes("AS")){
+                    weighted_value = 0.5;
+                }
+                //console.log(data.gpaInfo.ename,weighted_value);
             }
-            //console.log(data.gpaInfo.ename,weighted_value);
         }
+        
         if(score<=0){
             continue;
         }
@@ -1168,17 +1174,23 @@ function getAllGPAValues(targsms) {
         
     }
     if(chineseGPA > -1){
-        avg_moderateWeight += chineseGPA;
+        for (let rule of gpaRules) {
+            if (chineseGPA >= rule.minValue && chineseGPA <= rule.maxValue) {
+                var tmp = rule.gpa;
+                avg_moderateWeight += tmp;
+                break;
+            }
+        }
         cnt_moderateWeight += 1;
     }
     var finalGPA = 0;
-    console.log(avg_highWeight,avg_moderateWeight,avg_lowWeight,cnt_highWeight,cnt_moderateWeight,cnt_lowWeight);
+    console.log("Total 1权重:",avg_moderateWeight,"Total 0.5权重:",avg_lowWeight,"Cnt 1权重:",cnt_moderateWeight,"Cnt0.5权重:",cnt_lowWeight);
     finalGPA = (avg_moderateWeight * 1 + avg_lowWeight * 0.5)/(cnt_moderateWeight * 1 + cnt_lowWeight * 0.5);
     return finalGPA;
 }
 
 function getAllCourseInfo(targsms) {
-    // 返回内容包括ename, subjectId, gpa(浮点数)
+    // 返回内容包括ename, subjectId, gpa(浮点数)    
     let courseInfoList = [];
     
     // 遍历所有localStorage的键
@@ -1415,6 +1427,7 @@ function send_comp_msg(msgtype,data,redotimes){
    // console.log(`[${msgtype}]:XXsend,${(redotimes>0) ? (redotimes*100+50):1000}`)
     if(redotimes<8){
         chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+            console.log(msgtype,data);
             let message = {
                 type: msgtype,
                 data: data
@@ -1696,7 +1709,7 @@ async function AutoCalcAll() {
                     cur: i+1,
                     oval: his_range
                 }
-                send_str_msg("show_process",data,-999999);
+                send_comp_msg("show_process",data,-999999);
                 if((i+1) == his_range){
                     //if(his_range>1) send_str_msg("tip_suc",(navigator.language || navigator.userLanguage).includes('CN')? `已完成第${i+1}/${his_range}个学期计算，所有计算已完成！`:`All Calculation is Finished! ${i+1}/${his_range}`,0);
                     //else send_str_msg("tip_suc",(navigator.language || navigator.userLanguage).includes('CN')? `所有计算已完成！${i+1}/${his_range}`:`All Calculation is Finished! ${i+1}/${his_range}`,0);
@@ -1762,7 +1775,7 @@ async function AutoCalcAll() {
         console.log("[AutoCalc]Finished All!",smsId);
         saveToLocalStorage("lastUpdate",Date.parse(new Date()));
         tmpdata={cur: his_range,oval: his_range}
-        send_str_msg("show_process",tmpdata,-99999);
+        send_comp_msg("show_process",tmpdata,-99999);
 }
 
 function delay(ms) {
