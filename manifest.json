@@ -14,9 +14,9 @@
       "js": ["lib/notyf.min.js","lib/confetti.browser.min.js","content.js"]
   }],
   "icons": {
-    "16": "iconV2.png",
-    "48": "iconV2.png",
-    "128": "iconV2.png"
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
   },"web_accessible_resources": [
     "icon.png",
     "res/disablev2.png",
@@ -44,7 +44,7 @@
     "usr/2.mov"
   ],
   "browser_action": {
-    "default_icon": "iconV2.png",
+    "default_icon": "icon.png",
     "default_popup": "popup.html"
   },
   "permissions": [

@@ -641,19 +641,25 @@ function simulateClickLogout() {
     if(window.location.href === "https://tsinglanstudent.schoolis.cn/Home#!/task/list/detail"){
         document.getElementsByClassName("ng-binding ng-scope fe-components-xb-location-__router--nsd2ZgXX2cpKLO-r5y7lv")[0].click();
     }
+    
     else{
         try{
             document.getElementsByClassName("fe-components-stu-app-realtime-list-__closeIcon--21rEx3pvaQh2o8ssUTWfBv")[0].click();
         }catch{
-            try{
-                document.getElementsByClassName("ng-binding fe-components-stu-business-topbar-profile-__liBtn--2o4Tw8hObEQPDm7WM_T2us")[1].click();
-            }catch{
-                try {
-                    document.getElementsByClassName("logout hide")[0].click();
-                } catch{
-                    
+            try {
+                document.getElementsByClassName("fe-components-stu-app-realtime-list-__closeIcon--21rEx3pvaQh2o8ssUTWfBv")[1].click();
+            } catch (error) {
+                try{
+                    document.getElementsByClassName("ng-binding fe-components-stu-business-topbar-profile-__liBtn--2o4Tw8hObEQPDm7WM_T2us")[1].click();
+                }catch{
+                    try {
+                        document.getElementsByClassName("logout hide")[0].click();
+                    } catch{
+                        
+                    }
                 }
             }
+            
         }
     }
 }

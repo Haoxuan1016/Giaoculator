@@ -22,6 +22,11 @@ if(getFromLocalStorage("Info-SmsDateList")){
     smsDateList = getFromLocalStorage("Info-SmsDateList");
 }
 
+chrome.runtime.onInstalled.addListener(function() {
+    chrome.tabs.create({url: "https://g2h8ru7041.feishu.cn/docx/J8Axd0pogoCwCzx0D8FchHZJnah?from=from_copylink"});
+  });
+  
+
 
 var usrAssignmentsInfo = {};
 var usrAssignmentsBriefInfo = [];
@@ -114,7 +119,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
                     calcRange: parseInt(1, 10),
                     homeSrc: defaultwelcomeMsg,
                     autoHide: true,
-                    advLogPage: false, 
+                    advLogPage: true, 
                     advScoreShadow: false,
                     autologNtw: 0,
                     homeSrcDark: " ",
@@ -1085,10 +1090,8 @@ function getAllGPAValues(targsms) {
     let gpaList = [];
     var avg_lowWeight = 0;
     var avg_moderateWeight = 0;
-    var avg_highWeight = 0;
     var cnt_lowWeight = 0;
     var cnt_moderateWeight = 0;
-    var cnt_highWeight = 0;
     var chineseGPA = -1;
     // 遍历所有localStorage的键
     for (let i = 0; i < localStorage.length; i++) {
@@ -1794,7 +1797,7 @@ async function AutoCalcAll() {
             await delay(1000);
         }
         saveToLocalStorage("Info-SmsDateList",smsDateList);
-        console.log("[AutoCalc]Finished All!",smsId);
+        console.log("[AutoCalc]Finished All!");
         saveToLocalStorage("lastUpdate",Date.parse(new Date()));
         tmpdata={cur: his_range,oval: his_range}
         send_comp_msg("show_process",tmpdata,-99999);

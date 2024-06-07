@@ -45,7 +45,14 @@ document.getElementById('exp_settings').addEventListener('click', initExpSetting
 
 // Update display for calcRange slider dynamically
 document.getElementById('calcRange').addEventListener('input', function() {
-    if(document.getElementById('calcRange').value == 1){
+    if(document.getElementById('calcRange').value == 0){
+        if(langSet == 'cn'){
+            document.getElementById('calcRangeValue').textContent = "不主动计算动态成绩";
+        }
+        else{
+            document.getElementById('calcRangeValue').textContent = "Do Not Calculate Any Score Data";
+        }
+    }else if(document.getElementById('calcRange').value == 1){
         if(langSet == 'cn'){
             document.getElementById('calcRangeValue').textContent = "仅计算当前学期的数据";
         }
@@ -116,7 +123,14 @@ function loadOptions() {
     chrome.storage.local.get('user_preference', function(data) {
         if (data.user_preference) {
             document.getElementById('calcRange').value = data.user_preference.calcRange;
-            if(document.getElementById('calcRange').value == 1){
+            if(document.getElementById('calcRange').value == 0){
+                if(langSet == 'cn'){
+                    document.getElementById('calcRangeValue').textContent = "不主动计算动态成绩";
+                }
+                else{
+                    document.getElementById('calcRangeValue').textContent = "Do Not Calculate Any Score Data";
+                }
+            }else if(document.getElementById('calcRange').value == 1){
                 if(langSet == 'cn'){
                     document.getElementById('calcRangeValue').textContent = "仅计算当前学期的数据";
                 }
