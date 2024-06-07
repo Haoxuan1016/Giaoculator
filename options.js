@@ -98,6 +98,9 @@ function saveOptions() {
         else{
             document.getElementById('showReloadTip').innerText = "Saved, re-login to apply changes.";
         }
+        setTimeout(() => {
+            document.getElementById('showReloadTip').innerText = ''
+        }, 3000);
     });
 
 }

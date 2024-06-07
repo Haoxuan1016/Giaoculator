@@ -1,4 +1,8 @@
 console.log("Giaoculator is Running");
+
+// TODO: Shall we add auto-update function by using shell code? -- Leo
+// TODO: 悬浮窗更新
+
 diyHomepage();
 
 // ================== 悬浮窗 ===================
@@ -2022,3 +2026,37 @@ function addSubmitLinkBtn(assignmentId,redotimes){
         }
     }
 }
+
+
+const asciiArt = `
+   _____ _                        _       _             
+  / ____(_)                      | |     | |            
+ | |  __ _  __ _  ___   ___ _   _| | __ _| |_ ___  _ __ 
+ | | |_ | |/ _\` |/ _ \\ / __| | | | |/ _\` | __/ _ \\| '__|
+ | |__| | | (_| | (_) | (__| |_| | | (_| | || (_) | |   
+  \\_____|_|\\__,_|\\___/ \\___|\\__,_|_|\\__,_|\\__\\___/|_|   
+                                                        
+==============================================================
+Welcome to use Giaoculator!
+This is a chrome v2 extension which helps you to calculate your GPA!
+The name of this app comes from @Giaocomo Grade 2027.
+Made by Peter Li 2027 and Leo Huo 2027 with ❤️.
+Github Homepage: https://github.com/Haoxuan1016/Giaoculator
+
+This message is an easter egg!
+Feel free to contribute to this project!
+We welcomed Issues and Pull Requests.
+Tsinglan School needs you!
+—— Leo 24.06.05
+==============================================================
+                                                        `;
+
+// 彩色输出函数
+function colorfulConsoleMessage() {
+  console.log(asciiArt);
+}
+
+// 调用函数显示彩色信息和字符画
+setTimeout(() => {
+    colorfulConsoleMessage();    
+}, 1000);
