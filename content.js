@@ -1,6 +1,6 @@
 console.log("Giaoculator is Running");
 
-// TODO: Shall we add auto-update function by using shell code? -- Leo
+// TODO: I dont think we need to do that :D ——Peter
 // TODO: 悬浮窗更新
 
 diyHomepage();
@@ -52,12 +52,15 @@ function upgradeProgress() {
     }
 }
 
+
+
 // 重置环，比如在计算完成后调用这个函数
 function resetRing_Old(){
     currentUpdate = 0;
     circle.style.transition = 'stroke-dashoffset 0.5s ease-out';
     circle.style.strokeDashoffset = maxOffset;
 }
+
 
 function RingShowCalcError(){
     var logo = document.getElementById('xfc-logo');
@@ -92,15 +95,18 @@ function resetRing(isFinal){
             logo.style.transition = isFinal? 'opacity 0.5s ease-in':'opacity 0.2s ease-in';
             logo.style.opacity = '0';
             if(isFinal){
-                document.getElementById("progress-text").style.transition = 'opacity 0.4s ease-out';
-                document.getElementById("progress-text").style.opacity = '0';
-                document.getElementById("progress-text-shadow").style.transition = 'opacity 0.4s ease-out';
-                document.getElementById("progress-text-shadow").style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById("progress-text").remove();
-                    document.getElementById("progress-text-shadow").remove();
-                    return;
-                }, 500);
+                try {
+                    document.getElementById("progress-text").style.transition = 'opacity 0.4s ease-out';
+                    document.getElementById("progress-text").style.opacity = '0';
+                    document.getElementById("progress-text-shadow").style.transition = 'opacity 0.4s ease-out';
+                    document.getElementById("progress-text-shadow").style.opacity = '0';
+                    setTimeout(() => {
+                        document.getElementById("progress-text").remove();
+                        document.getElementById("progress-text-shadow").remove();
+                        return;
+                    }, 500);
+                } catch (e) {}
+                
             }
 
         }, 900+isFinal*300);
@@ -1078,8 +1084,17 @@ function gpaClaced(){
             }, 20);
             document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__gpaContentTitle--JYXIB_rCNvSgM5wWcEYdJ")[0].innerText = "Semester GPA (Calced)";
         }
+        
+        
     } catch{}
-    
+    setTimeout(() => {
+        var element = document.getElementsByClassName("ng-binding ng-scope fe-components-stu-app-realtime-list-__gpaContentScore--1OjJB7QN_hSoa3zcyHgfmN")[0];
+        if (element) {
+            element.addEventListener('click', function(event) {
+                sendInfotip(tlang("计算的GPA仅供参考，可能存在误差<br><br>详见：<a style='color:#cccccc;text-decoration:underline' href='https://g2h8ru7041.feishu.cn/docx/RLXdd0ZeuogSwzx1R3KcwgElnMg?from=from_copylink'>GPA计算说明</a>","The calculated GPA is for reference only and may contain errors.<br><br>For details, see：<a style='color:#cccccc;text-decoration:underline' href='https://g2h8ru7041.feishu.cn/docx/RLXdd0ZeuogSwzx1R3KcwgElnMg?from=from_copylink'>Description</a>"))
+            });
+        }
+    }, 100);
 } 
 
 function gpaNotClaced(){
@@ -2037,17 +2052,11 @@ const asciiArt = `
   \\_____|_|\\__,_|\\___/ \\___|\\__,_|_|\\__,_|\\__\\___/|_|   
                                                         
 ==============================================================
-Welcome to use Giaoculator!
-This is a chrome v2 extension which helps you to calculate your GPA!
-The name of this app comes from @Giaocomo Grade 2027.
-Made by Peter Li 2027 and Leo Huo 2027 with ❤️.
-Github Homepage: https://github.com/Haoxuan1016/Giaoculator
+Welcome!
+Feel free to report an issue or submit a suggestion:
+https://jinshuju.net/f/D5NtDf
 
-This message is an easter egg!
-Feel free to contribute to this project!
-We welcomed Issues and Pull Requests.
-Tsinglan School needs you!
-—— Leo 24.06.05
+Github Homepage: https://github.com/Haoxuan1016/Giaoculator
 ==============================================================
                                                         `;
 
