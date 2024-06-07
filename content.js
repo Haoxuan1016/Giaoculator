@@ -1131,28 +1131,28 @@ function beautyLoginPage(srcData,redotimes){
     
 
     try {
-        if(loginPageSrc.includes("<local/jpg-1>")){
+        if(loginPageSrc.includes("<local/jpg-1>")||loginPageSrc.includes("<1.jpg>")){
             loginPageSrc = chrome.runtime.getURL("usr/1.jpg"); 
         }
-        if(loginPageSrc.includes("<local/png-1>")){
+        if(loginPageSrc.includes("<local/png-1>")||loginPageSrc.includes("<1.png>")){
             loginPageSrc = chrome.runtime.getURL("usr/1.png"); 
         }
-        if(loginPageSrc.includes("<local/mp4-1>")){
+        if(loginPageSrc.includes("<local/mp4-1>")||loginPageSrc.includes("<1.mp4>")){
             loginPageSrc = chrome.runtime.getURL("usr/1.mp4"); 
         }
-        if(loginPageSrc.includes("<local/mov-1>")){
+        if(loginPageSrc.includes("<local/mov-1>")||loginPageSrc.includes("<1.mov>")){
             loginPageSrc = chrome.runtime.getURL("usr/1.mov"); 
         }
-        if(loginPageSrc.includes("<local/jpg-2>")){
+        if(loginPageSrc.includes("<local/jpg-2>")||loginPageSrc.includes("<2.jpg>")){
             loginPageSrc = chrome.runtime.getURL("usr/2.jpg"); 
         }
-        if(loginPageSrc.includes("<local/png-2>")){
+        if(loginPageSrc.includes("<local/png-2>")||loginPageSrc.includes("<2.png>")){
             loginPageSrc = chrome.runtime.getURL("usr/2.png"); 
         }
-        if(loginPageSrc.includes("<local/mp4-2>")){
+        if(loginPageSrc.includes("<local/mp4-2>")||loginPageSrc.includes("<2.mp4>")){
             loginPageSrc = chrome.runtime.getURL("usr/2.mp4"); 
         }
-        if(loginPageSrc.includes("<local/mov-2>")){
+        if(loginPageSrc.includes("<local/mov-2>")||loginPageSrc.includes("<2.mov>")){
             loginPageSrc = chrome.runtime.getURL("usr/2.mov"); 
         }
     }catch (error) {}
