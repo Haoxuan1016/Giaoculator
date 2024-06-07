@@ -205,6 +205,9 @@ function hideFloatingBall(){
 }
 // 点击悬浮窗展示信息框
 floatingBall.addEventListener('click', () => {
+    setTimeout(() => {
+        send_comp_msg("bp-openSettings","1",0);
+    }, 300);
     document.getElementsByClassName("floating-ball")[0].style.transition='opacity 0.2s ease-out';
     document.getElementsByClassName("floating-ball")[0].style.opacity=0;
     document.getElementById("progress-text").style.transition = 'opacity 0.2s ease-out';
@@ -215,6 +218,7 @@ floatingBall.addEventListener('click', () => {
         document.getElementById("progress-text").remove();
         document.getElementsByClassName("floating-ball")[0].remove();
         document.getElementById("progress-text-shadow").remove();
+        
         return;
     }, 210);
     

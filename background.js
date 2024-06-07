@@ -23,7 +23,7 @@ if(getFromLocalStorage("Info-SmsDateList")){
 }
 
 chrome.runtime.onInstalled.addListener(function() {
-    chrome.tabs.create({url: "https://g2h8ru7041.feishu.cn/docx/J8Axd0pogoCwCzx0D8FchHZJnah?from=from_copylink"});
+    chrome.tabs.create({url: "https://tsinglanstudent.schoolis.cn"});
   });
   
 
@@ -128,6 +128,9 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
                 };
                 chrome.storage.local.set({user_preference: user_preference});
                 usr_setting = user_preference;
+                setTimeout(() => {
+                    send_str_msg("tip_info_long",tlang("Giaoculator安装成功！<br>点击右下角悬浮球即可进入设置界面！","Welcome to Giaoculator, <br>Click the floating ball at the bottom right corner to enter the settings!"),0)
+                }, 150);
             }
         });
         chrome.storage.local.get('enable_state', function(data) {
@@ -1856,6 +1859,8 @@ chrome.runtime.onMessage.addListener(
         }else if(message.type==="bp-ntwlogin"){
             ntwAutoLog();
             
+        }else if(message.type==="bp-openSettings"){
+            chrome.runtime.openOptionsPage();
         }else if(message.type==="gb_addtoUsrList"){
             let tmplist = message.data;
             for(var i=0;i<tmplist.length;i++){
