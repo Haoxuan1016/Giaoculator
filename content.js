@@ -54,6 +54,25 @@ function resetRing_Old(){
     circle.style.transition = 'stroke-dashoffset 0.5s ease-out';
     circle.style.strokeDashoffset = maxOffset;
 }
+
+function RingShowCalcError(){
+    var logo = document.getElementById('xfc-logo');
+    var circle = document.querySelector('.progress-ring__circle');
+
+    // 修改图标图片并添加渐变动画
+    circle.style.transition = 'stroke 1s ease-out,stroke-dashoffset 0.5s ease-out, stroke-width 0.5s ease-out';
+    circle.style.stroke = '#da0000';
+    circle.style.strokeDashoffset = 0;
+    setTimeout(() => {
+        circle.style.transition = 'stroke-dashoffset 0.5s ease-out, stroke-width 0.5s ease-out';
+        circle.style.strokeWidth = '0'; // 使圆环向外圈变细并消失
+        setTimeout(() => {
+            circle.style.stroke="rgb(86,194,90)";
+            circle.style.stroke.width=6;
+        }, 510);
+    }, 10000);
+
+}
 function resetRing(isFinal){
     // 获取旧的图标元素和环形进度条
     var logo = document.getElementById('xfc-logo');
@@ -161,8 +180,36 @@ closeBtn.addEventListener('click', () => {
     hideInfoBox();
 });
 
+function hideFloatingBall(){
+    try {
+        document.getElementsByClassName("floating-ball")[0].remove();
+        document.getElementById("progress-text").remove();
+        document.getElementById("progress-text-shadow").remove();
+    } catch (e) {
+        setTimeout(() => {
+            document.getElementsByClassName("floating-ball")[0].remove();
+            document.getElementById("progress-text").remove();
+            document.getElementById("progress-text-shadow").remove();
+        }, 100);
+    }
+}
 // 点击悬浮窗展示信息框
 floatingBall.addEventListener('click', () => {
+    document.getElementsByClassName("floating-ball")[0].style.transition='opacity 0.2s ease-out';
+    document.getElementsByClassName("floating-ball")[0].style.opacity=0;
+    document.getElementById("progress-text").style.transition = 'opacity 0.2s ease-out';
+    document.getElementById("progress-text").style.opacity = '0';
+    document.getElementById("progress-text-shadow").style.transition = 'opacity 0.2s ease-out';
+    document.getElementById("progress-text-shadow").style.opacity = '0';
+    setTimeout(() => {
+        document.getElementById("progress-text").remove();
+        document.getElementsByClassName("floating-ball")[0].remove();
+        document.getElementById("progress-text-shadow").remove();
+        return;
+    }, 210);
+    
+
+    return;//先暂时关闭信息框功能，改为隐藏悬浮球
     if (processingBox) return;
     if (isInfoBoxOpen) {
         hideInfoBox();
@@ -269,7 +316,9 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 location.reload();
             } else if (type == "bp-logpageState"){
                 //换位置
-            } else if (type == "bp-showRefresh"){
+            } else if (type == "calcErrorStop"){
+                RingShowCalcError();
+            }else if (type == "bp-showRefresh"){
                 showHideButtonAtHome();//NEW
                 // MB_insertEditedDiv()
             } else if (type == "bp-refresh-click"){
@@ -1211,6 +1260,7 @@ function directDownloadFile_AddBtn() {
         directDownloadFile();
     };
     document.body.appendChild(btn);
+    hideFloatingBall();
     if(document.getElementsByClassName("ms-Button root-163").length>4){
         document.getElementById('gcalcDownloadBtn').remove()
     }
@@ -1739,6 +1789,9 @@ function MB_insertEditedDiv() {
 }
 
 function POP_addPopComponent(){
+    if (!window.location.href.includes('schoolis.cn')) {
+        return;
+    }
     let mainHtml = `
         <div>
             <div class="floating-ball">

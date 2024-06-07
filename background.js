@@ -8,6 +8,7 @@ var enable_state = true;
 var did_autocalcall = false;
 var working_sms = 24699;
 var working_sms_sequenceId = 1;
+var faceErrorWhileCalc = false;
 var isFetchOriginal = false;
 var sequenceDic = {24700:0, 24699:1, 21208:2, 21207:3}; 
 var smsCalcStat = new Array();
@@ -51,8 +52,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     const LoginPattern2 = "https://tsinglanstudent.schoolis.cn/#!/";
     const HomepagePattern = "https://tsinglanstudent.schoolis.cn/Home#!/task/list";
 
+
     if(tab.url==undefined){
-        console.log(tab.url,"UNDEFINED!");
         return;
     }
     // 当URL变化时，重新注入内容脚本（上古时期的代码了，反正能跑）
@@ -1026,6 +1027,8 @@ async function fetchSubjectEName(semesterId, subjectId) {
         if(semesterId == null) semesterId = "null";
         console.error('Error fetching subject data:', error);
         send_str_msg("tip_err","计算 "+semesterId+" 学期时出现问题:" + error,0);
+        faceErrorWhileCalc = true;
+        send_short_msg("calcErrorStop",0);
         return "error";
     }
 
@@ -1056,7 +1059,9 @@ function saveToLocalStorage(keyName, obj) {
         console.log("已存入"+keyName+"的data!");
     } catch (error) {
         console.error('Error saving to localStorage:', error);
+        send_short_msg("calcErrorStop",0);
         send_str_msg("tip_err",error,0);
+        faceErrorWhileCalc = true;
     }
 }
 
@@ -1069,6 +1074,8 @@ function getFromLocalStorage(keyName) {
         return JSON.parse(jsonString);
     } catch (error) {
         console.error('Error reading from localStorage or parsing:', error);
+        send_short_msg("calcErrorStop",0);
+        faceErrorWhileCalc = true;
         send_str_msg("tip_err",error,0);
         return null;
     }
@@ -1247,6 +1254,8 @@ async function CalcBySmsId(semesterId,bgn_info,end_info) {
     const end_parsed = parseDateInfo(end_info);
     if(!bgn_parsed || !end_parsed){
         send_str_msg("tip_err","计算时出现问题：SmsId不存在或未定义",0);
+        faceErrorWhileCalc = true;
+        send_short_msg("calcErrorStop",0);
         console.log("SmsIdError,Smsid:",semesterId)
         return false;
     }
@@ -1293,6 +1302,8 @@ async function CalcBySmsId(semesterId,bgn_info,end_info) {
     } catch (error) {
         console.error('Error fetching subject data:', error);
         send_str_msg("tip_err","计算 "+semesterId+" 学期时出现问题:" + error,0);
+        faceErrorWhileCalc = true;
+        send_short_msg("calcErrorStop",0);
         return false;
     } finally {
          
@@ -1596,6 +1607,8 @@ async function  fetchOriginalRequest(smsId) {
     }catch (error) {
         console.error('Error fetching subject data:', error);
         send_str_msg("tip_err","计算 "+semesterId+" 学期时出现问题:" + error,0);
+        faceErrorWhileCalc = true;
+        send_short_msg("calcErrorStop",0);
         return false;
     }
     
@@ -1647,6 +1660,7 @@ async function sendLoginMessage() {
   
 
 async function AutoCalcAll() {
+    faceErrorWhileCalc = false;
     did_autocalcall = true;
     const usrName = await fetchUsrInfo();
     const response = await fetch("https://tsinglanstudent.schoolis.cn/api/School/GetSchoolSemesters");
@@ -1703,6 +1717,14 @@ async function AutoCalcAll() {
             if(await CalcBySmsId(smsId,bgnDates[i],endDates[i])){
                 await isExistGPA(smsId);
                 await fetchSchedule(bgnDates[i]);
+                if(faceErrorWhileCalc){
+                    await delay(2000);
+                    send_str_msg("tip_err",`自动计算被异常打断，请重新登录平台`,0);
+                    localStorage.clear();
+                    did_autocalcall = false;
+                    console.log("[Autocalc]Error stoped!")
+                    return;
+                }
                 console.log("[AutoCalc]Finished Calc",smsId);
                 smsCalcStat[smsId] = 1;
                 let data={
@@ -1727,7 +1749,7 @@ async function AutoCalcAll() {
                 }
                 console.log(`TEST ${fullScoreAmounts} 个满分任务`);
                 popup_send_longterm(`<p>这是一段总结性质的文字，叫做长期文字，主要用来汇总</p>`)
-
+                
                 if(i==0){ 
                     chrome.storage.local.get(`[FullScoreCount]${usrName}`, function(data) {
                         let count = data ? data[`[FullScoreCount]${usrName}`] : 0;
@@ -1887,6 +1909,8 @@ async function calcSubjectAvg(smsId,subjectId){
     const end_parsed = parseDateInfo(smsDateList[smsId].endDate);
     if(!bgn_parsed || !end_parsed){
         send_str_msg("tip_err","计算时出现问题：SmsId不存在或未定义",0);
+        send_short_msg("calcErrorStop",0);
+        faceErrorWhileCalc = true;
         console.log("SmsIdError,Smsid:",semesterId)
         return false;
     }
