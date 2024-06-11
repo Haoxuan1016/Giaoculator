@@ -1113,23 +1113,7 @@ function getAllGPAValues(targsms) {
         console.log("GPACALC:",data)
         subjectName = data.isOriginal? data.classEName:data.gpaInfo.ename;
         subjectCode = data.isOriginal? data.subjectInfo.subjectCode:data.gpaInfo.subjectCode;
-        if(subjectName.includes("C-Humanities")){
-            if(chineseGPA === -1){
-                chineseGPA = score;
-            }else{
-                chineseGPA = chineseGPA * 0.666 + score * 0.333;
-            }
-            console.log("GET C-hu info:",chineseGPA);
-            continue;
-        }else if(subjectName.includes("Chinese")){
-            if(chineseGPA === -1){
-                chineseGPA = score;
-            }else{
-                chineseGPA = chineseGPA * 0.333 + score * 0.666;
-            }
-            console.log("GET Chinese info:",chineseGPA);
-            continue;
-        }else{
+        if(1==1){
             if(data.isOriginal==true){
                 score = parseFloat(data.subjectScore);
                 if(data.scoreMappingId=="6799"){
@@ -1173,27 +1157,25 @@ function getAllGPAValues(targsms) {
             }else{
                 chineseGPA = chineseGPA * 0.66666 + subjectGPA * 0.33333;
             }
+            console.log(`[GetCHu]${subjectInfos},${chineseGPA}`);
         }else if(subjectInfos.includes("Chinese")){
             if(chineseGPA === -1){
                 chineseGPA = subjectGPA;
             }else{
                 chineseGPA = chineseGPA * 0.33333 + subjectGPA * 0.66666;
             }
+            console.log(`[GetChinese]${subjectInfos},${chineseGPA}`);
         }else{
             avg_moderateWeight += subjectGPA;
             cnt_moderateWeight += 1;
+            console.log(`[ChangeMDNo${cnt_moderateWeight}]${subjectInfos},into ${avg_moderateWeight}`)
         }
         console.log("GPACLAC",subjectGPA,score,subjectName);
         
     }
     if(chineseGPA > -1){
-        for (let rule of gpaRules) {
-            if (chineseGPA >= rule.minValue && chineseGPA <= rule.maxValue) {
-                var tmp = rule.gpa;
-                avg_moderateWeight += tmp;
-                break;
-            }
-        }
+        avg_moderateWeight += chineseGPA;
+        console.log(`[ChangeMDNo${cnt_moderateWeight}]Chinese+Chu,into ${avg_moderateWeight}`);
         cnt_moderateWeight += 1;
     }
     var finalGPA = 0;
