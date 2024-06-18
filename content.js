@@ -485,10 +485,10 @@ function hideScores(scorelim) {
         console.log(scoreNumElement,scoreInfoElement);
         if (scoreInfoElement!=null) {
             console.log(scoreInfoElement,"is not NULL");
-            scoreNumElement.innerHTML = '<img src="' + chrome.runtime.getURL("res/disablev2.png") + '" alt="Disabled" style="width: 190%;" />';
+            scoreNumElement.innerHTML = '<img src="' + chrome.runtime.getURL("res/disablev2.png") + '" alt="Disabled" style="width: 200px;position: absolute;top: 94px;left: 16px;">';
             scoreInfoElement.remove();
         }else{
-            scoreNumElement.innerHTML = '<img src="' + chrome.runtime.getURL("res/disablev2.png") + '" alt="Disabled" style="position: relative; left: -13px;width: 70%;" />';//初中部样式
+            scoreNumElement.innerHTML = '<img src="' + chrome.runtime.getURL("res/disablev2.png") + '" alt="Disabled" style="width: 200px;position: absolute;top: 94px;left: 16px;">';//初中部样式
         }
      }
     }
