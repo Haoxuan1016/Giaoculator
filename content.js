@@ -1,5 +1,7 @@
 console.log("Giaoculator is Running");
 
+var manifestData = chrome.runtime.getManifest();
+
 // TODO: I dont think we need to do that :D ——Peter
 // TODO: 悬浮窗更新
 
@@ -29,6 +31,15 @@ let longtermMessage = '';
 // }, 3000);
 
 // TODO: 长期设置代码
+
+function send_comp_msg(msgtype, data, addData) {
+    chrome.runtime.sendMessage({
+        type: msgtype,
+        data: data,
+        additionalData: addData
+    });
+
+}
 
 // 设置SVG圆环的初始状态
 const circle = document.querySelector('.progress-ring__circle');
@@ -152,7 +163,16 @@ let messageReadState = [];
 
 // 信息框里的东西，支持html代码，每次要展示的时候首先更新这个变量
 // 当然建议用下方的封装函数实现显示消息红点的效果
-let htmlContent = '<p>No message avaliable.</p>';
+let bigLogo = chrome.runtime.getURL("res/iconNormal.png");
+let settingPage = chrome.runtime.getURL("options.html");
+
+let htmlContent = `
+<img src='${bigLogo}' style='height: 80px; '>
+<p style='text-align: center; margin: 0 0 15px 0;'>Welcome To Giaoculator v${manifestData.version}</p>
+`;
+// <a style='text-decoration: underline; color: #128A42;' href='${settingPage}' >Go to Settings</a>
+
+
 
 // 展示信息框，一般不手动调用
 function showInfoBox() {
@@ -205,32 +225,31 @@ function hideFloatingBall(){
 }
 // 点击悬浮窗展示信息框
 floatingBall.addEventListener('click', () => {
-    setTimeout(() => {
-        send_comp_msg("bp-openSettings","1",0);
-    }, 300);
-    document.getElementsByClassName("floating-ball")[0].style.transition='opacity 0.2s ease-out';
-    document.getElementsByClassName("floating-ball")[0].style.opacity=0;
-    document.getElementById("progress-text").style.transition = 'opacity 0.2s ease-out';
-    document.getElementById("progress-text").style.opacity = '0';
-    document.getElementById("progress-text-shadow").style.transition = 'opacity 0.2s ease-out';
-    document.getElementById("progress-text-shadow").style.opacity = '0';
-    setTimeout(() => {
-        document.getElementById("progress-text").remove();
-        document.getElementsByClassName("floating-ball")[0].remove();
-        document.getElementById("progress-text-shadow").remove();
+    // setTimeout(() => {
+    //     send_comp_msg("bp-openSettings","1",0);
+    // }, 300);
+    // document.getElementsByClassName("floating-ball")[0].style.transition='opacity 0.2s ease-out';
+    // document.getElementsByClassName("floating-ball")[0].style.opacity=0;
+    // document.getElementById("progress-text").style.transition = 'opacity 0.2s ease-out';
+    // document.getElementById("progress-text").style.opacity = '0';
+    // document.getElementById("progress-text-shadow").style.transition = 'opacity 0.2s ease-out';
+    // document.getElementById("progress-text-shadow").style.opacity = '0';
+    // setTimeout(() => {
+    //     document.getElementById("progress-text").remove();
+    //     document.getElementsByClassName("floating-ball")[0].remove();
+    //     document.getElementById("progress-text-shadow").remove();
         
-        return;
-    }, 210);
+    //     return;
+    // }, 210);
     
 
-    return;//先暂时关闭信息框功能，改为隐藏悬浮球
+    // return;//先暂时关闭信息框功能，改为隐藏悬浮球
     if (processingBox) return;
     if (isInfoBoxOpen) {
         hideInfoBox();
     } else {
         showInfoBox();
         hideDot();
-
     }
 });
 
@@ -1621,14 +1640,7 @@ function padSpaces(str, targetLength) {
 
 //addNewUsrAssignment(smsid,subjectid,name, percentageScore,proportion,cataName)
 
-function send_comp_msg(msgtype, data, addData) {
-    chrome.runtime.sendMessage({
-        type: msgtype,
-        data: data,
-        additionalData: addData
-    });
 
-}
 
 function showState2DiyScoresBox(smsId,subjectId,subjectName,oriScore){
     if (subjectName.includes("[Edited] ")) {
@@ -1889,6 +1901,14 @@ function POP_addPopComponent(){
         /* overflow: hidden; */
     }
 
+    .hidden {
+        opacity: 0;
+    }
+
+    .floating-ball:hover {
+        opacity: 1;
+    }
+
     .content-container {
         position: relative;
         width: 50px;
@@ -1936,7 +1956,7 @@ function POP_addPopComponent(){
         position: fixed;
         right: 75px;
         bottom: 80px;
-        width: 260px;
+        min-width: 260px;
         /* height: 250px; */
         border-radius: 10px;
         box-shadow: 0 0px 15px rgba(0, 0, 0, 0.08);
@@ -2061,6 +2081,7 @@ Feel free to report an issue or submit a suggestion:
 https://jinshuju.net/f/D5NtDf
 
 Github Homepage: https://github.com/Haoxuan1016/Giaoculator
+Developer: Haoxuan1016, LanbinLeo
 ==============================================================
                                                         `;
 
