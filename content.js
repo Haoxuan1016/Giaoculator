@@ -1,7 +1,5 @@
 console.log("Giaoculator is Running");
 
-var manifestData = chrome.runtime.getManifest();
-
 // TODO: I dont think we need to do that :D ——Peter
 // TODO: 悬浮窗更新
 
@@ -32,23 +30,19 @@ let longtermMessage = '';
 
 // TODO: 长期设置代码
 
-function send_comp_msg(msgtype, data, addData) {
-    chrome.runtime.sendMessage({
-        type: msgtype,
-        data: data,
-        additionalData: addData
-    });
-
-}
-
 // 设置SVG圆环的初始状态
-const circle = document.querySelector('.progress-ring__circle');
-const radius = circle.r.baseVal.value;
-const circumference = 2 * Math.PI * radius;
-const maxOffset = circumference;
+try {
+    const circle = document.querySelector('.progress-ring__circle');
+    const radius = circle.r.baseVal.value;
+    const circumference = 2 * Math.PI * radius;
+    const maxOffset = circumference;
 
-circle.style.strokeDasharray = `${circumference} ${circumference}`;
-circle.style.strokeDashoffset = maxOffset;
+    circle.style.strokeDasharray = `${circumference} ${circumference}`;
+    circle.style.strokeDashoffset = maxOffset;
+
+} catch (e) {
+    console.log("no circle");
+}
 
 // 更新进度的函数，每次调用会+1，可以写到后端发消息的地方或者啥的。
 function upgradeProgress() {    
@@ -163,16 +157,7 @@ let messageReadState = [];
 
 // 信息框里的东西，支持html代码，每次要展示的时候首先更新这个变量
 // 当然建议用下方的封装函数实现显示消息红点的效果
-let bigLogo = chrome.runtime.getURL("res/iconNormal.png");
-let settingPage = chrome.runtime.getURL("options.html");
-
-let htmlContent = `
-<img src='${bigLogo}' style='height: 80px; '>
-<p style='text-align: center; margin: 0 0 15px 0;'>Welcome To Giaoculator v${manifestData.version}</p>
-`;
-// <a style='text-decoration: underline; color: #128A42;' href='${settingPage}' >Go to Settings</a>
-
-
+let htmlContent = '<p>No message avaliable.</p>';
 
 // 展示信息框，一般不手动调用
 function showInfoBox() {
@@ -205,10 +190,13 @@ function processLongtermMsg(){
     }
 }
 
-// 点击叉叉关闭信息框
-closeBtn.addEventListener('click', () => {
-    hideInfoBox();
-});
+if(closeBtn!=null){
+    // 点击叉叉关闭信息框
+    closeBtn.addEventListener('click', () => {
+        hideInfoBox();
+    });
+}
+
 
 function hideFloatingBall(){
     try {
@@ -224,34 +212,38 @@ function hideFloatingBall(){
     }
 }
 // 点击悬浮窗展示信息框
-floatingBall.addEventListener('click', () => {
-    // setTimeout(() => {
-    //     send_comp_msg("bp-openSettings","1",0);
-    // }, 300);
-    // document.getElementsByClassName("floating-ball")[0].style.transition='opacity 0.2s ease-out';
-    // document.getElementsByClassName("floating-ball")[0].style.opacity=0;
-    // document.getElementById("progress-text").style.transition = 'opacity 0.2s ease-out';
-    // document.getElementById("progress-text").style.opacity = '0';
-    // document.getElementById("progress-text-shadow").style.transition = 'opacity 0.2s ease-out';
-    // document.getElementById("progress-text-shadow").style.opacity = '0';
-    // setTimeout(() => {
-    //     document.getElementById("progress-text").remove();
-    //     document.getElementsByClassName("floating-ball")[0].remove();
-    //     document.getElementById("progress-text-shadow").remove();
+if(floatingBall != null){
+    floatingBall.addEventListener('click', () => {
+        setTimeout(() => {
+            send_comp_msg("bp-openSettings","1",0);
+        }, 300);
+        document.getElementsByClassName("floating-ball")[0].style.transition='opacity 0.2s ease-out';
+        document.getElementsByClassName("floating-ball")[0].style.opacity=0;
+        document.getElementById("progress-text").style.transition = 'opacity 0.2s ease-out';
+        document.getElementById("progress-text").style.opacity = '0';
+        document.getElementById("progress-text-shadow").style.transition = 'opacity 0.2s ease-out';
+        document.getElementById("progress-text-shadow").style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById("progress-text").remove();
+            document.getElementsByClassName("floating-ball")[0].remove();
+            document.getElementById("progress-text-shadow").remove();
+            
+            return;
+        }, 210);
         
-    //     return;
-    // }, 210);
     
+        return;//先暂时关闭信息框功能，改为隐藏悬浮球
+        if (processingBox) return;
+        if (isInfoBoxOpen) {
+            hideInfoBox();
+        } else {
+            showInfoBox();
+            hideDot();
+    
+        }
+    });
+}
 
-    // return;//先暂时关闭信息框功能，改为隐藏悬浮球
-    if (processingBox) return;
-    if (isInfoBoxOpen) {
-        hideInfoBox();
-    } else {
-        showInfoBox();
-        hideDot();
-    }
-});
 
 // 展示红点
 function showDot(){
@@ -515,6 +507,7 @@ function hideScores(scorelim) {
 }
 
 function hideAssignments(settingData) {
+    insertTeamsLogoLink();
     console.log("RUNNING assign")
 
     if(tmp_stopHide==true){
@@ -877,12 +870,12 @@ function hideAseRepeatedly(data, interval, duration) {
     if(tmp_stopHide==true){
         return;
     }
-
     const times = Math.floor(duration / interval);
     for (let i = 0; i <= 100; i++) {
         setTimeout(() => {  
             chrome.storage.local.get('enable_state', function(result) {
                 if(result.enable_state){
+                    insertTeamsLogoLink();
                     hideAssignments(data.cont);
                 }
             });//该实现方式有待优化，可考虑在检测为false时continue
@@ -892,6 +885,7 @@ function hideAseRepeatedly(data, interval, duration) {
         setTimeout(() => {  
             chrome.storage.local.get('enable_state', function(result) {
                 if(result.enable_state){
+                    insertTeamsLogoLink();
                     hideAssignments(data.cont);
                 }
             });//该实现方式有待优化，可考虑在检测为false时continue
@@ -1098,9 +1092,9 @@ function gpaClaced(){
         var langSet = (navigator.language || navigator.userLanguage).startsWith('zh') ? 'cn' : 'en';
         if(langSet == 'cn'){
             setTimeout(() => {
-                document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__gpaContentTitle--JYXIB_rCNvSgM5wWcEYdJ")[0].innerText = "学期GPA (估算)";
+                document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__gpaContentTitle--JYXIB_rCNvSgM5wWcEYdJ")[0].innerText = "学期GPA (计算)";
             }, 20);
-            document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__gpaContentTitle--JYXIB_rCNvSgM5wWcEYdJ")[0].innerText = "学期GPA (估算)";
+            document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__gpaContentTitle--JYXIB_rCNvSgM5wWcEYdJ")[0].innerText = "学期GPA (计算)";
         }else{
             setTimeout(() => {
                 document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__gpaContentTitle--JYXIB_rCNvSgM5wWcEYdJ")[0].innerText = "Semester GPA (Calced)";
@@ -1640,7 +1634,14 @@ function padSpaces(str, targetLength) {
 
 //addNewUsrAssignment(smsid,subjectid,name, percentageScore,proportion,cataName)
 
+function send_comp_msg(msgtype, data, addData) {
+    chrome.runtime.sendMessage({
+        type: msgtype,
+        data: data,
+        additionalData: addData
+    });
 
+}
 
 function showState2DiyScoresBox(smsId,subjectId,subjectName,oriScore){
     if (subjectName.includes("[Edited] ")) {
@@ -1901,14 +1902,6 @@ function POP_addPopComponent(){
         /* overflow: hidden; */
     }
 
-    .hidden {
-        opacity: 0;
-    }
-
-    .floating-ball:hover {
-        opacity: 1;
-    }
-
     .content-container {
         position: relative;
         width: 50px;
@@ -1956,7 +1949,7 @@ function POP_addPopComponent(){
         position: fixed;
         right: 75px;
         bottom: 80px;
-        min-width: 260px;
+        width: 260px;
         /* height: 250px; */
         border-radius: 10px;
         box-shadow: 0 0px 15px rgba(0, 0, 0, 0.08);
@@ -2080,8 +2073,10 @@ Welcome!
 Feel free to report an issue or submit a suggestion:
 https://jinshuju.net/f/D5NtDf
 
+Creator: Peter Li
+Co-Creator: Leo Huo
+
 Github Homepage: https://github.com/Haoxuan1016/Giaoculator
-Developer: Haoxuan1016, LanbinLeo
 ==============================================================
                                                         `;
 
@@ -2094,3 +2089,110 @@ function colorfulConsoleMessage() {
 setTimeout(() => {
     colorfulConsoleMessage();    
 }, 1000);
+
+
+function addTeamsAssignmentsBigBtn() {
+    const parent = document.getElementsByClassName("fe-components-stu-app-task-list-__listItemBox--3elHWcZSeppt-hG2vNGaZz")[0];
+    const bigBtn = document.createElement('span');
+    bigBtn.innerHTML = `
+        <div ng-class="styles.listItem" ng-repeat="item in $ctrl.fancyList" class="ng-scope fe-components-stu-app-task-list-__listItem--2LlZEXXtXjZzVCV4Ai9B6y">
+			<task-list-item item-data="item" ng-click="$ctrl.action({urlRoute:'task.list.detail',taskID:item.taskId})" class="ng-isolate-scope"><div ng-class="[styles.item,isCN?'':styles.ENWord,itemData.itemID%4==0?styles.lastRight:'']" class="fe-components-stu-business-task-list-item-__item--M9uMyMIr3DamhKqgJxoqB fe-components-stu-business-task-list-item-__ENWord--3GngC7Z1JiIxFPkUjdb5qC">
+	<div ng-class="styles.itemInner" class="fe-components-stu-business-task-list-item-__itemInner--3rHeqUplcuFbdElt1R0e_D">
+		<div ng-class="styles.itemBox" class="fe-components-stu-business-task-list-item-__itemBox--3RO3Z0Qh77tpGykURW0nbs">
+			<p ng-class="styles.title" xb-title="C3-exercises on data representation" class="ng-isolate-scope fe-components-stu-business-task-list-item-__title--2SiMfuAKOLyjFeTLGHhWkv"><ng-transclude>Teams Assignments</ng-transclude>
+<!-- 多行文本可以用</br>进行换行 -->
+<div ng-class="styles['bubble-tips']" ng-show="show" style="" class="ng-hide fe-components-directive-xb-title-__bubble-tips--1rVlv__7CL6h6fs0m5wLMm">
+	<!-- ngRepeat: text in xbTitle.split('</br>') track by $index --><p ng-repeat="text in xbTitle.split('</br>') track by $index" style="" class="ng-binding ng-scope">C3-exercises on data representation</p><!-- end ngRepeat: text in xbTitle.split('</br>') track by $index -->
+	<em ng-class="styles[isUp?'title-arrows-up':'title-arrows-down']" class="fe-components-directive-xb-title-__title-arrows-down--1OqcUAwVxF4Rv0iZgjyYvH"></em>
+</div></p>
+			<p ng-class="styles.subject" xb-title="A Level Math | Classwork or Homework" class="ng-isolate-scope fe-components-stu-business-task-list-item-__subject--3Ilm4uS0OvpOX4YfAp0RyP"><ng-transclude><!-- ngIf: itemData.scoreType==1 --><span ng-if="itemData.scoreType==1" class="ng-binding ng-scope">Account: peter.li_27@tsinglan.org</span><!-- end ngIf: itemData.scoreType==1 -->
+			</ng-transclude>
+<!-- 多行文本可以用</br>进行换行 -->
+<div ng-class="styles['bubble-tips']" ng-show="show" style="" class="ng-hide fe-components-directive-xb-title-__bubble-tips--1rVlv__7CL6h6fs0m5wLMm">
+	<!-- ngRepeat: text in xbTitle.split('</br>') track by $index --><p ng-repeat="text in xbTitle.split('</br>') track by $index" style="" class="ng-binding ng-scope">A Level Math | Classwork or Homework</p><!-- end ngRepeat: text in xbTitle.split('</br>') track by $index -->
+	<em ng-class="styles[isUp?'title-arrows-up':'title-arrows-down']" class="fe-components-directive-xb-title-__title-arrows-down--1OqcUAwVxF4Rv0iZgjyYvH"></em>
+</div></p>
+			<p ng-class="styles.lineTime" class="ng-binding fe-components-stu-business-task-list-item-__lineTime--24Dzb2sTLB_PtFbti-_-0M">Unread Assignmets:</p>
+		</div>
+		<!-- ngIf: itemData.mode==0 --><div ng-if="itemData.mode==0" ng-class="styles.itemBottomBox" class="ng-scope fe-components-stu-business-task-list-item-__itemBottomBox--3KkNAr3IemPu4sYmM_w9uB">
+			<!-- ngIf: !itemData.isCanContinueAnswer && !itemData.isExempt && (itemData.learningTaskState === StuTaskStates.UnSubmitted) && !itemData.isSynchroToMobiled --><div ng-if="!itemData.isCanContinueAnswer &amp;&amp; !itemData.isExempt &amp;&amp; (itemData.learningTaskState === StuTaskStates.UnSubmitted) &amp;&amp; !itemData.isSynchroToMobiled" ng-class="[styles.button,styles.startBtn]" class="ng-binding ng-scope fe-components-stu-business-task-list-item-__button--2LXhzjSSbQ4M7G3SvxBx7Y fe-components-stu-business-task-list-item-__startBtn--3ajgZgE1tFqsNNtfncmyd3">
+				Read
+			</div><!-- end ngIf: !itemData.isCanContinueAnswer && !itemData.isExempt && (itemData.learningTaskState === StuTaskStates.UnSubmitted) && !itemData.isSynchroToMobiled -->
+			<!-- ngIf: !itemData.isCanContinueAnswer && !itemData.isExempt && (itemData.learningTaskState === StuTaskStates.Submitted) && !itemData.isSynchroToMobiled -->
+			<!-- 新增可继续作答-->
+			<!-- ngIf: itemData.isCanContinueAnswer && !itemData.isExempt -->
+			<!-- ngIf: (itemData.learningTaskState === StuTaskStates.Corrected) || itemData.isSynchroToMobiled -->
+		</div><!-- end ngIf: itemData.mode==0 -->
+		<!-- ngIf: !itemData.isExempt && itemData.mode==1 -->
+		<!-- ngIf: !itemData.isExempt --><div ng-if="!itemData.isExempt" ng-class="[styles.cornerMark, color]" class="ng-scope fe-components-stu-business-task-list-item-__cornerMark--1fyBZpOtSoxGFA1AKaUlT7 fe-components-stu-business-task-list-item-__cornerMarkGreay--3LLSEs43g4PG2VwGgsXUSp">
+			<!-- ngIf: itemData.learningTaskState === StuTaskStates.UnSubmitted&&itemData.mode==0 --><span ng-if="itemData.learningTaskState === StuTaskStates.UnSubmitted&amp;&amp;itemData.mode==0" ng-class="isCN?'':styles.unSubmitted" class="ng-binding ng-scope fe-components-stu-business-task-list-item-__unSubmitted--141PEr1y5131N0Sod_pXB3">Unsubmitted</span><!-- end ngIf: itemData.learningTaskState === StuTaskStates.UnSubmitted&&itemData.mode==0 -->
+			<!-- ngIf: itemData.learningTaskState === StuTaskStates.UnSubmitted&&itemData.mode==1 -->
+			<!-- ngIf: itemData.learningTaskState === StuTaskStates.Submitted&&itemData.mode==0 -->
+			<!-- ngIf: itemData.learningTaskState === StuTaskStates.Submitted&&itemData.mode==1 -->
+			<!-- ngIf: itemData.learningTaskState === StuTaskStates.Corrected -->
+			<!-- ngIf: itemData.learningTaskState === StuTaskStates.Correcting -->
+		</div><!-- end ngIf: !itemData.isExempt -->
+		<!-- <div ng-if="itemData.isExempt" ng-class="[styles.cornerMark, color]">
+			<span ng-class="isCN?'':styles.corrected">{{$ctrl.exemptText}}</span>
+		</div> -->
+	</div>
+</div>
+</task-list-item>
+		</div>
+    `;
+    bigBtn.style.display = 'inline-block';
+
+    if (parent.children.length > 0) {
+        parent.insertBefore(bigBtn, parent.children[0]);
+    } else {
+        parent.appendChild(bigBtn);
+    }
+}
+
+function insertTeamsLogoLink() {
+    if(document.getElementById("gcalcTeamsPageBtn")!=null){
+        return;
+    }
+
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', 'javascript:void(0)');
+    linkElement.setAttribute('ng-click', '$ctrl.goThisPage($ctrl.totalPages)');
+    linkElement.setAttribute('ng-class', '{true:$ctrl.styles.active,false:$ctrl.styles.item}[$ctrl.currentPage == $ctrl.totalPages]');
+    linkElement.setAttribute('ng-if', '$ctrl.totalPages == 1 ? false : true');
+    linkElement.className = 'ng-binding ng-scope fe-components-xb-pagination-__item--2TJMqEWoq3wUhD7RGTCUPA';
+    linkElement.id = 'gcalcTeamsPageBtn'
+
+    // 创建 <img> 元素
+    const imgElement = document.createElement('img');
+    imgElement.setAttribute('src', 'https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/Icon-Teams-28x281?resMode=sharp2&op_usm=1.5,0.65,15,0&qlt=100');
+    imgElement.setAttribute('alt', 'Teams Logo');
+    imgElement.style.marginTop = '5px';
+    imgElement.style.width = '20px';
+    imgElement.style.height = '20px';
+
+    // 创建 <span> 元素
+    const spanElement = document.createElement('span');
+    spanElement.style.marginLeft = '5px';
+    spanElement.style.position = 'relative';
+    spanElement.style.top = '-3.8px';
+    spanElement.style.paddingRight = '1px';
+    spanElement.textContent = 'Teams任务'; // 设置文本内容
+
+    // 将 <img> 和 <span> 添加到 <a> 中
+    linkElement.appendChild(imgElement);
+    linkElement.appendChild(spanElement);
+
+    const parentElement = document.querySelector('.fe-components-xb-pagination-__pageBox--3F71ymrSYtbCMwqmq90a4P');
+    if (parentElement && parentElement.firstChild) {
+        parentElement.insertBefore(linkElement, parentElement.firstChild); // 插入到第一个 child 前
+        document.getElementById("gcalcTeamsPageBtn").addEventListener('click', function() {
+            showDiyScoresBox("1", "11", "11","1",null);
+        });
+    }
+
+    
+}
+
+function showTeamsAssignmentsBox(){
+
+}

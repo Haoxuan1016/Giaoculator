@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
   "name": "Giaoculator",
-  "version": "5.0.4",
-  "description": "A chrome extension for calculating your GPA.",
+  "version": "5.0.5",
+  "description": "A chrome extension for tracking your academic scores.",
   "options_page":  "options.html",
   "background": {
     "scripts": ["background.js"],
