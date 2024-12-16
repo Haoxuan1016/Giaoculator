@@ -22,9 +22,12 @@ if(getFromLocalStorage("Info-SmsDateList")){
     smsDateList = getFromLocalStorage("Info-SmsDateList");
 }
 
-chrome.runtime.onInstalled.addListener(function() {
-    chrome.tabs.create({url: "https://tsinglanstudent.schoolis.cn"});
-  });
+// 这里正式版需要修改一下 
+
+// chrome.runtime.onInstalled.addListener(function() {
+//     chrome.tabs.create({url: "https://tsinglanstudent.schoolis.cn"});
+// });
+//
   
 
 
