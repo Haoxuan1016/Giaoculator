@@ -84,13 +84,42 @@ function RingShowCalcError(){
     }, 10000);
 
 }
+
+var logo = document.getElementById('xfc-logo');
+
+var iconSrc = chrome.runtime.getURL("icon.png");
+var settingsSrc = chrome.runtime.getURL("res/ball_settings.png");
+logo.src = iconSrc;
+logo.style.transition = "opacity 0.1s ease-in-out";
+
+logo.addEventListener('mouseenter', function () {
+    logo.style.transition = "opacity 0.1s ease-in-out";
+    logo.style.opacity = 0; // 开始淡出
+    setTimeout(() => {
+        logo.src = settingsSrc; // 更换图片
+        logo.style.opacity = 1; // 渐入
+    }, 100); // 等待过渡结束后切换
+});
+
+// 添加鼠标移出事件监听
+logo.addEventListener('mouseleave', function () {
+    logo.style.transition = "opacity 0.1s ease-in-out"; 
+    logo.style.opacity = 0; // 开始淡出
+    setTimeout(() => {
+        logo.src = iconSrc; // 更换图片
+        logo.style.opacity = 1; // 渐入
+    }, 100); // 等待过渡结束后切换
+});
+
+
+
 function resetRing(isFinal){
     // 获取旧的图标元素和环形进度条
     var logo = document.getElementById('xfc-logo');
     var circle = document.querySelector('.progress-ring__circle');
 
     // 修改图标图片并添加渐变动画
-    logo.style.transition = isFinal? 'opacity 0.4s ease-out':'opacity 0.3s ease-out';
+    //logo.style.transition = isFinal? 'opacity 0.4s ease-out':'opacity 0.3s ease-out';
     logo.style.opacity = '0';
     setTimeout(function() {
         logo.src = chrome.runtime.getURL("res/green-tick.png");
@@ -363,6 +392,8 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 }
             } else if (type == "tip_suc"){
                 sendSeccesstip(data.cont);
+            } else if (type == "appendHiddenScore"){
+                showFetchedAssignmentData_toPage(data.cont);
             } else if (type == "show_process"){
                 addCalcState(data,0);
                 console.log("REC:Showproges")
@@ -397,6 +428,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 gpaClaced();
             } else if (type == "append2Scores"){
                 appendAvgMaxScoresInPage(data,0);
+                console.log("2score",data);
             } else if (type == "bp-GPANotcalced"){
                 gpaNotClaced();
             } else if (type == "bp-OpenPageAfterLoginNtw"){
@@ -2083,12 +2115,13 @@ const asciiArt = `
   \\_____|_|\\__,_|\\___/ \\___|\\__,_|_|\\__,_|\\__\\___/|_|   
                                                         
 ==============================================================
+From Peter Li:
+
 Welcome!
 Feel free to report an issue or submit a suggestion:
 https://jinshuju.net/f/D5NtDf
 
-Creator: Peter Li
-Co-Creator: Leo Huo
+
 
 Github Homepage: https://github.com/Haoxuan1016/Giaoculator
 ==============================================================
@@ -2210,3 +2243,40 @@ function insertTeamsLogoLink() {
 function showTeamsAssignmentsBox(){
 
 }
+
+
+function showFetchedAssignmentData_toPage(score,redotimes){
+    //console.log("AppendHidden",score)
+    try {
+            boxHtml = `<div ng-if="taskDetailInfo.mode==0" class="ng-scope">
+        <!-- 成绩信息 -->
+        <div id="middleItem" style="opacity: 1;" ng-class="styles.scoreInfo" ng-show="taskDetailInfo.isSynchroToMobiled" class="fe-components-stu-app-task-detail-__scoreInfo--34-hc2syVrNGe_yeBKsnL0">
+            <div ng-class="[styles.middleItem,styles.allItem]" class="fe-components-stu-app-task-detail-__middleItem--1DW5FAgpA9y2Sgz8UxIRt8 fe-components-stu-app-task-detail-__allItem--a5TghcQ70cF8KuTHc_wWG">
+                <p ng-class="styles.itemTitle" class="ng-binding fe-components-stu-app-task-detail-__itemTitle--3aPG2yQzSZqW_YgP0JC9bO">任务成绩</p>
+                
+                <!-- ngIf: taskDetailInfo.scoreType==1 --><div style="text-align: center" ng-if="taskDetailInfo.scoreType==1" class="ng-scope">
+                    <div ng-class="[styles.itemScore,taskDetailInfo.score!==null?'':styles.itemScoreNone]" class="ng-binding fe-components-stu-app-task-detail-__itemScore--1nuolF1pAilxxSB6o8b2Rx" style="text-shadow: rgb(187, 255, 187) 0px 0px 10px;">
+                        ${score>-1?score:""}
+                    </div>
+                    <div ng-class="styles.itemClassInfo" class="fe-components-stu-app-task-detail-__itemClassInfo--2Ist05O25K5lXA-9nAmiDO">
+                        <!-- ngIf: taskDetailInfo.displayClassAvgScore -->
+                        <!-- ngIf: taskDetailInfo.displayClassMaxScore -->
+                    <img src="${chrome.runtime.getURL("res/icon.png")}" id="gcalc2ScoresIcon" alt="Ico" style="vertical-align: middle; margin-right: 5px; height: 24px;"><p ng-class="styles.itemClassInfoShow" ng-if="taskDetailInfo.displayClassAvgScore" class="ng-binding ng-scope fe-components-stu-app-task-detail-__itemClassInfoShow--359Ece2CkimkinYlmlxVbP">${score>-1?tlang("&nbsp;&nbsp;Giaoculator 已获取分数","&nbsp;&nbsp;Score Fetched from Server"):tlang("&nbsp;&nbsp;校宝系统暂无该项目数据","&nbsp;&nbsp;No Aviliable Data")}</p></div>
+                </div><!-- end ngIf: taskDetailInfo.scoreType==1 -->
+                <!-- 手动等级 -->
+                <!-- ngIf: taskDetailInfo.scoreType==2 -->
+            </div>
+        </div>
+        <!-- 教师点评 -->
+        <!-- ngIf: taskDetailInfo.comment||(teacherCommentDocuments1.length !=0||teacherCommentDocuments2.length != 0) -->
+    </div>`;
+    document.getElementsByClassName("fe-components-stu-app-task-detail-__scoreInfo--34-hc2syVrNGe_yeBKsnL0")[0].parentElement.innerHTML = boxHtml;
+    } catch (error) {
+        setTimeout(() => {
+            if(redotimes<10){
+                showFetchedAssignmentData_toPage(score,redotimes+1);
+            }
+            
+        }, redotimes*20);
+    }
+   }

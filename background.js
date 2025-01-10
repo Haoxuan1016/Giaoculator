@@ -565,7 +565,7 @@ chrome.webRequest.onBeforeRequest.addListener(
       const assignmentInfoPattern = "https://tsinglanstudent.schoolis.cn/api/LearningTask/GetDetail?learningTaskId=";
       if (details.url.startsWith(assignmentInfoPattern)&&(!details.url.includes("&gcalcSysFetch")||details.url.includes("galc_teams"))) {
         // 为避免无限循环，检查请求是否已经被修改过
-        if (details.url.includes("noRedirect")) {
+        if (details.url.includes("noRedirect") || details.url.includes("gcalc")) {
           return; // 如果URL包含标记，则不进行处理，直接放行
         }
         if (details.url.includes("gcalc_teams")){
@@ -583,6 +583,7 @@ chrome.webRequest.onBeforeRequest.addListener(
         try {
             // Fetch原始数据
             const response = await fetch(details.url+"&gcalc=noRedirect");
+            
             let data = await response.json();
             data = data.data;
             await delay(10);
@@ -593,13 +594,23 @@ chrome.webRequest.onBeforeRequest.addListener(
             }else if (data.classAvgScore === null||data.classMaxScore === null) {
                 return;
             }
+            if(data.finishState === 1 && data.comment === "" && data.score=== 0){
+                //fetch for score
+                hiddenScore = await getScoreForAssignment(data.id,data.classId,data.subjectId,data.schoolSemesterId);
+                if(hiddenScore === null){
+                    hiddenScore = -1;
+                }
+                send_str_msg("appendHiddenScore",hiddenScore,0);
+            }
             let tmpdata={
                 "avgS":data.classAvgScore,
                 "maxS":data.classMaxScore,
                 "totalS":data.totalScore,
-                "usrS":data.score
+                "usrS":data.score,
             }
-            send_comp_msg("append2Scores",tmpdata,0);
+            if(tmpdata.avgS > 0){
+                send_comp_msg("append2Scores",tmpdata,0);
+            }
 
         } catch (error) {console.log(error)}
       }
@@ -607,6 +618,33 @@ chrome.webRequest.onBeforeRequest.addListener(
     { urls: ["<all_urls>"] }, // 根据需要调整监听的URL模式
     ["blocking", "requestBody"]
   );
+
+
+async function getScoreForAssignment(learningTaskId, classId, subjectId, semesterId) {
+    const url = `https://tsinglanstudent.schoolis.cn/api/DynamicScore/GetDynamicScoreDetail?classId=${classId}&subjectId=${subjectId}&semesterId=${semesterId}&gcalc=gcalc_bg`;
+
+    console.log(url);
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch data: ${response.statusText}`);
+        }
+        const data = await response.json();
+        // 遍历 evaluationProjectList 的 learningTaskAndExamList
+        for (const evaluationProject of data.data.evaluationProjectList) {
+            for (const task of evaluationProject.learningTaskAndExamList) {
+                console.log(task);
+                if (task.id === learningTaskId) {
+                    console.log("Found task:", task.score);
+                    return task.score; // 匹配成功，返回 ID
+                }
+            }
+        }
+        return null;
+    } catch (error) {
+        return null; 
+    }
+};
 
 
 chrome.webRequest.onBeforeRequest.addListener(
