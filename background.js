@@ -419,7 +419,7 @@ chrome.webRequest.onBeforeRequest.addListener(
                 }
             }
             let avgGPA = totalGPA / (gpas.length-invalidCount);*/
-            return;//关闭计算GPA功能 2025.1.9
+            //return;//关闭计算GPA功能 2025.1.9
             let avgGPA = getAllGPAValues(tmptargsms)+0.0000001;
             send_short_msg("bp-GPAcalced",0);
             console.log(avgGPA);

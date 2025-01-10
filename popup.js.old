@@ -1,0 +1,48 @@
+document.addEventListener('DOMContentLoaded', function() {
+    var optionsSelect = document.getElementById('options');
+    var saveButton = document.getElementById('saveButton');
+  
+    chrome.storage.local.get(['Pef|CalcRange'], function(result) {
+      if (result['Pef|CalcRange'] !== undefined && result['Pef|CalcRange'] > 1) {
+        var userChoice = result['Pef|CalcRange'];
+        var firstOption = document.createElement('option');
+        firstOption.value = userChoice;
+        firstOption.textContent = '仅计算最近' + userChoice + '个学期的数据'; // 或者其他更具体的描述
+        firstOption.selected = true;
+        optionsSelect.insertBefore(firstOption, optionsSelect.firstChild);
+      }else{
+        var firstOption = document.createElement('option');
+        firstOption.value = 1;
+        firstOption.textContent = '仅计算当前学期数据'; // 或者其他更具体的描述
+        firstOption.selected = true;
+        optionsSelect.insertBefore(firstOption, optionsSelect.firstChild);
+      }
+    });
+
+
+    // Handle save button click
+    saveButton.addEventListener('click', function() {
+      var selectedOption = optionsSelect.value;
+      // Send a message to background.js with the selected option
+
+      chrome.runtime.sendMessage({ action: 'saveOption', option: selectedOption});
+
+      chrome.storage.local.set({'Pef|CalcRange': selectedOption}, function() {
+        console.log('Value is set to ' + selectedOption);
+      });
+
+
+
+      show_waitTip();
+      // Your code to save the selected values (if needed)
+      console.log('Selected Option:', selectedOption);
+    });
+
+});
+
+
+
+
+function show_waitTip(){
+  document.getElementById('showWaitTip').innerText = "修改成功，重新登录平台后生效";
+}
