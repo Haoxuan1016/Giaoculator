@@ -170,6 +170,18 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     }
 });
 
+function TeamsToSchoolisTimeDate(isoString) {
+    const date = new Date(isoString);
+    const timestamp = date.getTime();
+    const timezoneOffset = -date.getTimezoneOffset();
+    const hoursOffset = Math.floor(Math.abs(timezoneOffset) / 60);
+    const minutesOffset = Math.abs(timezoneOffset) % 60;
+    const timezoneString = (timezoneOffset >= 0 ? '+' : '-') + 
+                            String(hoursOffset).padStart(2, '0') + 
+                            String(minutesOffset).padStart(2, '0');
+
+    return `/Date(${timestamp}${timezoneString})/`;
+}
 
 chrome.webRequest.onBeforeRequest.addListener(
     (details) => {
@@ -178,8 +190,7 @@ chrome.webRequest.onBeforeRequest.addListener(
         const GiaoculatorClassUrlPattern = "https://tsinglanstudent.schoolis.cn/api/DynamicScore/GetDynamicScoreDetail?classId=gcalc";
         const InfoPagePattern = "https://tsinglanstudent.schoolis.cn/api/DynamicScore/GetDynamicScoreDetail?classId";
         const PresentAssignmentPattern = "https://tsinglanstudent.schoolis.cn/api/LearningTask/GetList?";
-
-        if (details.url.startsWith(InfoPagePattern)) {
+        if (details.url.startsWith(InfoPagePattern)&&(!details.url.includes("gcalc_bg"))) {
             setTimeout(() => {
                 const urlParams = new URLSearchParams(new URL(details.url).search);
                 let req_subjectId = urlParams.get('subjectId');
@@ -193,15 +204,57 @@ chrome.webRequest.onBeforeRequest.addListener(
         }
 
 
-        if (details.url.startsWith(PresentAssignmentPattern)&&usr_setting.autoHide) {
+        if (details.url.startsWith(PresentAssignmentPattern)&&usr_setting.autoHide&&(!details.url.includes("&gcalc"))) {
             setTimeout(() => {
                 send_str_msg("rc_hideasm",usr_setting,0);
                 setTimeout(() => {
                     send_str_msg("rc_hideasm",usr_setting,0);
                 }, 50);
             }, 10);
-            // TODO: 加上用户设置的判断
-            
+            //If DisplayTeams
+            let tasklist=[];
+            const teamsList=getFromLocalStorage("MSTasks");
+            for(const item of teamsList){
+                let newItem = {
+                    "id": "gcalc_teamsWeblink="+item.webUrl,
+                    "name": item.typeName,
+                    "subjectName": item.subjectName,
+                    "subjectEName": item.subjectName,
+                    "subjectCode": "teamsSync",
+                    "typeName": "Teams 任务",
+                    "typeEName": "Teams Task",
+                    "totalScore": 0,
+                    "beginTime": TeamsToSchoolisTimeDate(item.beginTime),
+                    "endTime": TeamsToSchoolisTimeDate(item.endTime),
+                    "syncTime": TeamsToSchoolisTimeDate(item.beginTime),
+                    "score": null,
+                    "disciplineState": 3,
+                    "finishState": 1,
+                    "knowledgePointMasterLevel": null,
+                    "knowledgePointCount": 0,
+                    "isSynchroToMobiled": 1,
+                    "learningTaskState": 4,
+                    "scoreType": 2,
+                    "levelString": "",
+                    "mode": 1,
+                    "isExempt": false
+                }
+                tasklist.unshift(newItem);
+            }
+            return {
+                redirectUrl: "data:application/json," + encodeURIComponent(JSON.stringify({
+                    data: {
+                        "totalCount": 12,
+                        "currentIndex": 1,
+                        "itemCount": 0,
+                        "list": tasklist
+                    },
+                    msgCN: null,
+                    msgEN: null,
+                    state: 0,
+                    msg: null
+                }))
+            };
         }
 
         if (details.url.startsWith(detailsUrlPattern)&&usr_setting.advScoreShadow) {
@@ -285,12 +338,13 @@ chrome.webRequest.onBeforeRequest.addListener(
                     let changedClassname = courseInfo.ename;
                     if (changedClassname.includes("[Edited] ")) {
                         changedClassname = changedClassname.replace("[Edited] ", "");
+                        
                     }
                     course.className = changedClassname;
                     course.classEName = changedClassname;
                     course.subjectName = courseInfo.ename;
                     course.subjectEName = courseInfo.ename;
-                    course.scoreMappingId = (courseInfo.ename.includes("AP")||courseInfo.ename.includes("AS"))? 6799:4517;
+                    course.scoreMappingId = (courseInfo.ename.includes("AP")||courseInfo.ename.includes("AS")||courseInfo.ename.includes("A2")||courseInfo.ename.includes("A Level"))? 6799:4517;
                     course.subjectId = courseInfo.subjectId;
                     course.subjectScore = courseInfo.gpa;
                     totalCourse.push(course);
@@ -325,7 +379,7 @@ chrome.webRequest.onBeforeRequest.addListener(
                         data: {
                             studentSemesterDynamicScoreBasicDtos: totalCourse,
                             "scoreMappingList": [
-                                {"scoresMappingId":6799,"isUseGpa":true,"scoreMappingConfigs":[{"displayName":"A+","minValue":97.00,"maxValue":9999.90,"isContainMin":true,"isContainMax":true,"sort":0,"gpa":4.80},{"displayName":"A","minValue":93.00,"maxValue":96.90,"isContainMin":true,"isContainMax":true,"sort":1,"gpa":4.50},{"displayName":"A-","minValue":90.00,"maxValue":92.90,"isContainMin":true,"isContainMax":true,"sort":2,"gpa":4.20},{"displayName":"B+","minValue":87.00,"maxValue":89.90,"isContainMin":true,"isContainMax":true,"sort":3,"gpa":3.90},{"displayName":"B","minValue":83.00,"maxValue":86.90,"isContainMin":true,"isContainMax":true,"sort":4,"gpa":3.60},{"displayName":"B-","minValue":80.00,"maxValue":82.90,"isContainMin":true,"isContainMax":true,"sort":5,"gpa":3.30},{"displayName":"C+","minValue":77.00,"maxValue":79.90,"isContainMin":true,"isContainMax":true,"sort":6,"gpa":3.00},{"displayName":"C","minValue":73.00,"maxValue":76.90,"isContainMin":true,"isContainMax":true,"sort":7,"gpa":2.70},{"displayName":"C-","minValue":70.00,"maxValue":72.90,"isContainMin":true,"isContainMax":true,"sort":8,"gpa":2.40},{"displayName":"D+","minValue":67.00,"maxValue":69.90,"isContainMin":true,"isContainMax":true,"sort":9,"gpa":2.10},{"displayName":"D","minValue":63.00,"maxValue":66.90,"isContainMin":true,"isContainMax":true,"sort":10,"gpa":1.80},{"displayName":"D-","minValue":60.00,"maxValue":62.90,"isContainMin":true,"isContainMax":true,"sort":11,"gpa":1.50},{"displayName":"F","minValue":0.00,"maxValue":59.90,"isContainMin":true,"isContainMax":true,"sort":12,"gpa":0.00}]},
+                                {"scoresMappingId":6799,"isUseGpa":true,"scoreMappingConfigs":[{"displayName":"A+","minValue":97.00,"maxValue":9999.90,"isContainMin":true,"isContainMax":true,"sort":0,"gpa":4.80},{"displayName":"A","minValue":93.00,"maxValue":96.90,"isContainMin":true,"isContainMax":true,"sort":1,"gpa":4.50},{"displayName":"A-","minValue":90.00,"maxValue":92.90,"isContainMin":true,"isContainMax":true,"sort":2,"gpa":4.20},{"displayName":"B+","minValue":87.00,"maxValue":89.90,"isContainMin":true,"isContainMax":true,"sort":3,"gpa":3.80},{"displayName":"B","minValue":83.00,"maxValue":86.90,"isContainMin":true,"isContainMax":true,"sort":4,"gpa":3.50},{"displayName":"B-","minValue":80.00,"maxValue":82.90,"isContainMin":true,"isContainMax":true,"sort":5,"gpa":3.20},{"displayName":"C+","minValue":77.00,"maxValue":79.90,"isContainMin":true,"isContainMax":true,"sort":6,"gpa":2.80},{"displayName":"C","minValue":73.00,"maxValue":76.90,"isContainMin":true,"isContainMax":true,"sort":7,"gpa":2.50},{"displayName":"C-","minValue":70.00,"maxValue":72.90,"isContainMin":true,"isContainMax":true,"sort":8,"gpa":2.20},{"displayName":"D+","minValue":67.00,"maxValue":69.90,"isContainMin":true,"isContainMax":true,"sort":9,"gpa":1.80},{"displayName":"D","minValue":63.00,"maxValue":66.90,"isContainMin":true,"isContainMax":true,"sort":10,"gpa":1.50},{"displayName":"D-","minValue":60.00,"maxValue":62.90,"isContainMin":true,"isContainMax":true,"sort":11,"gpa":1.20},{"displayName":"F","minValue":0.00,"maxValue":59.90,"isContainMin":true,"isContainMax":true,"sort":12,"gpa":0.00}]},
                                 {"scoresMappingId":4517,"isUseGpa":true,"scoreMappingConfigs":[{"displayName":"A+","minValue":97.00,"maxValue":9999.90,"isContainMin":true,"isContainMax":true,"sort":0,"gpa":4.30},{"displayName":"A","minValue":93.00,"maxValue":96.90,"isContainMin":true,"isContainMax":true,"sort":1,"gpa":4.00},{"displayName":"A-","minValue":90.00,"maxValue":92.90,"isContainMin":true,"isContainMax":true,"sort":2,"gpa":3.70},{"displayName":"B+","minValue":87.00,"maxValue":89.90,"isContainMin":true,"isContainMax":true,"sort":3,"gpa":3.30},{"displayName":"B","minValue":83.00,"maxValue":86.90,"isContainMin":true,"isContainMax":true,"sort":4,"gpa":3.00},{"displayName":"B-","minValue":80.00,"maxValue":82.90,"isContainMin":true,"isContainMax":true,"sort":5,"gpa":2.70},{"displayName":"C+","minValue":77.00,"maxValue":79.90,"isContainMin":true,"isContainMax":true,"sort":6,"gpa":2.30},{"displayName":"C","minValue":73.00,"maxValue":76.90,"isContainMin":true,"isContainMax":true,"sort":7,"gpa":2.00},{"displayName":"C-","minValue":70.00,"maxValue":72.90,"isContainMin":true,"isContainMax":true,"sort":8,"gpa":1.70},{"displayName":"D+","minValue":67.00,"maxValue":69.90,"isContainMin":true,"isContainMax":true,"sort":9,"gpa":1.30},{"displayName":"D","minValue":63.00,"maxValue":66.90,"isContainMin":true,"isContainMax":true,"sort":10,"gpa":1.00},{"displayName":"D-","minValue":60.00,"maxValue":62.90,"isContainMin":true,"isContainMax":true,"sort":11,"gpa":0.70},{"displayName":"F","minValue":0.00,"maxValue":59.90,"isContainMin":true,"isContainMax":true,"sort":12,"gpa":0.00}]}
                             ],
                         },
@@ -365,6 +419,7 @@ chrome.webRequest.onBeforeRequest.addListener(
                 }
             }
             let avgGPA = totalGPA / (gpas.length-invalidCount);*/
+            return;//关闭计算GPA功能 2025.1.9
             let avgGPA = getAllGPAValues(tmptargsms)+0.0000001;
             send_short_msg("bp-GPAcalced",0);
             console.log(avgGPA);
@@ -427,7 +482,7 @@ chrome.webRequest.onBeforeRequest.addListener(
                 let itemTemplate = baseTemplate; // 获取对应的模板或默认模板
                 let proPathslist = [];
                 if(havePropath){
-                    console.log("LINE384",v2data[key]["categories"]);
+                
                     for (const [pKey, pValue] of Object.entries(v2data[key]["categories"])) {
                         childPath+=1;
                         let tmp = propath_template; // 获取对应的模板或默认模板
@@ -508,10 +563,21 @@ chrome.webRequest.onBeforeRequest.addListener(
     async (details) => {
       // 这里假设 `assignmentInfoPattern` 是一个字符串或正则表达式，用于匹配相关URL
       const assignmentInfoPattern = "https://tsinglanstudent.schoolis.cn/api/LearningTask/GetDetail?learningTaskId=";
-      if (details.url.startsWith(assignmentInfoPattern)&&!details.url.includes("&gcalcSysFetch")) {
+      if (details.url.startsWith(assignmentInfoPattern)&&(!details.url.includes("&gcalcSysFetch")||details.url.includes("galc_teams"))) {
         // 为避免无限循环，检查请求是否已经被修改过
         if (details.url.includes("noRedirect")) {
           return; // 如果URL包含标记，则不进行处理，直接放行
+        }
+        if (details.url.includes("gcalc_teams")){
+            console.log("[FoundTeamsLInk]",details.url)
+            const url = new URL(details.url);
+            const learningTaskId = url.searchParams.get("learningTaskId");
+            const newUrl = learningTaskId.replace("gcalc_teamsWeblink=", "");
+            console.log("[FoundTeamsLInk],goto",newUrl)
+            setTimeout(() => {
+                chrome.tabs.create({ url: newUrl });
+            }, 500);
+            return { cancel: true };
         }
   
         try {
@@ -545,48 +611,9 @@ chrome.webRequest.onBeforeRequest.addListener(
 
 chrome.webRequest.onBeforeRequest.addListener(
     async (details) => {
-        const detailsUrlPattern = "https://tsinglanstudent.schoolis.cn/api/DynamicScore/GetStuSemesterDynamicScore?semesterId=";
         const subjectsStatisticsPattern = "https://tsinglanstudent.schoolis.cn/api/LearningTask/GetStatistics?schoolSemesterId=";
         // 检查请求的URL是否匹配
-        if (details.url.startsWith(detailsUrlPattern+working_sms)) {
-            return; // 先暂时关闭
-            if(isFetchOriginal == true){
-                console.log("PartB:IsFetchingOriginal=True, do nothing!");
-                return null;
-            }else{
-                console.log("PartB:IsFetchingOriginal=false");
-               
-            }
-            let totalCourse = [];
-            let template = {"grade":null,"classType":2,"classId":277851,"className":"GPA Calculator","classEName":"GPA Calculator","subjectId":100628,"subjectName":"Giaoculator","subjectEName":"Giaoculator","isInGrade":true,"subjectScore":100,"scoreMappingId":4517,"updateDate":"\/Date(0000000000000+0800)\/","subjectTotalScore":100.0,"scoreType":1,"levelString":"A+"};
- 
-            // 获取所有的course
-            let courseInfoList = getAllCourseInfo();
-            
-            if (courseInfoList.length < 1) {
-                isAutoCalculating = true;
-                console.log("PartB:courseInfoList.length is empty,START CALC");
-                await CalcBySmsId(working_sms);
-                setTimeout(() => { 
-                    //fetchOriginalRequest(working_sms);
-                    setTimeout(() => { 
-                        //alert("Giaoculator已计算完成，点击确定刷新页面");
-                        refresh_realtime(0);
-                        setTimeout(() => { 
-                            //alert("Giaoculator已计算完成，点击确定刷新页面");
-                            refresh_realtime(0);
-                        }, 400);
-                    }, 200);
-                 }, 100);
-                courseInfoList = getAllCourseInfo();
-                
-            }else{
-                setTimeout(() => {
-                    send_short_msg("replace_context",0);
-                }, 25);
-                console.log("PartB:List>1,donothing");
-            }
-        }else if (details.url.startsWith(subjectsStatisticsPattern)) {
+        if (details.url.startsWith(subjectsStatisticsPattern)) {
             let url = new URL(details.url);
             let semesterId = url.searchParams.get("schoolSemesterId");
             let subjectId = url.searchParams.get("subjectId");
@@ -601,6 +628,41 @@ chrome.webRequest.onBeforeRequest.addListener(
     },
     ["blocking"]
 );
+
+function getLocalTeamsAssignment(beginDate, endDate) {
+    // 从本地存储中获取MSTasks
+    let storedAssignments = getFromLocalStorage("MSTasks");
+
+    // 如果本地没有存储的作业，返回空数组
+    if (!storedAssignments || storedAssignments.length === 0) {
+        console.log("No stored assignments found.");
+        return [];
+    }
+
+    // 将传入的日期转换为时间戳，以便进行比较
+    const beginTime = new Date(beginDate).getTime();
+    const endTime = new Date(endDate).getTime();
+
+    // 检查传入的日期是否有效
+    if (isNaN(beginTime) || isNaN(endTime)) {
+        console.log("Invalid date provided.");
+        return [];
+    }
+
+    // 过滤MSTasks，筛选出符合时间段的任务
+    let filteredAssignments = storedAssignments.filter(msTask => {
+        const assignedTime = new Date(msTask.beginTime).getTime();
+        const dueTime = new Date(msTask.endTime).getTime();
+
+        // 检查作业的assignedDateTime和dueDateTime是否在时间段内
+        return assignedTime >= beginTime && dueTime <= endTime;
+    });
+
+    // 返回符合条件的任务列表
+    return filteredAssignments;
+}
+
+
 
 chrome.webRequest.onCompleted.addListener(
     async function(details) {
@@ -1124,7 +1186,7 @@ function getAllGPAValues(targsms) {
                 subjectName = data.gpaInfo.ename;
                 subjectCode = data.gpaInfo.subjectCode;
                 score = parseFloat(data.gpa);
-                if(data.gpaInfo.ename.includes("AP")||data.gpaInfo.ename.includes("AS")){
+                if(data.gpaInfo.ename.includes("AP")||data.gpaInfo.ename.includes("AS")||data.gpaInfo.ename.includes("A2")||data.gpaInfo.ename.includes("A Level")){
                     weighted_value = 0.5;
                 }
                 //console.log(data.gpaInfo.ename,weighted_value);
@@ -1236,8 +1298,11 @@ function getAllCourseInfo(targsms) {
 }
 
 
-async function CalcBySmsId(semesterId,bgn_info,end_info) {
-    send_comp_msg("show_smsCalc_process",{cur: 1,oval: 16},0);   
+async function CalcBySmsId(semesterId,bgn_info,end_info,semesterType,year) {
+    console.log("f(CalcBySmsId):",semesterId,bgn_info,end_info,semesterType);
+    
+
+    send_comp_msg("show_smsCalc_process",{cur: 1,oval: 6},0);   
     const bgn_parsed = parseDateInfo(bgn_info);
     const end_parsed = parseDateInfo(end_info);
     if(!bgn_parsed || !end_parsed){
@@ -1264,27 +1329,66 @@ async function CalcBySmsId(semesterId,bgn_info,end_info) {
         // 使用 fetch API 发送请求并获取响应
         const response = await fetch(url);
         const data = await response.json();
-        await fetchOriginalRequest(semesterId);
+        
         if (data && data.data && data.data.length > 0) {
             let pos = 0;
             // 遍历所有科目
+            let subjectIdList = {};
             for (const subject of data.data) {
-                pos += 1;
-                let tmpdata={
-                    cur: pos,
-                    oval: data.data.length
-                }
-                send_comp_msg("show_smsCalc_progress",tmpdata,0);
+                subjectIdList[subject.name==="HS History" ? "Chinese History" : subject.name] = {//24-25学年特判
+                    subjectName: subject.name==="HS History" ? "Chinese History" : subject.name,
+                    className: "noData",
+                    subjectId: subject.id,
+                    classId: -1,
+                    subjectCode: subject.subjectCode
+                };
+                
+
+                
                 if(localStorage.getItem(semesterId+'|'+subject.id) === null){
                     let subjectRequestUrl = `https://tsinglanstudent.schoolis.cn/api/LearningTask/GetStatistics?schoolSemesterId=${semesterId}&subjectId=${subject.id}&learningTaskTypeId=null&beginDate=${bgn_year}-${bgn_mon}-${bgn_date}&endDate=${end_year}-${end_mon}-${end_date}&page.pageIndex=1&page.pageSize=500`;
                     // 假设 RequestSubjectAvg 也是异步函数
-                    await RequestSubjectAvg(subjectRequestUrl,0);
+                    //await RequestSubjectAvg(subjectRequestUrl,0);//旧版计算
+
+
+
+
                 }else{
                     console.log("[CalcBySmsId]学科数据已存在，无需重复计算。" + subject.id);
                 }
                 // 对每个科目ID构造请求并调用 RequestSubjectAvg      
-                    
+               
             }
+            let tmpdata={
+                cur: 2,
+                oval: 6
+            }
+            send_comp_msg("show_smsCalc_progress",tmpdata,0);
+            console.log("[CalcBySmsId]开始Fill",smsId,subjectIdList)
+            subjectIdList = await fillInClassId(subjectIdList, semesterType, year);
+            tmpdata={
+                cur: 3,
+                oval: 6
+            }
+            send_comp_msg("show_smsCalc_progress",tmpdata,0);
+            console.log("[CalcBySmsId]学科数据已填充完毕,",smsId,subjectIdList)
+            await init_V2Calc(subjectIdList,semesterId,bgn_info,end_info,semesterType,year);
+            tmpdata={
+                cur: 4,
+                oval: 6
+            }
+            send_comp_msg("show_smsCalc_progress",tmpdata,0);
+            await fetchOriginalRequest(semesterId);
+            tmpdata={
+                cur: 5,
+                oval: 6
+            }
+            send_comp_msg("show_smsCalc_progress",tmpdata,0);
+            tmpdata={
+                cur: 6,
+                oval: 6
+            }
+            send_comp_msg("show_smsCalc_progress",tmpdata,0);
         }
         return true;
     } catch (error) {
@@ -1299,7 +1403,73 @@ async function CalcBySmsId(semesterId,bgn_info,end_info) {
 
     // 函数无需显式返回值，除非有特定的返回需求
 }
+async function fillInClassId(subjectIdList, semesterType, year) {
+    const url = 'https://tsinglanstudent.schoolis.cn/api/Schedule/ListScheduleByParent';
 
+    const data = {
+        beginTime: semesterType == "1" ? (year + "-12-01") : ((year + 1) + "-04-01"),
+        endTime: semesterType == "1" ? (year + "-12-30") : ((year + 1) + "-05-01")
+    };
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST', // 指定请求方法
+            headers: {
+                'Content-Type': 'application/json', // 指定内容类型
+            },
+            body: JSON.stringify(data) // 将请求体转换为JSON字符串
+        });
+
+        if (response.ok) {
+            const data = await response.json(); // 解析响应体为JSON
+            console.log(data);
+            const classList = data.data; // 假设你的API返回的数据在 `data.data` 中
+            
+            for (const classInfo of classList) {
+                const subjectEntry = subjectIdList[classInfo.name];
+                
+                if (subjectEntry != null) {
+                    if (subjectEntry.classId === -1) {
+                        console.log("[fillInClassId] Success: " + classInfo.name + ", With: " + classInfo.classInfo.id);
+                        subjectEntry.classId = classInfo.classInfo.id; // 填充 classId
+                        subjectEntry.className = classInfo.classInfo.className;
+                    } 
+                }else {
+                        // 遍历 subjectIdList 中的所有名称进行比较
+                        let matched = false;
+                        for (const subjectKey in subjectIdList) {
+                            if (subjectIdList.hasOwnProperty(subjectKey)) {
+                                const currentSubject = subjectIdList[subjectKey];
+                                const maxCommonLen = getMaxCommonConsecutiveLength(classInfo.name, currentSubject.subjectName);
+                                
+                                if (maxCommonLen > 12) { // 如果最长连续公共子串长度超过8个字符
+                                    console.log(`[fillInClassId] Match Found: ${classInfo.name} 与 ${currentSubject.subjectName} (连续匹配长度: ${maxCommonLen})`);
+                                    currentSubject.classId = classInfo.classInfo.id;
+                                    currentSubject.className = classInfo.classInfo.className;
+                                    matched = true;
+                                    break; // 找到匹配后可以跳出循环，视需求而定
+                                }
+                            }
+                        }
+                        
+                        if (!matched) {
+                            console.warn(`[fillInClassId] No sufficient consecutive match found for: ${classInfo.name}`);
+                        }else {
+                            console.warn(`[fillInClassId] No entry found in subjectIdList for: ${classInfo.name}`);
+                        }
+                } 
+            }
+
+
+
+            return subjectIdList; // 返回更新后的 subjectIdList
+        } else {
+            throw new Error('Network response was not ok.');
+        }
+    } catch (error) {
+        console.error('There has been a problem with your fetch operation:', error);
+    }
+}
 
 function showLoad(showStatus){
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
@@ -1448,9 +1618,98 @@ function send_comp_msg(msgtype,data,redotimes){
     }
 
 }
+async function init_V2Calc(idList, semesterId, bgn_info, end_info, semesterType, year) {
+    const subjectData = []; // 存储每个科目的数据
+
+    // 遍历每个科目
+    for (const subject of Object.values(idList)) {
+        const classId = subject.classId;  // 从subject中获取classId
+        const subjectId = subject.subjectId;  // 从subject中获取subjectId
+        const subjectName = subject.subjectName;
+        const className = subject.className;
+        const subjectCode = subject.subjectCode;
+        if(classId==-1){//2024-2025学年特判
+            calcSubjectAvg(semesterId,subjectId,2);//使用v1方法计算
+            continue;
+        }
+        // 拼接请求的URL
+        const url = `https://tsinglanstudent.schoolis.cn/api/DynamicScore/GetDynamicScoreDetail?classId=${classId}&subjectId=${subjectId}&semesterId=${semesterId}&gcalc=gcalc_bg`;
+
+        try {
+            // 发起 GET 请求
+            const response = await fetch(url, {
+                method: 'GET', // 指定请求方法
+                headers: {
+                    'Content-Type': 'application/json', // 指定内容类型
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json(); // 解析响应体为JSON
+                console.log(`[init_V2Calc] Fetched data for subjectId: ${subjectId}`, data);
+                var subjectScore=0;
+                var subjectTotalProp=0;
+                for(const section of data.data.evaluationProjectList){
+                    if (!(section.learningTaskAndExamList.length === 0 || 
+                        (section.learningTaskAndExamList.length === 1 && section.learningTaskAndExamList[0].score === null))) {
+                            subjectScore+=(section.score*section.proportion);
+                            subjectTotalProp+=section.proportion;
+                    }
+                }
+                subjectScore = (subjectScore/subjectTotalProp).toFixed(1);
+                let subjectInfo={
+                    ename: subjectName,
+                    subjectCode: subjectCode,
+                    semesterId: semesterId,
+                    subjectId: subjectId
+                }
+                
+                let course = {
+                    className : className,
+                    subjectId : subjectId,
+                    scoreMappingId : (className.includes("AP")||className.includes("AS")||className.includes("A2")||className.includes("A Level"))? 6799:4517,
+                    classEName : className,
+                    smsId : semesterId,
+                    subjectInfo : subjectInfo,
+                    classId : classId,
+                    subjectName : subjectName,
+                    subjectEName : subjectName,
+                    subjectScore : subjectScore,
+                    updateDate : "/Date(1224086400000+0800)/",
+                    isInGrade : true,
+                    classType : 2,
+                    isOriginal : true,
+                    source : "original"
+                }
+                localStorage.removeItem(smsId+'|'+subjectId);
+                saveToLocalStorage(semesterId+'|[V2]'+subjectId,course);
+
+
+
+
+                // 将获取到的数据放入 subjectData
+                subjectData.push({
+                    subjectId: subjectId,
+                    classId: classId,
+                    data: data // 可以根据需要进一步处理 data
+                });
+            } else {
+                console.error(`[init_V2Calc] Network response was not ok for subjectId: ${subjectId}`);
+            }
+        } catch (error) {
+            console.error('[init_V2Calc] There has been a problem with your fetch operation:', error);
+        }
+    }
+
+    // 返回最终的 subjectData
+    return subjectData;
+}
 
 
 async function RequestSubjectAvg(url,mode) {
+    
+
+
     console.log("Suc_Request_NewFunc")
     let urlObj = new URL(url);
     let semesterId = urlObj.searchParams.get("schoolSemesterId");
@@ -1460,6 +1719,8 @@ async function RequestSubjectAvg(url,mode) {
     let subjectInfo = await fetchSubjectEName(semesterId, subjectId);
     if(mode==1&&!(subjectInfo.ename.includes("[Edited]"))){
         subjectInfo.ename = "[Edited] " + subjectInfo.ename;
+        localStorage.removeItem(smsId+'|[O]'+subjectId);
+        localStorage.removeItem(smsId+'|[V2]'+subjectId);
     }
     // Mark URL as being processed to avoid infinite loop
     processingUrls[url] = true;
@@ -1570,7 +1831,7 @@ async function  fetchOriginalRequest(smsId) {
             courseInfo = originalCourseInfoList[i];
             let subjectInfo = await fetchSubjectEName(smsId, courseInfo.subjectId);
             // Localstorage移除courseInfo.classId的字段
-            localStorage.removeItem(smsId+'|'+courseInfo.subjectId);
+            localStorage.removeItem(smsId+'|[V2]'+courseInfo.subjectId);
             let course = {
                 className : courseInfo.className,
                 subjectId : courseInfo.subjectId,
@@ -1590,7 +1851,7 @@ async function  fetchOriginalRequest(smsId) {
                 source : "original"
             }
             
-            saveToLocalStorage(smsId+'|'+courseInfo.subjectId, course);
+            saveToLocalStorage(smsId+'|[O]'+courseInfo.subjectId, course);
         }
     }catch (error) {
         console.error('Error fetching subject data:', error);
@@ -1670,8 +1931,8 @@ async function AutoCalcAll() {
         }
         console.log("[AutoCalcNew]StartPos:",startPos);
 
-
-
+        var year = data.data.slice(startPos, startPos+his_range).map(item => item.year);
+        var semester = data.data.slice(startPos, startPos+his_range).map(item => item.semester);
         var ids = data.data.slice(startPos, startPos+his_range).map(item => item.id);
         var bgnDates = data.data.slice(startPos, startPos+his_range).map(item => item.startDate);
         var endDates = data.data.slice(startPos, startPos+his_range).map(item => item.endDate);
@@ -1682,6 +1943,7 @@ async function AutoCalcAll() {
         send_comp_msg("show_process",tmpdata,-99999);
         for (var i=0;i<his_range;i++){
             if(ids[i] == null){
+                semester = data.data.slice(startPos, startPos+his_range).map(item => item.semester);
                 ids = data.data.slice(0, his_range).map(item => item.id);
                 bgnDates = data.data.slice(0, his_range).map(item => item.startDate);
                 endDates = data.data.slice(0, his_range).map(item => item.endDate);
@@ -1702,7 +1964,7 @@ async function AutoCalcAll() {
                 zeroAssignmentList = [];
             }
             
-            if(await CalcBySmsId(smsId,bgnDates[i],endDates[i])){
+            if(await CalcBySmsId(smsId,bgnDates[i],endDates[i],semester[i],year[i])){
                 await isExistGPA(smsId);
                 await fetchSchedule(bgnDates[i]);
                 if(faceErrorWhileCalc){
@@ -1851,7 +2113,7 @@ chrome.runtime.onMessage.addListener(
                 console.log(message.additionalData);
             }
             gpaExistenceMap[tmplist[0].smsId] = false;
-            calcSubjectAvg(tmplist[0].smsId,tmplist[0].subjectId);
+            calcSubjectAvg(tmplist[0].smsId,tmplist[0].subjectId,1);
         }else if(message.type==="gb_getSavedData"){
             let smsId = message.data.smsId;
             let subjectId = message.data.subjectId;
@@ -1894,7 +2156,7 @@ chrome.runtime.onMessage.addListener(
 
 
 
-async function calcSubjectAvg(smsId,subjectId){
+async function calcSubjectAvg(smsId,subjectId,mode){
     const bgn_parsed = parseDateInfo(smsDateList[smsId].bgnDate);
     const end_parsed = parseDateInfo(smsDateList[smsId].endDate);
     if(!bgn_parsed || !end_parsed){
@@ -1914,7 +2176,7 @@ async function calcSubjectAvg(smsId,subjectId){
     let end_date = end_parsed.date;
 
     let subjectRequestUrl = `https://tsinglanstudent.schoolis.cn/api/LearningTask/GetStatistics?schoolSemesterId=${smsId}&subjectId=${subjectId}&learningTaskTypeId=null&beginDate=${bgn_year}-${bgn_mon}-${bgn_date}&endDate=${end_year}-${end_mon}-${end_date}&page.pageIndex=1&page.pageSize=500`;
-    await RequestSubjectAvg(subjectRequestUrl,1);
+    await RequestSubjectAvg(subjectRequestUrl,mode);
 }
 
 
@@ -1941,46 +2203,6 @@ async function isExistGPA(smsId) {
     }
     isFetchingGPA = false;
 }
-async function fetchSchedule(startDate) {
-    return;//暂时关闭，未完成
-    const url = 'https://tsinglanstudent.schoolis.cn/api/Schedule/ListScheduleByParent';
-    const bgn_parsed = parseDateInfo(startDate);
-    let bgn_year = bgn_parsed.year;
-    let bgn_mon = bgn_parsed.mon;
-    let bgn_date = bgn_parsed.date;
-    let end_date = bgn_date;
-    let end_mon = bgn_mon;
-    if(bgn_date>13){
-        end_mon += 1;
-    }else{
-        end_date += 15;
-    }
-    // 使用指定的请求载荷格式
-    const data = {
-      beginTime: "2024-03-21",
-      endTime: "2024-03-21"
-    };
-    
-    fetch(url, {
-      method: 'POST', // 指定请求方法
-      headers: {
-        'Content-Type': 'application/json', // 指定内容类型
-        // 这里添加任何其他必要的请求头
-      },
-      body: JSON.stringify(data) // 将请求体转换为JSON字符串
-    })
-    .then(response => {
-      if (response.ok) {
-        return response.json(); // 如果响应状态码为200，解析响应体为JSON
-      }
-      throw new Error('Network response was not ok.');
-    })
-    .then(data => console.log(data)) // 处理返回的数据
-    .catch(error => console.error('There has been a problem with your fetch operation:', error));
-  }
-
-
-
 
 
 async function ntwAutoLog(startDate) {
@@ -2314,4 +2536,218 @@ function popup_send_longterm(message) {
     }
     console.log("send_longterm",data)
     send_comp_msg("send_pop_longterm", data, -999)
+}
+
+function testAuthFlow() {
+    console.log("Starting authorization...");
+    getAuthToken();  // 发起授权流程
+}
+
+function getAuthToken() {
+    console.log("IsEqual?:", chrome.runtime.id == "ppjkphidfjbldjnaoohngidmihckhnff");
+
+    const clientId = '13f429db-81e8-4b32-8f48-e68f0adb25e1';
+    const redirectUri = `https://${chrome.runtime.id}.chromiumapp.org/`;
+    const responseType = 'token';
+    const responseMode = 'fragment';
+    const state = '12345';
+
+    // 定义 Scope 数组
+    const scopes = [
+        'openid',                   // 基础范围，必需
+        'email',                    // 获取用户的电子邮件
+        'profile',
+        'User.Read',                // 获取用户的个人信息/测试用
+        'EduAssignments.Read',
+        'EduRoster.ReadBasic'
+        // 'EduAssignments.ReadWrite.All'  // 教育作业相关权限
+    ];
+
+    // 使用 Array.join 拼接 Scope 字符串
+    const scopeString = scopes.join('%20');
+
+    // 构建授权请求 URL
+    const authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${clientId}&response_type=${responseType}&redirect_uri=${redirectUri}&response_mode=${responseMode}&scope=${scopeString}&state=${state}`;
+
+    chrome.identity.launchWebAuthFlow(
+        { url: authUrl, interactive: true },
+        function (redirectUrl) {
+            console.log('Redirect URL:', redirectUrl); // 输出完整的重定向URL以进行调试
+            if (chrome.runtime.lastError || redirectUrl.includes('error=access_denied')) {
+                console.error('Authorization failed:', chrome.runtime.lastError);
+            } else {
+                // 解析URL中的hash部分来获取token
+                const urlParams = new URLSearchParams(new URL(redirectUrl).hash.substring(1)); // 使用hash解析
+                const accessToken = urlParams.get('access_token');
+                console.log("Access Token received:", accessToken); // 检查是否正确获取了访问令牌
+                if (accessToken) {
+                    // 将访问令牌保存到chrome.storage.local
+                    chrome.storage.local.set({ accessToken }, function() {
+                        console.log("Access Token stored successfully.");
+                    });
+                } else {
+                    console.error('Failed to receive access token.');
+                }
+            }
+        }
+    );
+}
+
+function fetchTeamsUserProfile() {
+    // 从chrome.storage.local获取保存的访问令牌
+    chrome.storage.local.get(['accessToken'], function(result) {
+        const accessToken = result.accessToken;
+        if (!accessToken) {
+            console.error('No access token found.');
+            return;
+        }
+
+        // 使用获取到的访问令牌调用Microsoft Graph API来获取用户的基本信息和电子邮件
+        fetch('https://graph.microsoft.com/v1.0/me', {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch user profile');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // 输出用户的电子邮件和个人资料信息
+            console.log('User Profile:', data);
+            console.log('User Email:', data.mail || data.userPrincipalName); // 输出电子邮件
+            console.log('User Display Name:', data.displayName); // 输出显示名称
+        })
+        .catch(error => {
+            console.error('Error fetching user profile:', error);
+        });
+    });
+}
+// 从chrome.storage.local获取保存的访问令牌，获取用户的课程信息并输出所有作业
+function fetchTeamsUserClassesAndAssignments() {
+    chrome.storage.local.get(['accessToken'], function(result) {
+        const accessToken = result.accessToken;
+        if (!accessToken) {
+            console.error('No access token found.');
+            return;
+        }
+
+        fetch('https://graph.microsoft.com/v1.0/education/me/classes', {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch user classes');
+            }
+            return response.json();
+        })
+        .then(classesData => {
+            const classes = classesData.value; // 获取课程列表
+            if (!classes || classes.length === 0) {
+                console.log('No classes found.');
+                return;
+            }
+
+            let allAssignments = []; // 存储所有课程的作业
+
+            // 遍历每个课程
+            classes.forEach(classInfo => {
+                const classId = classInfo.id;
+                const className = classInfo.displayName;
+
+                fetch(`https://graph.microsoft.com/v1.0/education/classes/${classId}/assignments`, {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch assignments for class ${className}`);
+                    }
+                    return response.json();
+                })
+                .then(assignmentsData => {
+                    const assignments = assignmentsData.value;
+                    var MSTaskID = 1016;
+                    if (assignments && assignments.length > 0) {
+                        console.log(`Assignments for class: ${className}`);
+
+                        // 遍历每个 assignment 并创建 assignment 对象
+                        assignments.forEach(assignment => {
+                            const assignmentObj = {
+                                subjectName: className,
+                                typeName: assignment.displayName,
+                                beginTime: assignment.assignedDateTime,
+                                endTime: assignment.dueDateTime,
+                                id: 'ms'+MSTaskID,
+                                msId: assignment.id,
+                                webUrl: assignment.webUrl
+                            };
+                            MSTaskID += 1;
+                            allAssignments.push(assignmentObj);
+                        });
+                    } else {
+                        console.log(`No assignments found for class: ${className}`);
+                    }
+                })  
+                .catch(error => {
+                    console.error(`Error fetching assignments for class ${className}:`, error);
+                });
+            });
+
+            // 使用 setTimeout 确保所有异步操作都完成
+            setTimeout(() => {
+                // 当前日期
+                const currentDate = new Date();
+                // 14天前的日期
+                const fourteenDaysAgo = new Date();
+                fourteenDaysAgo.setDate(currentDate.getDate() - 14);
+            
+                // 过滤和排序作业
+                const filteredAssignments = allAssignments
+                    .filter(assignment => new Date(assignment.beginTime) >= fourteenDaysAgo && new Date(assignment.beginTime) <= currentDate) // 筛选出14天内的任务
+                    .sort((a, b) => new Date(a.beginTime) - new Date(b.beginTime)); // 按开始时间排序
+            
+                // 将作业列表存入 local storage
+                saveToLocalStorage("MSTasks", filteredAssignments);
+                console.log("[FinalTeamsTasks]", filteredAssignments);
+            }, 2000); // 延迟 2 秒等待所有请求完成
+            
+        })
+        .catch(error => {
+            console.error('Error fetching user classes:', error);
+        });
+    });
+}
+    
+
+function getMaxCommonConsecutiveLength(str1, str2) {
+    str1 = str1.toLowerCase();
+    str2 = str2.toLowerCase();
+    const m = str1.length;
+    const n = str2.length;
+    let maxLen = 0;
+    let prev = Array(n + 1).fill(0);
+    let current = Array(n + 1).fill(0);
+    
+    for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+            if (str1[i - 1] === str2[j - 1]) {
+                current[j] = prev[j - 1] + 1;
+                if (current[j] > maxLen) {
+                    maxLen = current[j];
+                }
+            } else {
+                current[j] = 0;
+            }
+        }
+        // 交换 prev 和 current
+        [prev, current] = [current, prev];
+    }
+    
+    return maxLen;
 }
