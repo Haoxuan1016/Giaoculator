@@ -1,7 +1,7 @@
 # Update to Giaoculator S
 
 Giaoculator Series is depreciated, and please download the latest version of Giaoculator S from:
-[**Chrome Store**]([https://g2h8ru7041.feishu.cn/docx/Gen9dgQzmoGIDsxNkFNcdR8CnQc](https://chromewebstore.google.com/detail/giaoculator-s/ipnfmngjhhddhpbeilinhbahdfgpmoch?authuser=0&hl=zh-CN))
+[**Chrome Store**](https://g2h8ru7041.feishu.cn/docx/Gen9dgQzmoGIDsxNkFNcdR8CnQc](https://chromewebstore.google.com/detail/giaoculator-s/ipnfmngjhhddhpbeilinhbahdfgpmoch?authuser=0&hl=zh-CN))
 
 # Giaoculator 📊
 
