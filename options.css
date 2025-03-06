@@ -1,211 +1,452 @@
 body {
+
     background-image: url("res/settings_bg.png");
+    
     background-size: cover;
+    
     display: flex;
+    
     justify-content: center;
+    
     align-items: center;
+    
     height: 100vh;
+    
     margin: 0;
+    
     background-color: rgba(255, 255, 255, 0.5);
+    
     backdrop-filter: blur(10px); /* 毛玻璃效果 */
-}
-
-#calcRangeValue{
+    
+    }
+    
+    
+    
+    #calcRangeValue{
+    
     padding-left: 20px;
-}
-
-#pageIcon {
+    
+    }
+    
+    
+    
+    #pageIcon {
+    
     position: absolute;
+    
     top: 0;
+    
     left: 0;
+    
     width: 295.3px; /* 根据您的图标尺寸调整 */
+    
     height: 53.3px; /* 根据您的图标尺寸调整 */
+    
     background-image: url('res/iconBig.png'); /* 指向您的图标文件 */
+    
     background-size: cover; /* 保证图标完全覆盖指定区域 */
-}
-
-#exp_settings {
+    
+    }
+    
+    
+    
+    #exp_settings {
+    
     position: absolute;
+    
     bottom: 0;
+    
     right: 0;
+    
     margin-right: 2px;
+    
     margin-bottom: 15px;
+    
     padding: 5px;
-
+    
+    
+    
     width: 100px; /* 根据您的图标尺寸调整 */
+    
     height: 20px; /* 根据您的图标尺寸调整 */
+    
     background-image: url('res/exp_settings.png'); /* 指向您的图标文件 */
+    
     background-size: cover; /* 保证图标完全覆盖指定区域 */
-
+    
+    
+    
     background-color: transparent;
+    
     padding: 10px 15px;
+    
     border: none;
+    
     border-radius: 4px;
+    
     cursor: pointer;
+    
     font-size: 16px;
-}
-
-.subtitle {
+    
+    }
+    
+    
+    
+    .subtitle {
+    
     font-size: 14.3px;
+    
     font-weight: 600;
-}
-
-.settings-modal {
+    
+    }
+    
+    
+    
+    .settings-modal {
+    
     background-color: rgba(255, 255, 255, 0.75);
+    
     backdrop-filter: blur(5px); /* 毛玻璃效果 */
+    
     border-radius: 10px;
+    
     padding: 20px;
+    
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    
     width: 80%; /* 调整为占视窗宽度的80% */
+    
     max-width: 800px; /* 增加最大宽度 */
+    
     margin: 20px;
-}
-
-#autoHide_SettingBox {
+    
+    }
+    
+    
+    
+    #autoHide_SettingBox {
+    
     display: flex;
+    
     margin: 0 4px; /* 为所有子元素添加统一的外边距 */
+    
     padding: 0;
+    
     align-items: center; /* 这会垂直居中对齐容器内的所有项 */
-}
-
-
-.settings-modal div {
+    
+    }
+    
+    
+    
+    
+    
+    .settings-modal div {
+    
     margin-bottom: 20px;
-}
-
-.settings-modal label,
-.settings-modal input[type="checkbox"],
-.settings-modal input[type="number"] {
+    
+    }
+    
+    
+    
+    .settings-modal label,
+    
+    .settings-modal input[type="checkbox"],
+    
+    .settings-modal input[type="number"] {
+    
     display: inline-block;
+    
     margin-top: 0;
+    
     margin-right: 10px; /* 添加一些右边距以分隔元素 */
-}
-
-.container {
+    
+    }
+    
+    
+    
+    .container {
+    
     max-width: 800px; /* 与.settings-modal保持一致 */
-}
-
-.normal_text{
+    
+    }
+    
+    
+    
+    .normal_text{
+    
     font-size: 14px;
+    
     font-weight: 400;
-}
-
-h2 {
+    
+    }
+    
+    
+    
+    h2 {
+    
     color: #128A42; /* A shade of green */
-}
-
-div {
+    
+    }
+    
+    
+    
+    div {
+    
     margin-bottom: 20px;
-}
-
-#save{
+    
+    }
+    
+    
+    
+    #save{
+    
     font-size: 12px;
-}
-
-label {
+    
+    }
+    
+    
+    
+    label {
+    
     display: block;
+    
     margin-bottom: 5px;
-}
-
-input[type="text"]{
-    width: 50%; 
+    
+    }
+    
+    
+    
+    input[type="text"]{
+    
+    width: 50%;
+    
     padding: 8px;
+    
     margin-top: 5px;
+    
     color: #111111;
+    
     outline: none;
+    
     border: 1px solid #ccc;
+    
     border-radius: 8px; /* 添加圆角 */
+    
     box-sizing: border-box;
+    
     box-shadow: 0 0 0 0px #128A42;
-}
-
-input[type="text"]:focus{
+    
+    }
+    
+    
+    
+    input[type="text"]:focus{
+    
     box-shadow: 0 0 0 0.8px #128A42;
-}
-
-#darkModeSelect {
+    
+    }
+    
+    
+    
+    #darkModeSelect {
+    
     border-radius: 8px; /* 添加圆角 */
+    
     padding: 6.3px; /* 扩大框的大小 */
+    
     color: #111111; /* 主题颜色 */
+    
     border: 1px solid #ccc; /* 边框颜色 */
+    
     width: 160px; /* 设置宽度 */
+    
     outline: none; /* 移除默认的焦点样式 */
-}
+    
+    }
+    
+    #res1TypeSelect {
+    
+        border-radius: 8px; /* 添加圆角 */
+        
+        padding: 6.3px; /* 扩大框的大小 */
+        
+        color: #111111; /* 主题颜色 */
+        
+        border: 1px solid #ccc; /* 边框颜色 */
+        
+        width: 120px; /* 设置宽度 */
+        
+        outline: none; /* 移除默认的焦点样式 */
+        
+    }
 
-#darkModeSelect:focus{
+    #homeSrcDarkSelect {
+    
+        border-radius: 8px; /* 添加圆角 */
+        
+        padding: 6.3px; /* 扩大框的大小 */
+        
+        color: #111111; /* 主题颜色 */
+        
+        border: 1px solid #ccc; /* 边框颜色 */
+        
+        width: 120px; /* 设置宽度 */
+        
+        outline: none; /* 移除默认的焦点样式 */
+        
+    }
+    
+    
+    #darkModeSelect:focus{
+    
     box-shadow: 0 0 0 0.8px #128A42;
-}
-
-input[type="number"] {
-    width: 7%; 
+    
+    }
+    
+    
+    
+    input[type="number"] {
+    
+    width: 7%;
+    
     padding: 6px;
+    
     align-items: center;
+    
     position: relative;
+    
     bottom: 2px;
+    
     border: 1px solid #ccc;
+    
     box-sizing: border-box;
+    
     color: #111111;
+    
     outline: none;
+    
     border: 1px solid #ccc;
+    
     border-radius: 6px; /* 添加圆角 */
-}
-
-input[type="number"]:focus{
+    
+    }
+    
+    
+    
+    input[type="number"]:focus{
+    
     box-shadow: 0 0 0 0.8px #128A42;
-}
-
-input[type="range"] {
+    
+    }
+    
+    
+    
+    input[type="range"] {
+    
     width: 40%; /* 调整滑动条的宽度 */
+    
     padding: 0;
+    
     margin-top: 5px;
+    
     -webkit-appearance: none;
+    
     appearance: none;
+    
     height: 10px;
-    border-radius: 5px;  
+    
+    border-radius: 5px;
+    
     background: #ccc;
+    
     outline: none;
+    
     opacity: 0.7;
+    
     -webkit-transition: .2s;
+    
     transition: opacity .2s;
-}
-
-input[type="range"]:hover {
+    
+    }
+    
+    
+    
+    input[type="range"]:hover {
+    
     opacity: 1;
-}
-
-input[type="range"]::-webkit-slider-thumb {
+    
+    }
+    
+    
+    
+    input[type="range"]::-webkit-slider-thumb {
+    
     -webkit-appearance: none;
+    
     appearance: none;
+    
     width: 25px;
+    
     height: 25px;
-    border-radius: 50%; 
-    background: #4CAF50;
-    cursor: pointer;
-}
-
-input[type="range"]::-moz-range-thumb {
-    width: 25px;
-    height: 25px;
+    
     border-radius: 50%;
+    
     background: #4CAF50;
+    
     cursor: pointer;
-}
-
-input[type="checkbox"]:checked {
+    
+    }
+    
+    
+    
+    input[type="range"]::-moz-range-thumb {
+    
+    width: 25px;
+    
+    height: 25px;
+    
+    border-radius: 50%;
+    
+    background: #4CAF50;
+    
+    cursor: pointer;
+    
+    }
+    
+    
+    
+    input[type="checkbox"]:checked {
+    
     accent-color: #128A42;
+    
     align-items: center;
-}
-
-#save {
+    
+    }
+    
+    
+    
+    #save {
+    
     background-color: #4CAF50; /* Green */
+    
     color: white;
+    
     padding: 10px 15px;
+    
     border: none;
+    
     border-radius: 4px;
+    
     cursor: pointer;
+    
     font-size: 16px;
-}
-
-#save:hover {
+    
+    }
+    
+    
+    
+    #save:hover {
+    
     background-color: #45a049;
-}
+    
+    }

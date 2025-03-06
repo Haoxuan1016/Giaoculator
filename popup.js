@@ -49,13 +49,13 @@ function updateButton(){
         document.getElementById('addi_text').innerText = "本地暂无登录凭据";
     }
   }else if (enable) {
-    document.querySelector('#toggle-button').innerHTML = (navigator.language || navigator.userLanguage).startsWith('zh') ? '关闭' : 'Enabled'
+    document.querySelector('#toggle-button').innerHTML = (navigator.language || navigator.userLanguage).startsWith('zh') ? '运行中' : 'Enabled'
     // 加入一个enable的class
     document.querySelector('#toggle-button').classList.add('enabled');
     // 减去一个disable的class
     document.querySelector('#toggle-button').classList.remove('disabled');
   } else {
-    document.querySelector('#toggle-button').innerHTML = (navigator.language || navigator.userLanguage).startsWith('zh') ? '开启' : 'Disabled'
+    document.querySelector('#toggle-button').innerHTML = (navigator.language || navigator.userLanguage).startsWith('zh') ? '点击启用' : 'Disabled'
     // 加入一个disable的class
     document.querySelector('#toggle-button').classList.add('disabled');
     // 减去一个enable的class
@@ -69,7 +69,8 @@ function onclickButton(){
     window.close();
     return;
   }
-  enable = !enable;
+  //enable = !enable;
+  enable = true;
   chrome.storage.local.set({enable_state: enable});
   send_msg("enable_change",enable);
   updateButton();

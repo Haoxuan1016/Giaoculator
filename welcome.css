@@ -1,0 +1,127 @@
+.icon-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    font-size: 16px;
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 10px; /* 添加圆角 */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* 添加过渡效果 */
+}
+
+.icon-button i {
+    font-size: 102px;
+    margin-bottom: 10px;
+    animation: color-change 5s infinite alternate;
+}
+
+@keyframes color-change {
+    0% {
+        color: #128A42
+    }
+    25% {
+        color: #14a14c
+    }
+    100% {
+        color: #3e9762
+    }
+}
+
+.button-container { /* 新增一个容器来包裹按钮 */
+    display: flex;
+    justify-content: space-around; /* 按钮左右排列并均匀分布 */
+    align-items: center; /* 按钮垂直居中 */
+}
+
+.icon-button svg {
+    width: 64px;
+    height: 64px;
+    stroke-width: 2;
+    stroke: gold;
+    fill: none;
+    animation: dash 5s linear infinite;
+}
+
+#exit {
+    background-color: #4CAF50;
+    color: white;
+    padding: 7px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+
+@keyframes dash {
+    to {
+        stroke-dashoffset: 100;
+    }
+}
+
+.icon-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+body {
+    background-image: url("res/settings_bg.png");
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+}
+
+#pageIcon {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 295.3px;
+    height: 53.3px;
+    background-image: url('res/iconBig_Blank.png');
+    background-size: cover;
+}
+
+#gcalc_icon_small{
+    background-image: url('iconV2.png');
+    width:26px; 
+    height:26px; 
+    margin-right: 6px;
+}
+
+.subtitle {
+    font-size: 14.3px;
+    font-weight: 600;
+}
+
+.settings-modal {
+    background-color: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(5px);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 80%;
+    max-width: 800px;
+    margin: 20px;
+}
+
+.container {
+    max-width: 800px;
+}
+
+.normal_text {
+    font-size: 14px;
+    font-weight: 400;
+}
+
+h2 {
+    color: #128A42;
+}

@@ -1,58 +1,69 @@
 {
-  "manifest_version": 2,
-  "name": "Giaoculator",
-  "version": "5.0.5",
-  "description": "A chrome extension for tracking your academic scores.",
-  "options_page":  "options.html",
+  "manifest_version": 3,
+  "name": "Giaoculator S",
+  "version": "0.55",
+  "description": "Giaoculator S: Easy GPA calculation for Schoolis.cn. Integrates with Xiaobao and track your progress effortlessly.",
+  "options_page": "options.html",
   "background": {
-    "scripts": ["background.js"],
-    "persistent": true
+    "service_worker": "background.js"
   },
-  "content_scripts": [{
-      "matches": ["https://*.schoolis.cn/*","*://4.3.2.1/*","*://view.officeapps.live.com/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://*.schoolis.cn/*", "*://4.3.2.1/*", "*://view.officeapps.live.com/*"],
       "css": ["lib/notyf.min.css"],
-      "js": ["lib/notyf.min.js","lib/confetti.browser.min.js","content.js"]
-  }],
-  "icons": {
-    "16": "icon.png",
-    "48": "icon.png",
-    "128": "icon.png"
-  },"web_accessible_resources": [
-    "icon.png",
-    "res/disablev2.png",
-    "res/disable.png",
-    "res/icon.png",
-    "res/hideOff.svg",
-    "res/hideOn.svg",
-    "res/hideOff_Dark.svg",
-    "res/hideOn_Dark.svg",
-    "res/visOn.svg",
-    "res/visOff.svg",
-    "res/exp_settings.png",
-    "res/tsLogo_W.png",
-    "res/tsLogo_D.png",
-    "res/download.svg",
-    "res/settings.svg",
-    "res/green-tick.png",
-    "res/iconNormal.png",
-    "usr/1.png",
-    "usr/1.jpg",
-    "usr/1.mp4",
-    "usr/1.mov",
-    "usr/2.png",
-    "usr/2.jpg",
-    "usr/2.mp4",
-    "usr/2.mov"
+      "js": ["lib/notyf.min.js", "lib/confetti.browser.min.js", "content.js"]
+    },
+    {
+      "matches": ["*://www.savemyexams.com/*"],
+      "css": ["lib/notyf.min.css"],
+      "js": ["lib/notyf.min.js", "lib/confetti.browser.min.js", "content_sme.js"]
+    },
+    {
+      "matches": ["https://*.schoolis.cn/*", "*://4.3.2.1/*", "*://view.officeapps.live.com/*"],
+      "js": ["content_preload.js"],
+      "run_at": "document_start"
+    }
   ],
-  "browser_action": {
-    "default_icon": "icon.png",
+  "icons": {
+    "16": "iconV2.png",
+    "48": "iconV2.png",
+    "128": "iconV2.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "icon.png",
+        "iconV2.png",
+        "res/disablev2.png",
+        "res/disable.png",
+        "res/icon.png",
+        "res/hideOff.svg",
+        "res/hideOn.svg",
+        "res/hideOff_Dark.svg",
+        "res/hideOn_Dark.svg",
+        "res/visOn.svg",
+        "res/visOff.svg",
+        "res/ball_settings.png",
+        "res/exp_settings.png",
+        "res/tsLogo_W.png",
+        "res/tsLogo_D.png",
+        "res/download.svg",
+        "res/settings.svg",
+        "res/green-tick.png"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "action": {
+    "default_icon": "iconV2.png",
     "default_popup": "popup.html"
   },
   "permissions": [
     "webRequest",
-    "webRequestBlocking",
+    "declarativeNetRequest",
     "storage",
-    "<all_urls>"
-  ]
+    "activeTab",
+    "unlimitedStorage"
+  ],
+  "host_permissions": ["https://*.schoolis.cn/*", "*://4.3.2.1/*", "*://view.officeapps.live.com/*"]
 }
-

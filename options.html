@@ -4,6 +4,7 @@
     <title>Options Page - Giaoculator</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=upload" />
     <link rel="stylesheet" href="options.css">
     </style>
 </head>
@@ -14,7 +15,7 @@
     </div>
     <div class="settings-modal">
         <div class="container">
-            <a href="https://g2h8ru7041.feishu.cn/docx/J8Axd0pogoCwCzx0D8FchHZJnah"style="position: absolute; color: #444444; top: 53px;right: 20.5px;">使用说明</a>
+            
             <h2 id="main_header"> </h2>
             <hr><br>
             <div>
@@ -24,8 +25,22 @@
             </div>
             <div>
                 <label for="welcomeMsg" class="subtitle" id="welcomeMsgLabel"> </label><br><br>
+                <label id="res1TypeLabel" for="res1TypeSelect" class="normal_text" style="margin-top: 10px;margin-left: 2px;"> </label>
+                <select id="res1TypeSelect" style="margin-top: 10px;">
+                    <option value="bing">必应精选壁纸</option>
+                    <option value="local">本地图片</option>
+                    <option value="online">在线图片/视频</option>
+                </select>
                 <input type="text" id="welcomeMsg">
-                <input type="text" id="homeSrcDark"><br>
+
+                <br id="homeSrcDarkBr">
+                <label id="homeSrcDarkLabel" for="homeSrcDarkSelect" class="normal_text" style="margin-top: 10px;margin-left: 2px;"> </label>
+                <select id="homeSrcDarkSelect" style="margin-top: 10px;">
+                    <option value="bing">必应精选壁纸</option>
+                    <option value="local">本地图片</option>
+                    <option value="online">在线图片/视频</option>
+                </select>
+                <input type="text" id="homeSrcDark" placeholder="Enter an Image link"><br>
                 <label for="advLogPage" class="normal_text" style="margin-top: 20px;margin-left: 2px;" id="advLogPageLabel"> </label>
                 <input type="checkbox" id="advLogPage" style="position: relative; top: 1.8px; right: 5px;"> 
                 <label id="darkModeSelect_Label" for="darkModeSelect" class="normal_text" style="margin-top: 10px;margin-left: 2px;"> </label>
@@ -42,8 +57,7 @@
                 <input type="checkbox" id="autoHide">
                 <label for="autoHide_Condition" style="visibility: hidden;padding-left: 32px;" id="autoHide_Condition_Label" class="normal_text">当分数低于</label>
                 <input type="number" id="autoHide_Condition" min="1" max="100">
-            </div>
-            <!--
+            </div><!--
             <p class="subtitle" id="updateLabel"> </p>
             <div id="update_SettingBox" style="padding-top: 13px;">
                 <label for="update" class="normal_text" style="margin-left: -3.5px;" id="enableLabel2"> </label>
@@ -52,11 +66,17 @@
                 <input type="number" id="update_Condition" min="1" max="100"> -->
             <!--</div>-->
             <br>
-            <p id="showReloadTip" style="color: red;"></p>
+            <p id="showReloadTip" style="color: red;"></p> 
             <button id="save"> </button>
         </div>
+        <p style="display: inline; color: gray;">
+            GiaoculatorS - Beta0.55
+            <a id="goto_read" href="https://g2h8ru7041.feishu.cn/docx/O4ledp0Z4oiDxRxcwkOctUCVnOc?from=from_copylink" style="position: relative; color:gray; margin-left: 20px;">使用说明</a>
+            <a id="goto_report" href="https://jsj.top/f/D5NtDf" style="position: relative; color:gray; margin-left: 20px;">使用说明</a>
+          </p>  
     </div>
 
     <script src="options.js"></script>
+    <script src="lib\notyf.min.js"></script>
 </body>
 </html>

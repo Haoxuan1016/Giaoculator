@@ -1,9 +1,142 @@
+function runWhenElementReady(selector, callback, interval, maxAttempts) {
+    let attempts = 0;
+
+    function check() {
+        if (document.querySelector(selector)) {
+            callback();
+        } else if (attempts < maxAttempts) {
+            attempts++;
+            setTimeout(check, interval);
+        }
+    }
+
+    check();
+}
+
+// 使用示例：每隔 500ms 检查一次目标元素，最多检查 10 次
+runWhenElementReady('link', diyHomepage, 10, 5);
+runWhenElementReady('link', diyHomepage, 100, 3);
+
+function waitForElement() {
+    let targetElement;
+    try {
+        targetElement = document.getElementsByClassName("fe-components-stu-business-topbar-__profileItemBox--2Zu-vui7zBJ7o6w5lP-ugN")[0].childNodes[8];
+    } catch (error) {}
+    if (targetElement) {
+        setTimeout(function() {
+            updateContent();
+        }, 100);
+        targetElement.addEventListener('click', function() {
+            startobserveDynamicScoreTarget();
+        });
+    } else {
+        // If the element is not found yet, try again after a short delay
+        setTimeout(waitForElement, 100); // Check every 200 milliseconds
+    }
+}
+
+if(window.location.href.includes("https://tsinglanstudent.schoolis.cn")){
+    waitForElement(); // Start polling immediately
+    setTimeout(function() {
+        if(!document.getElementsByClassName("ng-binding fe-components-stu-business-login-enter-box-__forgetLink--33qRdR5UpfjVrt3C_MdyYR")[0]){
+            send_comp_msg("bp-checkOutdatedScore","1",0);
+        }
+
+        
+    }, 100);
+    
+    
+}
+
+setInterval(function() {
+    if (!document.getElementsByClassName("ng-binding fe-components-stu-business-login-enter-box-__forgetLink--33qRdR5UpfjVrt3C_MdyYR")[0]) {
+      send_comp_msg("bp-checkOutdatedScore", "1", 0);
+    }
+  }, 300000);
+
+
+
+observeUrlChange({
+    "https://tsinglanstudent.schoolis.cn/Home#!/realtime/list": startobserveDynamicScoreTarget
+});
+observeUrlChange({
+    "https://tsinglanstudent.schoolis.cn/Home#!/task/list": startobserveScoreHides
+});
+
+
+
+
+function startobserveDynamicScoreTarget(){
+    observeTarget(
+        "fe-components-stu-app-realtime-list-__listItemBox--1RuNIoOoFIYPl4lXa4x2kS",
+        updateContent
+    );
+    
+}
+function startobserveScoreHides(){
+    chrome.storage.local.get('user_preference', function(settings) {
+        console.log(settings);
+        if(settings.user_preference.autoHide){
+            observeTarget(
+                "fe-components-stu-app-task-list-__listItemBox--3elHWcZSeppt-hG2vNGaZz",
+                hideAssignments
+            );
+        }
+    });
+    
+}
+
+
+
+function observeTarget(targetClass, callback, redotimes = 0, observedClasses = new Set()) {
+    // 如果已经存在触发器，则直接返回
+    if (observedClasses.has(targetClass)) {
+        //console.log(`[observeTarget] Already observing: ${targetClass}`);
+        return;
+    }
+
+    // 查找目标节点，仅获取第一个匹配元素
+    const targetNode = document.getElementsByClassName(targetClass)[0];
+
+    if (targetNode) {
+        // 创建 MutationObserver
+        const observer = new MutationObserver((mutationsList) => {
+            for (const mutation of mutationsList) {
+                if (mutation.target === targetNode) {
+                   // console.log(`[observeTarget] Change detected in: ${targetClass}`);
+                    callback(); // 执行回调函数
+                    break;
+                }
+            }
+        });
+
+        // 开始观察目标节点
+        observer.observe(targetNode, {
+            childList: true,
+            subtree: true,
+            characterData: true,
+        });
+
+        // 记录为已观察
+        observedClasses.add(targetClass);
+        //console.log(`[observeTarget] Now observing: ${targetClass}`);
+    } else {
+        // 如果未找到目标，重试机制
+        if (redotimes < 5) {
+            const retryDelay = Math.min(5000, 2 ** redotimes * 130 + 50);
+
+            setTimeout(() => {
+                observeTarget(targetClass, callback, redotimes + 1, observedClasses);
+            }, retryDelay);
+        } else {
+            //console.error(`[observeTarget] Max retries reached for: ${targetClass}.`);
+        }
+    }
+}
+
+
+
 console.log("Giaoculator is Running");
-
-// TODO: I dont think we need to do that :D ——Peter
-// TODO: 悬浮窗更新
-
-diyHomepage();
 
 // ================== 悬浮窗 ===================
 // 这个是添加悬浮窗代码的入口，负责给网页添加悬浮窗的HTML和CSS代码。
@@ -12,7 +145,6 @@ POP_addPopComponent();
 
 // totalUpdate是很重要的，他负责了进度条的总更新次数
 // 比如有4个学期，这里就填写4。每一次使用进度条的地方都需要设置这个值和清零currentUpdate
-let totalUpdates = 1;
 let currentUpdate = 0;
 
 // 监测当前注入是否收到了信息
@@ -31,25 +163,24 @@ let longtermMessage = '';
 // TODO: 长期设置代码
 
 // 设置SVG圆环的初始状态
-try {
-    const circle = document.querySelector('.progress-ring__circle');
-    const radius = circle.r.baseVal.value;
-    const circumference = 2 * Math.PI * radius;
-    const maxOffset = circumference;
+
+if(document.querySelector('.progress-ring__circle')!=null){
+    globalThis.circle = document.querySelector('.progress-ring__circle');
+    globalThis.radius = circle.r.baseVal.value;
+    globalThis.circumference = 2 * Math.PI * radius;
+    globalThis.maxOffset = circumference;
+    console.log(maxOffset);
 
     circle.style.strokeDasharray = `${circumference} ${circumference}`;
     circle.style.strokeDashoffset = maxOffset;
-
-} catch (e) {
-    console.log("no circle");
 }
 
 // 更新进度的函数，每次调用会+1，可以写到后端发消息的地方或者啥的。
 function upgradeProgress() {    
-    if (currentUpdate < totalUpdates) {
+    if (currentUpdate < 3) {
         currentUpdate++;
 
-        let newOffset = maxOffset - (currentUpdate / totalUpdates) * circumference;
+        let newOffset = maxOffset - (currentUpdate / 3) * circumference;
 
         circle.style.transition = 'stroke-dashoffset 0.5s ease-out';
 
@@ -85,62 +216,96 @@ function RingShowCalcError(){
     }, 10000);
 
 }
-function resetRing(isFinal){
+
+var logo = document.getElementById('xfc-logo');
+
+var iconSrc = chrome.runtime.getURL("icon.png");
+var settingsSrc = chrome.runtime.getURL("res/ball_settings.png");
+logo.src = iconSrc;
+logo.style.transition = "opacity 0.1s ease-in-out";
+
+logo.addEventListener('mouseenter', function () {
+    logo.style.transition = "opacity 0.1s ease-in-out";
+    logo.style.opacity = 0; // 开始淡出
+    setTimeout(() => {
+        logo.src = settingsSrc; // 更换图片
+        logo.style.opacity = 1; // 渐入
+    }, 100); // 等待过渡结束后切换
+});
+
+// 添加鼠标移出事件监听
+logo.addEventListener('mouseleave', function () {
+    logo.style.transition = "opacity 0.1s ease-in-out"; 
+    logo.style.opacity = 0; // 开始淡出
+    setTimeout(() => {
+        logo.src = iconSrc; // 更换图片
+        logo.style.opacity = 1; // 渐入
+    }, 100); // 等待过渡结束后切换
+});
+
+function resetRing(isFinal) {
     // 获取旧的图标元素和环形进度条
     var logo = document.getElementById('xfc-logo');
     var circle = document.querySelector('.progress-ring__circle');
 
+    // 动画速度控制（基础速度单位为秒）
+    const baseSpeed = 0.3; // 动画基础时间
+    const timeFactor = baseSpeed * 1000; // 转换为毫秒
+
     // 修改图标图片并添加渐变动画
-    logo.style.transition = isFinal? 'opacity 0.4s ease-out':'opacity 0.3s ease-out';
     logo.style.opacity = '0';
-    setTimeout(function() {
+    setTimeout(() => {
         logo.src = chrome.runtime.getURL("res/green-tick.png");
         logo.style.opacity = '1';
-        setTimeout(function() {
-            logo.style.transition = isFinal? 'opacity 0.5s ease-in':'opacity 0.2s ease-in';
+        setTimeout(() => {
+            logo.style.transition = `opacity ${baseSpeed}s ease-in`;
             logo.style.opacity = '0';
-            if(isFinal){
+
+            if (isFinal) {
                 try {
-                    document.getElementById("progress-text").style.transition = 'opacity 0.4s ease-out';
-                    document.getElementById("progress-text").style.opacity = '0';
-                    document.getElementById("progress-text-shadow").style.transition = 'opacity 0.4s ease-out';
-                    document.getElementById("progress-text-shadow").style.opacity = '0';
-                    setTimeout(() => {
-                        document.getElementById("progress-text").remove();
-                        document.getElementById("progress-text-shadow").remove();
-                        return;
-                    }, 500);
-                } catch (e) {}
-                
+                    const progressText = document.getElementById("progress-text");
+                    const progressShadow = document.getElementById("progress-text-shadow");
+
+                    if (progressText && progressShadow) {
+                        progressText.style.transition = `opacity ${baseSpeed}s ease-out`;
+                        progressShadow.style.transition = `opacity ${baseSpeed}s ease-out`;
+
+                        progressText.style.opacity = '0';
+                        progressShadow.style.opacity = '0';
+
+                        setTimeout(() => {
+                            progressText.remove();
+                            progressShadow.remove();
+                        }, timeFactor); // 动态时间控制
+                    }
+                } catch (e) {
+                    console.error("[resetRing] Error removing progress text elements:", e);
+                }
             }
+        }, timeFactor * 3); // 动态延迟控制
+    }, timeFactor); // 等待旧图标淡出后再显示新图标
 
-        }, 900+isFinal*300);
-    }, 350); // 等待旧图标淡出后再显示新图标
-
-    
-    setTimeout(function() {
+    setTimeout(() => {
         logo.src = chrome.runtime.getURL("icon.png");
         logo.style.opacity = '1';
         setTimeout(() => {
             logo.style.transition = '';
-        }, 600);
-    }, 1600+isFinal*400); 
+        }, timeFactor); // 动态时间控制
+    }, timeFactor * 5); // 动态延迟控制
 
     // 环形进度条动画调整
-    circle.style.transition = 'stroke-dashoffset 0.5s ease-out, stroke-width 0.5s ease-out';
-    //circle.style.strokeDashoffset = circle.getAttribute('r') * Math.PI * 2; // 重置进度条到完整状态
+    circle.style.transition = `stroke-dashoffset ${baseSpeed}s ease-out, stroke-width ${baseSpeed}s ease-out`;
     circle.style.strokeWidth = '0'; // 使圆环向外圈变细并消失
-    // 重置圆环的边框宽度以便下一次使用
-    setTimeout(function() {
-        currentUpdate=0;
-        circle.style.strokeDashoffset = circle.getAttribute('r') * Math.PI * 2;
-        setTimeout(function() {
-            circle.style.strokeWidth = '6'; // 将strokeWidth重置为原始宽度
-        }, 500);
-    }, 500);
-    
 
+    setTimeout(() => {
+        currentUpdate = 0;
+        circle.style.strokeDashoffset = circle.getAttribute('r') * Math.PI * 2;
+        setTimeout(() => {
+            circle.style.strokeWidth = '6'; // 将strokeWidth重置为原始宽度
+        }, timeFactor); // 动态时间控制
+    }, timeFactor); // 动态时间控制
 }
+
 
 
 const floatingBall = document.querySelector('.floating-ball');
@@ -216,7 +381,7 @@ if(floatingBall != null){
     floatingBall.addEventListener('click', () => {
         setTimeout(() => {
             send_comp_msg("bp-openSettings","1",0);
-        }, 300);
+        }, 300);/*
         document.getElementsByClassName("floating-ball")[0].style.transition='opacity 0.2s ease-out';
         document.getElementsByClassName("floating-ball")[0].style.opacity=0;
         document.getElementById("progress-text").style.transition = 'opacity 0.2s ease-out';
@@ -229,7 +394,7 @@ if(floatingBall != null){
             document.getElementById("progress-text-shadow").remove();
             
             return;
-        }, 210);
+        }, 210);*/
         
     
         return;//先暂时关闭信息框功能，改为隐藏悬浮球
@@ -304,6 +469,7 @@ if(window.location.href===LoginPattern || window.location.href.includes(LoginPat
 }else if(document.getElementsByClassName("ng-binding fe-components-stu-business-login-enter-box-__forgetLink--33qRdR5UpfjVrt3C_MdyYR").length>0){
     window.location.href = LoginPattern;
 }
+
 SHOW_REFRESH = false;
 var tmp_stopHide = false;
 var clicked_disclamer = false;
@@ -317,8 +483,6 @@ if(window.location.href==="http://4.3.2.1/homepage/login.html"){
 
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-
-    // 尝试结合两个版本的功能：使用chrome.storage.local来检查enable_state，并保留disable_autologin逻辑。
     chrome.storage.local.get('enable_state', function(result) {
         let type = message.type;
         let data = message.data;
@@ -339,9 +503,20 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 }
             } else if (type == "bp-refresh"){
                 location.reload();
+            }else if (type == "bp-firstInstall"){
+                sendInfotipLong(tlang("Giaoculator已安装成功！<br>即可点击右下角悬浮窗进入设置界面!<br>&nbsp;———— Haoxuan","Giaoculator has been installed successfully!<br>Click the floating ball in the lower right corner to enter the settings page!<br>&nbsp;———— Haoxuan"))
+            } else if (type == "bp-observeDynamicScore"){
+                observeTarget(
+                    "fe-components-stu-app-realtime-list-__listItemBox--1RuNIoOoFIYPl4lXa4x2kS",
+                    updateContent
+                );
+                
             } else if (type == "bp-logpageState"){
                 //换位置
-            } else if (type == "calcErrorStop"){
+            } else if (type == "bp-loggedin"){
+                console.log("loggedin")
+                startobserveScoreHides();
+            }else if (type == "calcErrorStop"){
                 RingShowCalcError();
             }else if (type == "bp-showRefresh"){
                 showHideButtonAtHome();//NEW
@@ -364,12 +539,15 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 }
             } else if (type == "tip_suc"){
                 sendSeccesstip(data.cont);
+            } else if (type == "appendHiddenScore"){
+                showFetchedAssignmentData_toPage(data.cont);
             } else if (type == "show_process"){
                 addCalcState(data,0);
                 console.log("REC:Showproges")
                 // MB_insertEditedDiv();
             } else if (type == "show_smsCalc_progress"){
-                addSmsCalcState(data);
+                upgradeProgress();
+                //addSmsCalcState(data);
             }else if (type == "tip_congrat"){
                 sendCongrat(data.cont);
             } else if (type == "tip_err"){
@@ -380,6 +558,8 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 sendInfotipLong(data.cont);
             } else if (type == "tip_alert"){
                 sendAlerttip(data.cont);
+            } else if (type == "tip_alert_rt"){
+                sendAlertrttip(data.cont);
             } else if (type == "tip_alert_long"){
                 sendAlerttipLong(data.cont);
             } else if (type == "rc_infopage"){
@@ -398,6 +578,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
                 gpaClaced();
             } else if (type == "append2Scores"){
                 appendAvgMaxScoresInPage(data,0);
+                console.log("2score",data);
             } else if (type == "bp-GPANotcalced"){
                 gpaNotClaced();
             } else if (type == "bp-OpenPageAfterLoginNtw"){
@@ -449,7 +630,84 @@ function editPageText(){
     changeBarname(3, " (4)")
 }
 
+async function showGPATip(){
+    gpaNotClaced();
+    let smsId;
+    try {
+        smsId = await getIdBySemester(document.getElementsByClassName("fe-components-xb-pull-btn-__input--3TWoIfVMNo-eszvg3cnXCa")[0].value);
+    } catch (e) {
+        smsId = -1;
+    }
+    
+    if (smsId === -1) {
+        return;
+    }
+    try {
+        chrome.storage.local.get(`gpa${smsId}`, function(idData) {
+            if (idData[`gpa${smsId}`] === undefined) {
+                gpaNotClaced();
+                return;
+            }
+
+            if(idData[`gpa${smsId}`] === undefined || idData[`gpa${smsId}`].schoolisGPA==null){
+                gpaClaced();
+            }else{
+                gpaNotClaced();
+            }
+        });
+    } catch (error) {
+        gpaNotClaced();
+    }
+    
+}
+
+async function beforeshowGPAbox(){
+    console.log("RUNNING beforeshowGPAbox");
+    let smsId;
+    smsId = await getIdBySemester(document.getElementsByClassName("fe-components-xb-pull-btn-__input--3TWoIfVMNo-eszvg3cnXCa")[0].value);
+    if (smsId === -1) {
+        return; // Handle error case if getIdBySemester fails, if needed
+    }
+
+    const storageData = await new Promise((resolve) => {
+        chrome.storage.local.get(`gpa${smsId}`, function(data) {
+            resolve(data);
+        });
+    });
+
+    if(storageData[`gpa${smsId}`] !== undefined){
+        document.getElementsByClassName("ng-scope fe-components-stu-app-realtime-list-__item--15ati0uVXaVfuWcqrnMUMw fe-components-stu-app-realtime-list-__listItem--3XdXNo9J8YyN2Z4GL0lpGz")[0].click();
+        showGPABox();
+        sendInfotip(tlang("计算的GPA仅供参考，可能存在误差<br><br>详见：<a style='color:#cccccc;text-decoration:underline' href='https://g2h8ru7041.feishu.cn/docx/RLXdd0ZeuogSwzx1R3KcwgElnMg?from=from_copylink'>GPA计算说明</a>","The calculated GPA is for reference only and may contain errors.<br><br>For details, see：<a style='color:#cccccc;text-decoration:underline' href='https://g2h8ru7041.feishu.cn/docx/RLXdd0ZeuogSwzx1R3KcwgElnMg?from=from_copylink'>Description</a>"));
+    }else{
+        sendAlertrttip(tlang("该学期不在计算范围内","This semester is not in the calculation range"));
+    }
+}
+
 function updateContent() {
+    showGPATip();
+
+    setTimeout(() => {
+        var element = document.getElementsByClassName("ng-scope fe-components-stu-app-realtime-list-__listItem--3XdXNo9J8YyN2Z4GL0lpGz fe-components-stu-app-realtime-list-__border--28HM0G_CwJuVpXrawp7ETW")[0];
+        if (element) {
+            element.addEventListener('click', function(event) {
+                if (!element.disabled) { // 检查按钮是否处于禁用状态，如果不是才执行
+                    element.disabled = true; // 立即禁用按钮
+            
+                    if(!document.getElementById("gcalc_gpaSubtitle")){
+                        beforeshowGPAbox();
+                    }
+                    
+                    
+            
+                    setTimeout(function() {
+                        element.disabled = false; // 3秒后重新启用按钮
+                    }, 3000);
+                }
+            });
+        }
+    }, 100);
+
     console.log("RUNNING updateContent")
 
     try {
@@ -460,7 +718,13 @@ function updateContent() {
                 if(target.innerText=="首次公布时间：1970-01-01 08:00"){
                     target.innerText="由Giaoculator计算"
                 }
+                if(target.innerText=="首次公布时间：2008-10-16 00:00"){
+                    target.innerText="由Giaoculator获取"
+                }
                 if(target.innerText=="First Publish Time：1970-01-01 08:00"){
+                    target.innerText="Calc by Giaoculator"
+                }
+                if(target.innerText=="First Publish Time：2008-10-16 00:00"){
                     target.innerText="Calc by Giaoculator"
                 }
             }
@@ -471,7 +735,6 @@ function updateContent() {
         if (targetElement) { 
             for (cnt=0;cnt<targetElement.length;cnt++){
                 target = targetElement[cnt];
-                // BUG: 如果使用了搜索功能，重新回来这个不会生效
                 if(target.innerText=="首次公布时间：1970-01-01 08:00"){
                     target.innerText="由Giaoculator计算"
                 }
@@ -506,8 +769,37 @@ function hideScores(scorelim) {
   }
 }
 
-function hideAssignments(settingData) {
-    insertTeamsLogoLink();
+async function saveToChromeStorage(keyName, obj) {
+    try {
+        const data = {};
+        data[keyName] = obj; // 创建存储对象
+        await chrome.storage.local.set(data); // 异步存储
+        console.log("已存入 " + keyName + " 的数据!");
+    } catch (error) {
+        console.error('Error saving to chrome.storage:', error);
+
+        //err
+    }
+}
+async function getFromChromeStorage(keyName) {
+    try {
+        const result = await chrome.storage.local.get(keyName); // 异步获取
+        if (result[keyName] !== undefined) {
+            return result[keyName]; // 返回存储的值
+        } else {
+            console.warn('Key not found in chrome.storage:', keyName);
+            return null;
+        }
+    } catch (error) {
+        console.error('Error reading from chrome.storage or parsing:', error);
+        //err
+        return null;
+    }
+}
+
+async function hideAssignments() {
+    let settingData=await getFromChromeStorage("user_preference");
+   // insertTeamsLogoLink();
     console.log("RUNNING assign")
 
     if(tmp_stopHide==true){
@@ -537,29 +829,54 @@ function hideAssignments(settingData) {
         
     }
 }
+async function getIdBySemester(smsName) {
+    let data = localStorage.getItem("schoolsemesters");
+    if (data) {
+        data = JSON.parse(data);
+    } else {
+        const response = await fetch("https://tsinglanstudent.schoolis.cn/api/School/GetSchoolSemesters");
+        if (!response.ok) {
+            return -1;
+        }
+        data = await response.json();
+        localStorage.setItem("schoolsemesters", JSON.stringify(data));
+    }
+    console.log(smsName)
 
+    if(smsName.includes("Semester")){
+        smsName = englishToChiSemester(smsName);
+    }
+    let smsId = data.data[data.data.findIndex(item => item.name === smsName)].id;
+    return smsId;
+}
+
+function englishToChiSemester(englishSemester) {
+    const parts = englishSemester.split(', ');
+    const semesterPart = parts[0]; // "Semester 2"
+    const yearPart = parts[1];     // "2024-2025"
+  
+    const semesterNumber = semesterPart.split(' ')[1]; // "2"
+    const chineseSemester = `第${semesterNumber}学期`;
+    const chineseYear = `${yearPart}学年`;
+  
+    return `${chineseYear} ${chineseSemester}`;
+}
 
 function updateContent_DetailPage() {
     console.log("RUNNING updateDP")
+    const target = document.getElementsByClassName('fe-components-stu-app-realtime-list-__basicInfoItem--2mLNqht5xhMaGuOPL1rAei')[1];
+    if(target.children[1].innerText=="1970-01-01 08:00"||target.children[1].innerText=="2008-10-16 00:00"){
+        target.children[0].innerText=tlang("Giaoculator获取的数据","Giaoculator fetched data");
+        
+        target.children[1].innerText="";
+    }
 
-    const targetElement = document.getElementsByClassName('fe-components-stu-app-realtime-list-__basicInfoItem--2mLNqht5xhMaGuOPL1rAei');
-    if (targetElement) { 
-        for (cnt=0;cnt<targetElement.length;cnt++){
-            target = targetElement[cnt];
-            if(target.innerText=="首次公布时间：1970-01-01 08:00"){
-                target.innerText="由Giaoculator计算"
-            }
-            if(target.innerText=="First Publish Time：1970-01-01 08:00"){
-                target.innerText="By Giaoculator"
-            }
-        }
-    } 
     engPage_opti(0);
     setTimeout(engPage_opti(0), 30);
 }
 
 function engPage_opti(redotimes){
-    if(redotimes>30){
+    if(redotimes>25){
         return;
     }
     setTimeout(() => {
@@ -572,7 +889,6 @@ function engPage_opti(redotimes){
             }
             return true;
         } else {
-            setTimeout(engPage_opti(redotimes+1), 100);
             return false;
         }
     }, 10);
@@ -586,36 +902,51 @@ function engPage_opti(redotimes){
             }
             return true;
         } else {
-            setTimeout(engPage_opti(redotimes+1), 100);
+            setTimeout(engPage_opti(redotimes+1), redotimes*10);
             return false;
         }
     }, 120);
 }
 
 
+function beauty_dymCode(){
+    return;
+}
 
 document.onkeydown = function(e) {
     const target = e.target;
+    const currentWindow = window.location.href;
     const tagName = target.tagName.toUpperCase();
     const isEditable = target.isContentEditable || tagName === 'INPUT' || tagName === 'TEXTAREA';
+    const isFocused = document.activeElement === target;
 
     if(e.key === 'Enter' ){
         simulateClickLogin();
     } 
-
-    if (isEditable) {
-        console.log("Typing..")
+    if (isEditable&&(currentWindow.includes("4.3.2.1"))) {
+        
         Ntw_SimclickDisclamer();
         
         return;
     }
-    var currentWindow = window.location.href;
+    if(currentWindow.includes("https://tsinglanstudent.schoolis.cn/")){
+        beauty_dymCode()
+    }
+    
 
     if(e.key === 'Backspace' ){
         hidestudentInfo();
         
     } 
-    if(e.key === 'Escape'){
+
+    if (isEditable && isFocused) {
+        return;
+    }//以下如果在输入中则不会触发
+
+
+
+
+    if(e.key === 'Escape' ){
         simulateClickLogout();
         
     } else if(e.key >= '1' && e.key <= '4'){
@@ -710,6 +1041,21 @@ function simulateClickRefresh(posChange) {
     }
 }
 
+
+function sendtopSeccesstip(cont){
+    const notyf = new Notyf
+    notyf.success({
+        duration: 1500,
+        position: {
+          x: 'right',
+          y: 'top',
+        },
+        dismissible: true,
+        message : cont
+    })
+}
+
+
 function sendSeccesstip(cont){
     const notyf = new Notyf
     notyf.success({
@@ -758,6 +1104,20 @@ function sendErrortip(cont){
         message : cont
     })
 }
+
+function sendTopErrortip(cont){
+    const notyf = new Notyf
+    notyf.error({
+        duration: 1500,
+        position: {
+          x: 'right',
+          y: 'top',
+        },
+        dismissible: true,
+        message : cont
+    })
+}
+
 
 function sendInfotip(cont){
     const notyf = new Notyf({
@@ -850,6 +1210,30 @@ function sendAlerttip(cont){
         message : cont
     })
 }
+
+function sendAlertrttip(cont){
+    const notyf = new Notyf({
+        types: [
+          {
+            type: 'warning',
+            background: 'orange',
+            icon: false
+          }
+        ]
+      });
+
+    notyf.open({
+        type: 'warning',
+        duration: 1500,
+        position: {
+          x: 'left',
+          y: 'top',
+        },
+        dismissible: true,
+        message : cont
+    })
+}
+
 
 function hideScoresRepeatedly(data, interval, duration) {
     // 计算需要调用的次数
@@ -1041,14 +1425,21 @@ function showStateAtLoginPageMain(tmp,estate) {
         div.insertBefore(container, button);
         
     } 
-}function diyHomepage(){
+}
+
+
+function diyHomepage(){
     chrome.storage.local.get('user_preference', function(result) {
+        
         showStateAtLoginPage();
         var sourcedata = result.user_preference;
         if(result.user_preference.advLogPage){
             setTimeout(() => {
                 beautyLoginPage(sourcedata,0);
             }, 1);
+            setTimeout(() => {
+                beauty_dymCode()
+            }, 100);
             return;
         }
         try {
@@ -1104,14 +1495,7 @@ function gpaClaced(){
         
         
     } catch{}
-    setTimeout(() => {
-        var element = document.getElementsByClassName("ng-binding ng-scope fe-components-stu-app-realtime-list-__gpaContentScore--1OjJB7QN_hSoa3zcyHgfmN")[0];
-        if (element) {
-            element.addEventListener('click', function(event) {
-                sendInfotip(tlang("计算的GPA仅供参考，可能存在误差<br><br>详见：<a style='color:#cccccc;text-decoration:underline' href='https://g2h8ru7041.feishu.cn/docx/RLXdd0ZeuogSwzx1R3KcwgElnMg?from=from_copylink'>GPA计算说明</a>","The calculated GPA is for reference only and may contain errors.<br><br>For details, see：<a style='color:#cccccc;text-decoration:underline' href='https://g2h8ru7041.feishu.cn/docx/RLXdd0ZeuogSwzx1R3KcwgElnMg?from=from_copylink'>Description</a>"))
-            });
-        }
-    }, 100);
+    
 } 
 
 function gpaNotClaced(){
@@ -1146,33 +1530,9 @@ function beautyLoginPage(srcData,redotimes){
         }
     }
     
+    //diyHomepage_LocalImg(loginPageSrc);
 
-    try {
-        if(loginPageSrc.includes("<local/jpg-1>")||loginPageSrc.includes("<1.jpg>")){
-            loginPageSrc = chrome.runtime.getURL("usr/1.jpg"); 
-        }
-        if(loginPageSrc.includes("<local/png-1>")||loginPageSrc.includes("<1.png>")){
-            loginPageSrc = chrome.runtime.getURL("usr/1.png"); 
-        }
-        if(loginPageSrc.includes("<local/mp4-1>")||loginPageSrc.includes("<1.mp4>")){
-            loginPageSrc = chrome.runtime.getURL("usr/1.mp4"); 
-        }
-        if(loginPageSrc.includes("<local/mov-1>")||loginPageSrc.includes("<1.mov>")){
-            loginPageSrc = chrome.runtime.getURL("usr/1.mov"); 
-        }
-        if(loginPageSrc.includes("<local/jpg-2>")||loginPageSrc.includes("<2.jpg>")){
-            loginPageSrc = chrome.runtime.getURL("usr/2.jpg"); 
-        }
-        if(loginPageSrc.includes("<local/png-2>")||loginPageSrc.includes("<2.png>")){
-            loginPageSrc = chrome.runtime.getURL("usr/2.png"); 
-        }
-        if(loginPageSrc.includes("<local/mp4-2>")||loginPageSrc.includes("<2.mp4>")){
-            loginPageSrc = chrome.runtime.getURL("usr/2.mp4"); 
-        }
-        if(loginPageSrc.includes("<local/mov-2>")||loginPageSrc.includes("<2.mov>")){
-            loginPageSrc = chrome.runtime.getURL("usr/2.mov"); 
-        }
-    }catch (error) {}
+
 
     try {
         document.getElementsByClassName('ng-scope fe-components-stu-business-login-enter-box-__headMain--7bzuRu-Sq5O2sOCFgPNQH')[0].children[0].src = chrome.runtime.getURL(colormode?"res/tsLogo_D.png":"res/tsLogo_W.png");
@@ -1195,27 +1555,168 @@ function beautyLoginPage(srcData,redotimes){
                 tmp.style.color="#E4E4E4";
             });
         }
-        if(loginPageSrc.length<2 || loginPageSrc =="<default>"){
-            loginPageSrc = "https://wallpapercave.com/wp/wp4469554.jpg";
+
+        setTimeout(() => {
+            try {//验证码适配
+                let codeInput=document.getElementsByClassName("fe-components-stu-business-login-enter-box-__inputWrap--2OI0SgF-iDEHZborbYzrNZ fe-components-stu-business-login-enter-box-__loginAccount--V6OxcxzYg1Kv38n9KjsDg fe-components-stu-business-login-enter-box-__codeAccount--1v5pY_k1CJAvtvhBeacNLV")[0];
+                codeInput.children[0].outerHTML="<span>";
+            } catch (e) {}
+        }, 300);
+
+        try {//验证码适配
+            let codeInput=document.getElementsByClassName("fe-components-stu-business-login-enter-box-__inputWrap--2OI0SgF-iDEHZborbYzrNZ fe-components-stu-business-login-enter-box-__loginAccount--V6OxcxzYg1Kv38n9KjsDg fe-components-stu-business-login-enter-box-__codeAccount--1v5pY_k1CJAvtvhBeacNLV")[0];
+            codeInput.children[0].outerHTML="<span>";
+            document.getElementsByClassName("fe-components-stu-business-login-enter-box-__accountContainer--22PmjI_OEsahZLiUEgL4zr")[0].style.paddingTop="10px";
+        } catch (e) {
+            
         }
-        var enterBoxs = document.getElementsByClassName("fe-components-stu-business-login-enter-box-__inputWrap--2OI0SgF-iDEHZborbYzrNZ ");
-        document.getElementsByClassName("ng-scope fe-apps-login-__bgWhite--17b4s19HLx5VBdUGMT5Gz0")[0].style.backgroundSize = "cover";
-        document.getElementsByClassName("fe-components-stu-business-login-enter-box-__schoolBackground--2S3KJugj_l_m7T5hRdY_cv")[0].remove();
-        enterBoxs[0].style.borderRadius='10px'
-        enterBoxs[0].style.backdropFilter="blur(10px)"
-        enterBoxs[0].style.background=colormode? "rgba(255, 255, 255, .01)" : "rgba(088, 080, 082, .065)"
-        enterBoxs[1].style.borderRadius='10px'
-        enterBoxs[1].style.backdropFilter="blur(10px)"
-        enterBoxs[1].style.background=colormode? "rgba(255, 255, 255, .01)" : "rgba(088, 080, 082, .065)"
-        document.getElementsByClassName("ng-binding fe-components-stu-business-login-enter-box-__signBtn--2VrsqhNGgcjYTh7LuAGzve")[0].style.borderRadius='10px'
-        //document.getElementsByClassName("ng-binding fe-components-stu-business-login-enter-box-__signBtn--2VrsqhNGgcjYTh7LuAGzve")[0].style.background='rgba(91,138,249,0.5)'
-        document.getElementsByClassName('ng-scope fe-components-stu-business-login-enter-box-__headMain--7bzuRu-Sq5O2sOCFgPNQH')[0].children[0].style.maxHeight="95px"
-        document.getElementsByClassName("fe-components-stu-business-login-enter-box-__accountContainer--22PmjI_OEsahZLiUEgL4zr")[0].style.paddingTop = "40px"
-        document.getElementsByClassName("fe-components-stu-business-login-enter-box-__loginInformation--W2yiibeHcVKj_lJeq1rW_")[0].style.paddingTop = "52px"
-        document.querySelector(".fe-components-stu-business-login-enter-box-__loginInformation--W2yiibeHcVKj_lJeq1rW_").style.backdropFilter="blur(10px)"
-        document.querySelector(".fe-components-stu-business-login-enter-box-__loginInformation--W2yiibeHcVKj_lJeq1rW_").style.background=colormode? "rgba(255, 255, 255, .7)" : "rgba(038, 040, 042, .065)"
-        if(loginPageSrc.includes(".jpg")||loginPageSrc.includes(".heic")||loginPageSrc.includes("image")||loginPageSrc.includes(".jpeg")||loginPageSrc.includes(".png")||loginPageSrc.includes(".webp")||loginPageSrc.includes(".svg")||loginPageSrc.includes("tiff")||loginPageSrc.includes("bmp")||loginPageSrc.includes("gif")){
-            document.getElementsByClassName("ng-scope fe-apps-login-__bgWhite--17b4s19HLx5VBdUGMT5Gz0")[0].style.backgroundImage = "url("+loginPageSrc+")";
+        try {
+            if(document.getElementsByClassName("ng-binding fe-components-stu-business-login-enter-box-__another--2h0L224JEWaxwWm501-8Vi")[0].innerText.length>1){
+                document.getElementsByClassName("fe-components-stu-business-login-enter-box-__accountContainer--22PmjI_OEsahZLiUEgL4zr")[0].style.paddingTop="10px";
+            }
+        } catch (e) {}
+
+
+
+        if(loginPageSrc.length<2 || loginPageSrc =="<default>"){
+            loginPageSrc = "https://bing.biturl.top/?resolution=3840&format=image&index=0&mkt=zh-CN";
+        }
+        
+
+
+        if(loginPageSrc.includes("gcalc_localImg")||loginPageSrc.includes(".jpg")||loginPageSrc.includes(".heic")||loginPageSrc.includes("image")||loginPageSrc.includes(".jpeg")||loginPageSrc.includes(".png")||loginPageSrc.includes(".webp")||loginPageSrc.includes(".svg")||loginPageSrc.includes("tiff")||loginPageSrc.includes("bmp")||loginPageSrc.includes("gif")){
+            // 图片：others
+            console.log("others",loginPageSrc);
+            if(loginPageSrc.includes("gcalc_localImg")){
+                //已由上面完成
+                return;
+            }
+            if(!loginPageSrc.includes("bing.biturl.top/?res")){
+                document.getElementsByClassName("ng-scope fe-apps-login-__bgWhite--17b4s19HLx5VBdUGMT5Gz0")[0].style.backgroundImage = "url("+loginPageSrc+")";
+                return;
+            }
+            // 图片：BING
+            const style = document.createElement("style");
+            style.textContent = `
+                /* 让容器支持绝对定位覆盖层 */
+                .ng-scope.fe-apps-login-__bgWhite--17b4s19HLx5VBdUGMT5Gz0 {
+                    position: relative;
+                }
+                /* 新图覆盖层，用于淡入动画 */
+                .new-bg-overlay {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-size: cover;
+                    background-position: center center;
+                    background-repeat: no-repeat;
+                    z-index: 9;
+                    opacity: 0;
+                    transition: opacity 0.6s ease-in-out;
+                }
+            `;
+            document.head.appendChild(style);
+
+            /**
+             * 工具函数：获取指定 URL 的图片并转换为 Base64
+             * @param {string} url
+             * @returns {Promise<string>} Base64 字符串（dataURL）
+             */
+            async function fetchImageAsBase64(url) {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            }
+
+            /**
+             * 工具函数：计算 Base64 图片的 SHA-256 哈希（返回 hex 字符串）
+             * @param {string} base64 - dataURL 形式的 Base64
+             * @returns {Promise<string>} 形如 "abc123..." 的 hex 哈希
+             */
+            async function computeSHA256(base64) {
+                // 去掉前缀 "data:xxx;base64,"
+                const base64Data = base64.split(",")[1] || "";
+                // 将 base64 解码为二进制
+                const raw = atob(base64Data);
+                const uint8Array = new Uint8Array(raw.length);
+                for (let i = 0; i < raw.length; i++) {
+                    uint8Array[i] = raw.charCodeAt(i);
+                }
+                // 使用 Web Crypto API 做 SHA-256 摘要
+                const hashBuffer = await crypto.subtle.digest("SHA-256", uint8Array);
+                // 转成 16 进制字符串
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                const hashHex = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+                return hashHex;
+            }
+
+            // 2. 获取本地缓存的 “上一次的Base64图”
+            chrome.storage.local.get(["lastImg"], async (res) => {
+                const oldBase64 = res.lastImg;
+                const bgElem = document.querySelector(".ng-scope.fe-apps-login-__bgWhite--17b4s19HLx5VBdUGMT5Gz0");
+
+                if (!bgElem) return; // 没找到目标元素，直接退出
+
+                // 2.1 如果有旧图，先行显示它
+                if (oldBase64) {
+                    bgElem.style.backgroundImage = `url(${oldBase64})`;
+                }
+
+                // 3. 若本次加载的图片地址满足条件，比如后缀包含 .jpg
+                if (1) {
+                    try {
+                        // 3.1 获取新图的 Base64
+                        const newBase64 = await fetchImageAsBase64(loginPageSrc);
+
+                        // 3.2 分别计算旧图、新图的哈希
+                        const oldHash = oldBase64 ? await computeSHA256(oldBase64) : null;
+                        const newHash = await computeSHA256(newBase64);
+
+                        // 如果“旧图哈希”和“新图哈希”相同，说明图片内容并无变化 => 不执行淡入动画
+                        if (oldHash && oldHash === newHash) {
+                            console.log("Images are identical, skip fade in");
+                            // 直接把背景更新为最新的（其实是一样的图）
+                            bgElem.style.backgroundImage = `url(${newBase64})`;
+                            // 也写回缓存（防止 dataURL 存在额外元数据差异，这里可要可不要）
+                            chrome.storage.local.set({ lastImg: newBase64 });
+                        } else {
+                            // 4. 动画淡入
+                            const overlay = document.createElement("div");
+                            overlay.className = "new-bg-overlay";
+                            overlay.style.backgroundImage = `url(${newBase64})`;
+
+                            bgElem.appendChild(overlay);
+
+                            // 触发 CSS transition：让 overlay 的 opacity 从 0 -> 1
+                            requestAnimationFrame(() => {
+                                overlay.style.opacity = "1";
+                            });
+
+                            // 过渡结束后，替换掉父容器的背景并移除 overlay
+                            const handleTransitionEnd = () => {
+                                bgElem.style.backgroundImage = `url(${newBase64})`;
+                                bgElem.removeChild(overlay);
+                                overlay.removeEventListener("transitionend", handleTransitionEnd);
+                            };
+                            overlay.addEventListener("transitionend", handleTransitionEnd);
+
+                            // 5. 更新缓存为新图
+                            chrome.storage.local.set({ lastImg: newBase64 });
+                        }
+                    } catch (err) {
+                        console.error("Error fetching/converting image:", err);
+                    }
+                }
+            });
+
+    //END
         } else {
             // 假设 targ 是目标元素，source 是视频源URL
             var targ = document.querySelector('div[ng-controller="login"]'); // 或者用来定位背景元素的其它选择器
@@ -1246,7 +1747,7 @@ function beautyLoginPage(srcData,redotimes){
         if(redotimes<50){
             setTimeout(() => {
                 beautyLoginPage(srcData,redotimes+1);
-            }, redotimes<6 ? 1 : redotimes);
+            }, redotimes<6 ? 100 : redotimes*100);
         }
     }
     try {
@@ -1257,6 +1758,13 @@ function beautyLoginPage(srcData,redotimes){
     } catch (error) {
         
     }
+    setTimeout(() => {
+        try {
+            if(document.getElementsByClassName("ng-binding fe-components-stu-business-login-enter-box-__another--2h0L224JEWaxwWm501-8Vi")[0].innerText.length>1){
+                document.getElementsByClassName("fe-components-stu-business-login-enter-box-__accountContainer--22PmjI_OEsahZLiUEgL4zr")[0].style.paddingTop="10px";
+            }
+        } catch (e) {}
+    }, 1000);
     
 }
 
@@ -1341,6 +1849,12 @@ function showGPAcount(redotimes,data){
         }else{
             tiptext=tlang("该科目正常计入GPA计算","This Subject Weights 1 in GPA Calculation")
         }
+
+        if(document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__modelTitle--8I6j6U9niNNfZsIj8855i")[0].innerText.includes("GPA")){
+            tiptext=tlang("以上为计算所包含科目","Subjects included in calculation")
+        }
+
+        updateContent_DetailPage();
         for(let i=0;i<categoryLists.length;i++){
             var tmp = categoryLists[i].innerText
             if(tmp.includes("Q1")||tmp.includes("Q2")||tmp.includes("Q3")||tmp.includes("Q4")){
@@ -1357,7 +1871,7 @@ function showGPAcount(redotimes,data){
             console.log('目标元素未找到。');
         }
         if(showGB){
-            addBtnforshowDisScoresBox(data.smsId,data.subjectId,className,GBModel);
+            addBtnforshowDisScoresBox(data.smsId,data.subjectId,className,GBModel,0);
         }
     } catch (error) {
         setTimeout(() => {
@@ -1384,118 +1898,230 @@ function hidestudentInfo(){
 }
 
 function appendAvgMaxScoresInPage(data,redotimes){
-    console.log(redotimes);
-    try {
-        // 颜色设置
-        if((data.usrS/data.totalS)*100>=(data.avgS/data.totalS)*100+10||((data.usrS/data.totalS)*100)>=97||data.usrS>=data.maxS){
-            document.getElementsByClassName("ng-binding fe-components-stu-app-task-detail-__itemScore--1nuolF1pAilxxSB6o8b2Rx")[0].style="text-shadow: 0 0 10px #bbffbb";
-        }else if((data.usrS/data.totalS)*100+10<(data.avgS/data.totalS)*100||data.usrS==0){
-            document.getElementsByClassName("ng-binding fe-components-stu-app-task-detail-__itemScore--1nuolF1pAilxxSB6o8b2Rx")[0].style="text-shadow: 0 0 10px #ff9999";
-        }
+    chrome.storage.local.get('exp_showFullavg', function(state) {
+        let ShowFull_state = state.exp_showFullavg;
+        console.log(redotimes);
+        try {
+            
+            if((data.usrS/data.totalS)*100>=(data.avgS/data.totalS)*100+10||((data.usrS/data.totalS)*100)>=97||data.usrS>=data.maxS){
+                document.getElementsByClassName("ng-binding fe-components-stu-app-task-detail-__itemScore--1nuolF1pAilxxSB6o8b2Rx")[0].style="text-shadow: 0 0 10px #bbffbb";
+            }else if((data.usrS/data.totalS)*100+10<(data.avgS/data.totalS)*100||data.usrS==0){
+                document.getElementsByClassName("ng-binding fe-components-stu-app-task-detail-__itemScore--1nuolF1pAilxxSB6o8b2Rx")[0].style="text-shadow: 0 0 10px #ff9999";
+            }
 
-        
-        let elementToAppend;
-        let targetElement = document.getElementsByClassName("fe-components-stu-app-task-detail-__itemClassInfo--2Ist05O25K5lXA-9nAmiDO")[0]; // 找到目标元素
-        if(document.getElementsByClassName("ng-binding ng-scope fe-components-stu-app-task-detail-__itemClassInfoShow--359Ece2CkimkinYlmlxVbP").length==2){
-            return;
-        }else if(document.getElementsByClassName("ng-binding ng-scope fe-components-stu-app-task-detail-__itemClassInfoShow--359Ece2CkimkinYlmlxVbP").length==1){
-            document.getElementsByClassName("ng-binding ng-scope fe-components-stu-app-task-detail-__itemClassInfoShow--359Ece2CkimkinYlmlxVbP")[0].remove();
-        }
-        let maxS=data.maxS;
-        let avgS=data.avgS;
-        let iconModel = "<img src="+chrome.runtime.getURL("res/icon.png")+" id='gcalc2ScoresIcon' alt='Ico' style='vertical-align: middle; margin-right: 5px; height: 24px;'>"
-        let maxScoreModel = "<p ng-class='styles.itemClassInfoShow' ng-if='taskDetailInfo.displayClassAvgScore' class='ng-binding ng-scope fe-components-stu-app-task-detail-__itemClassInfoShow--359Ece2CkimkinYlmlxVbP'>"+tlang("班级最高成绩:","Class Highest:")+maxS+"</p>"
-        let avgScoreModel = "<p ng-class='styles.itemClassInfoShow' ng-if='taskDetailInfo.displayClassAvgScore' class='ng-binding ng-scope fe-components-stu-app-task-detail-__itemClassInfoShow--359Ece2CkimkinYlmlxVbP'>"+tlang("班级平均成绩:","Class Average:")+avgS+"</p>"
-        let tempDiv = document.createElement('div'); // 创建一个临时的div元素
+            
+            let elementToAppend;
+            let targetElement = document.getElementsByClassName("fe-components-stu-app-task-detail-__itemClassInfo--2Ist05O25K5lXA-9nAmiDO")[0]; // 找到目标元素
+            if(document.getElementsByClassName("ng-binding ng-scope fe-components-stu-app-task-detail-__itemClassInfoShow--359Ece2CkimkinYlmlxVbP").length==2){
+                return;
+            }else if(document.getElementsByClassName("ng-binding ng-scope fe-components-stu-app-task-detail-__itemClassInfoShow--359Ece2CkimkinYlmlxVbP").length==1){
+                document.getElementsByClassName("ng-binding ng-scope fe-components-stu-app-task-detail-__itemClassInfoShow--359Ece2CkimkinYlmlxVbP")[0].remove();
+            }
+            let maxS=data.maxS;
+            let usrS=data.usrS;
+            let avgS=data.avgS;
+            let PercentageAvgS = (avgS/data.totalS)*100;
+            let PercentageUsrS = (usrS/data.totalS)*100;
+            let PercentageMaxS = (maxS/data.totalS)*100;
+            let maxScoreModel;
+            let avgScoreModel;
+            let hintText = "";
+            let iconModel = "<img src="+chrome.runtime.getURL("res/icon.png")+" id='gcalc2ScoresIcon' alt='Ico' style='vertical-align: middle; margin-right: 5px; height: 24px;'>"
+                
+            if(ShowFull_state){
+                maxScoreModel = "<p ng-class='styles.itemClassInfoShow' ng-if='taskDetailInfo.displayClassAvgScore' class='ng-binding ng-scope fe-components-stu-app-task-detail-__itemClassInfoShow--359Ece2CkimkinYlmlxVbP'>"+tlang("班级最高成绩:","Class Highest:")+maxS+"</p>"
+                avgScoreModel = "<p ng-class='styles.itemClassInfoShow' ng-if='taskDetailInfo.displayClassAvgScore' class='ng-binding ng-scope fe-components-stu-app-task-detail-__itemClassInfoShow--359Ece2CkimkinYlmlxVbP'>"+tlang("班级平均成绩:","Class Average:")+avgS+"</p>"
+            }else{
+                maxScoreModel = ""
+                if (PercentageUsrS === PercentageMaxS) {
+                    hintText = tlang("班级最高！", "Class Highest!");
+                } else if (PercentageUsrS >= PercentageAvgS + 8) {
+                    hintText = tlang("表现优秀！", "Outstanding Performance!");
+                } else if (PercentageUsrS >= PercentageAvgS){
+                    hintText = tlang("表现良好", "Good Performance!");
+                } else if (Math.abs(PercentageUsrS - PercentageAvgS) <= 6) {
+                    hintText = tlang("接近平均水平", "Around Class Average");
+                } else if (PercentageUsrS < PercentageAvgS) {
+                    hintText = tlang("有进步空间", "Room for Improvement");
+                }
+                console.log(PercentageAvgS,PercentageUsrS,PercentageMaxS);
 
-        tempDiv.innerHTML = iconModel;
-        elementToAppend = tempDiv.firstChild; 
-        targetElement.appendChild(elementToAppend);
-
-        tempDiv.innerHTML = avgScoreModel;
-        elementToAppend = tempDiv.firstChild; 
-        targetElement.appendChild(elementToAppend);
-        
-        tempDiv.innerHTML = maxScoreModel;
-        elementToAppend = tempDiv.firstChild; 
-        targetElement.appendChild(elementToAppend);
-        setTimeout(() => {
-            if(!document.getElementById("gcalc2ScoresIcon")){
-                appendAvgMaxScoresInPage(data,redotimes+1)
-            }   
-        }, 200);
-        
-        
-    } catch (error) {
-        setTimeout(() => {
-            if(redotimes<10){
-                appendAvgMaxScoresInPage(data,redotimes+1)
+                avgScoreModel = "<p ng-class='styles.itemClassInfoShow' ng-if='taskDetailInfo.displayClassAvgScore' style='margin-right: 7px' class='ng-binding ng-scope fe-components-stu-app-task-detail-__itemClassInfoShow--359Ece2CkimkinYlmlxVbP'>"+"&nbsp;&nbsp;"+hintText+"</p>"
+                console.log(hintText);
             }
             
-        }, redotimes*20);
-    }
+            let tempDiv = document.createElement('div'); 
+
+            tempDiv.innerHTML = iconModel;
+            if (tempDiv.firstChild) {
+                targetElement.appendChild(tempDiv.firstChild);
+            }
+            
+            tempDiv.innerHTML = avgScoreModel;
+            if (tempDiv.firstChild) {
+                targetElement.appendChild(tempDiv.firstChild);
+            }
+            
+            tempDiv.innerHTML = maxScoreModel;
+            if (maxScoreModel!="") {
+                targetElement.appendChild(tempDiv.firstChild);
+            }
+            
+            setTimeout(() => {
+                if(!document.getElementById("gcalc2ScoresIcon")){
+                    appendAvgMaxScoresInPage(data,redotimes+1)
+                }   
+            }, 200);
+            
+            
+        } catch (error) {
+            console.log(error);
+            setTimeout(() => {
+                if(redotimes<10){
+                    appendAvgMaxScoresInPage(data,redotimes+1)
+                }
+                
+            }, redotimes*20);
+        }
+    });
+    
     
 }
-function addBtnforshowDisScoresBox(smsid,subjectid,subjectname,model){
-    let tmpBtn = `<p id="gcalc_clicktoshowDiyBox" style="font-size: 13px; display: inline-block; padding: 0px 11px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">任务自定义</p>`;
+function addBtnforshowDisScoresBox(smsid,subjectid,subjectname,model,redotimes){
+    let btntext = tlang("进入任务预测","Enter Edit Mode")
+    if(document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__modelTitle--8I6j6U9niNNfZsIj8855i")[0].innerText.includes("GPA")){
+        btntext=tlang("反馈权重异常","Report Bugs")
+    }
+    let tmpBtn = `<p id="gcalc_clicktoshowDiyBox" style="font-size: 13px; display: inline-block; padding: 0px 11px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">${btntext}</p>`;
+    
+    
     document.getElementById("gcalc_gpacntstate").children[0].children[0].children[0].style = "font-size:13px;position: relative;top: 1px;";
     document.getElementById("gcalc_diyboxbtn").insertAdjacentHTML('beforeend', tmpBtn);
+    if(document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__modelTitle--8I6j6U9niNNfZsIj8855i")[0].innerText.includes("GPA")){
+        document.getElementById("gcalc_clicktoshowDiyBox").addEventListener('click', function() {
+            window.open('https://jsj.top/f/D5NtDf', '_blank'); // 在新窗口中打开
+        });
+    }else{
+        document.getElementById("gcalc_clicktoshowDiyBox").addEventListener('click', function() {
+        
+            getUsrAssignmentInfoBeforeshowDiyBox(smsid,subjectid,subjectname,model);
+            
+        });
+    }
 
-    document.getElementById("gcalc_clicktoshowDiyBox").addEventListener('click', function() {
-        getUsrAssignmentInfoBeforeshowDiyBox(smsid,subjectid,subjectname,model);
-    });
+    
 }
 
+function sys_showload(state){
+    if (state == true){
+        const targetElement = document.querySelector('[class*="stu-common-stu-loading"]');
+        if (targetElement) {
+            targetElement.style.display = "table";
+        }
+    } else {
+        const targetElement = document.querySelector('[class*="stu-common-stu-loading"]');
+        if (targetElement) {
+            targetElement.style.display = "none";
+        }
+    }
+}
+
+
 function getUsrAssignmentInfoBeforeshowDiyBox(smsid, subjectid,subjectName,model){
+    sys_showload(true);
     let data={
         smsId:smsid,
         subjectId:subjectid,
         subjectName:subjectName,
         model:model
     }
+    const storagekey = smsid+"|"+subjectid;
+    console.log(storagekey);
+    chrome.storage.local.get(storagekey).then(async (result) => {
+        console.log(result[storagekey]);
+        let classId = null;
+        try {
+            classId = result[storagekey].classId;
+        } catch (error) {
+
+        }
+        
+        if (!classId){
+            const apiUrl = new URL(("https://tsinglanstudent.schoolis.cn/api/DynamicScore/GetStuSemesterDynamicScore?semesterId="+smsid+"&gcalc=gcalc_bg"));
+            const response = await fetch(apiUrl);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            data.data.studentSemesterDynamicScoreBasicDtos.forEach(element => {
+                if(element.subjectId == subjectid){
+                    classId = element.classId;
+                    console.log("method2Found:",classId);
+                }
+            });
+        }
+        if(!classId){
+            sys_showload(false);
+            sendAlerttip(tlang("无法进入自定义模式:未找到班级ID","Failed to init:Class ID Not Found"));
+            return;
+        }
+        const apiUrl = new URL("https://tsinglanstudent.schoolis.cn/api/DynamicScore/GetDynamicScoreDetail");
+        apiUrl.searchParams.append("classId", classId);
+        apiUrl.searchParams.append("subjectId", subjectid);  
+        apiUrl.searchParams.append("semesterId", smsid);  
+
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            console.log("API Response Data:", data); 
+            showDiyScoresBox(smsid,subjectid,subjectName,data.data.evaluationProjectList);
+        } catch (error) {
+            console.error("Fetch failed:", error);
+        }
+    });
+
+    return;//old method
     console.log("SendMSG:",data);
     send_comp_msg("gb_getSavedData",data,0);
 }
 
 
-function showDiyScoresBox(smsId,subjectId,subjectName,model,existList){
-    console.log(existList,"sdad");
+function showDiyScoresBox(smsId,subjectId,subjectName,assignmentList){
+    console.log(assignmentList);
     let tmp_target = document.getElementsByClassName("ng-scope fe-components-stu-app-realtime-list-__xbDialogModal--32pq02X2epeJa2CLnNeez5")[0];
     if(!tmp_target){
         console.log("[ShowDiyScoresBox]Target Not Found");
         return;
     }
-    selectionList = `
-    <option value="Comprehensive Assessments">${tlang("综合性评估","Comprehensive Assessments")}</option>
-    <option value="Continuous Assessments">${tlang("连续性评估","Continuous Assessments")}</option>
-    <option value="Progressive Assessments">${tlang("渐进式评估","Progressive Assessments")}</option>
-    <option value="Final exam">${tlang("期末考试","Final Exam")}</option>
-    `
-    if(model == 1){
-        selectionList = `<option value="Comprehensive Assessments">${tlang("综合性评估","Comprehensive Assessments")}</option>`
-    }
+    let selectionList = `<option value="none" disabled selected>${tlang("任务类别","Select Category")}</option>`;
+    assignmentList.forEach(assignment => {
+        selectionList += `
+            <option value="${assignment.evaluationProjectEName}">
+            ${tlang(assignment.evaluationProjectName, assignment.evaluationProjectEName)}
+            </option>
+        `;
+    });
     mainHtml = `<div ng-class="styles.xbDialogModal" ng-if="$ctrl.showDialog" class="ng-scope fe-components-stu-app-realtime-list-__xbDialogModal--32pq02X2epeJa2CLnNeez5">
-	<div ng-class="styles.xbDialogModalBox" style="width:990px"class="fe-components-stu-app-realtime-list-__xbDialogModalBox--1hItMXot7XJyswrPjZ2WjQ">
+	<div ng-class="styles.xbDialogModalBox" style="width:990px; max-height:680px"class="fe-components-stu-app-realtime-list-__xbDialogModalBox--1hItMXot7XJyswrPjZ2WjQ">
 		<div ng-class="[styles.header, commonStyles.clearFix]" class="fe-components-stu-app-realtime-list-__header--2llDMOt0zjGNFxFvoV5VBp fe-shared-css-__clearFix--2mg8N64gHXU6X_nBPlhIaB">
-			<span ng-class="styles.modelTitle" class="ng-binding fe-components-stu-app-realtime-list-__modelTitle--8I6j6U9niNNfZsIj8855i">导入任务</span>
+			<span ng-class="styles.modelTitle" class="ng-binding fe-components-stu-app-realtime-list-__modelTitle--8I6j6U9niNNfZsIj8855i">${tlang("预测成绩变化","Predict Score Changing")}</span>
 			<span ng-class="styles.closeIcon" ng-click="closeModal()" class="fe-components-stu-app-realtime-list-__closeIcon--21rEx3pvaQh2o8ssUTWfBv"></span>
 		</div>
 		<div id="gb-body" ng-class="styles.body" class="fe-components-stu-app-realtime-list-__body--KTwHV_4KFA0kqa0udu2GW">
             <br><br>
             <div style="margin-bottom: 20px;">
-            	<p style="font-size: 14px; margin-right: 8px;">学期ID：${smsId}&nbsp&nbsp&nbsp&nbsp科目：${subjectName} </p>
+            	<p style="font-size: 14px; margin-right: 8px;">${tlang("学期ID","SemesterId")}：${smsId}&nbsp&nbsp&nbsp${tlang("&nbsp科目：","Subject:")}${subjectName} </p>
             </div>
             <div style="margin-bottom: 20px;">
-                <label style="font-size: 14px; margin-right: 4px;">任务名称:</label>
-                <input id="gb_aName" type="text" style="line-height: 20px; padding: 3px 5px; border: 1px solid #ccc; border-radius: 4px; margin-right: 24px;">
-                <label style="font-size: 14px; margin-right: 4px;">得分:</label>
-                <input id="gb_aScore" type="number" style="line-height: 20px; padding: 3px 5px; border: 1px solid #ccc; border-radius: 4px; width: 60px;margin-right: 24px;">
-                <label style="font-size: 14px; margin-right: 4px;">分类:</label>
+                <label style="font-size: 14px; margin-right: 4px;">${tlang("任务名称","TaskName")}:</label>
+                <input placeholder="${tlang("自定义名称","AnyName")}"  id="gb_aName" type="text" style="line-height: 20px; padding: 3px 5px; border: 1px solid #ccc; border-radius: 4px; margin-right: 24px;">
+                <label style="font-size: 14px; margin-right: 4px;">${tlang("得分(%)","Score(%)")}:</label>
+                <input placeholder="分数" id="gb_aScore" type="number" style="line-height: 20px; padding: 3px 5px; border: 1px solid #ccc; border-radius: 4px; width: 60px;margin-right: 24px;">
+                <label style="font-size: 14px; margin-right: 4px;">${tlang("类别","Category")}:</label>
                 <select id="gb_cataSelect" style="padding: 3px 5px; border: 1px solid #ccc; border-radius: 4px;margin-right: 20px;">
                     ${selectionList}
                 </select>
                 <p id="gb_propDis" style="font-size: 14px; margin-right: 4px;display: inline-block;">占比: -%</p>
-                <button id="gb_appendBtn" style="font-size: 12px;background-color: #4CAF50; color: white; padding: 6px 9px; border: none; border-radius: 4px; margin-left: 62px; cursor: pointer;">添加到列表</button>
+                <button id="gb_appendBtn" style="font-size: 12px;background-color: #4CAF50; color: white; padding: 6px 9px; border: none; border-radius: 4px; margin-left: 62px; cursor: pointer;">${tlang("添加到列表","Add to List")}</button>
             </div>
             <div style="margin-bottom: 20px;">
             	<div style="border: 0.2px solid #ccc; border-radius: 4px;width: 100%; margin: 0 auto; overflow-x: hidden; overflow-y: auto;">
@@ -1506,14 +2132,23 @@ function showDiyScoresBox(smsId,subjectId,subjectName,model,existList){
                 </div>
               </div>
             </div>
-            <button id="gb_nextStepBtn" style="font-size: 14px;background-color: #4CAF50; color: white; padding: 7px 10px; border: none; border-radius: 4px; position:absolute; bottom:10; right:31px; cursor: pointer;">下一步</button>
+            <div style="margin-bottom: 20px;">
+            	<div id="SubjectTotal_div" style="font-size: 15px; display: flex; align-items: center; justify-content: space-between; padding: 10px; background-color: rgba(255, 246, 203, 0.85); margin-bottom: 3px; margin-top: 3px; border-radius: 5px; box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 4px; cursor: pointer; transition: background-color 0.5s ease-in-out;">
+                <span style="flex: 2; text-align: left;">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="16px" viewBox="0 -960 960 960" width="16px" fill="#8B1A10" style="margin-bottom: -3px;"><path d="M400-240v-80h62l105-120-105-120h-66l-64 344q-8 45-37 70.5T221-120q-45 0-73-24t-28-64q0-32 17-51.5t43-19.5q25 0 42.5 17t17.5 41q0 5-.5 9t-1.5 9q5-1 8.5-5.5T252-221l62-339H200v-80h129l21-114q7-38 37.5-62t72.5-24q44 0 72 26t28 65q0 30-17 49.5T500-680q-25 0-42.5-17T440-739q0-5 .5-9t1.5-9q-6 2-9 6t-5 12l-17 99h189v80h-32l52 59 52-59h-32v-80h200v80h-62L673-440l105 120h62v80H640v-80h32l-52-60-52 60h32v80H400Z"></path></svg>
+                    &nbsp;${tlang("学科总成绩","Subject Score")}
+                </span>
+                <span style="flex: 1; text-align: center;">
+                </span>
+                <span id="SubjectTotal_score" style="flex: 1 1 0%; text-align: center; transition: transform 0.3s ease-in-out; transform: scale(1);">-% / -</span>
+                </div>
+            </div>
 		</div>
 	</div>
     </div>
     `; //Main Html of the box
     let oriScore = document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__score--1e6GrTtGfRHkKF-12OE_J3")[0].innerText;
     tmp_target.innerHTML = mainHtml;
-    var listitem_Html = 'H';
     document.getElementsByClassName("fe-components-stu-app-realtime-list-__closeIcon--21rEx3pvaQh2o8ssUTWfBv")[0].addEventListener("click", function() {
         closeGcalcBox();
     });
@@ -1522,82 +2157,117 @@ function showDiyScoresBox(smsId,subjectId,subjectName,model,existList){
     const selectElement = document.getElementById("gb_cataSelect");
     const pElement = document.getElementById("gb_propDis");
 
-    
-    if(model == 0){
-        switch (selectElement.value) {
-            case "Comprehensive Assessments":
-                pElement.textContent = "占比: 20%";
-                break;
-            case "Continuous Assessments":
-            case "Progressive Assessments":
-                pElement.textContent = "占比: 30%";
-                break;
-            case "Final exam":
-                pElement.textContent = "占比: 20%";
-                break;
-            default:
-                pElement.textContent = "占比: 30%";
-        }
-    }else{
-        pElement.textContent = "占比: 100%";
-    }
+    pElement.textContent = "";
 
-    // 监听 select 元素的 change 事件
     selectElement.addEventListener("change", function() {
-        // 根据选中的值设置 p 元素的内容
-        if(model == 0){
-            switch (selectElement.value) {
-                case "Comprehensive Assessments":
-                    pElement.textContent = "占比: 20%";
-                    break;
-                case "Continuous Assessments":
-                case "Progressive Assessments":
-                    pElement.textContent = "占比: 30%";
-                    break;
-                case "Final exam":
-                    pElement.textContent = "占比: 20%";
-                    break;
-                default:
-                    pElement.textContent = "占比: 30%";
-            }
-        }else{
-            pElement.textContent = "占比: 100%";
-        }
-        
+        const selectedItem = assignmentList.find(
+            item => item.evaluationProjectEName === selectElement.value
+        );
+        const proportion = selectedItem?.proportion ?? 30;//default
+        pElement.textContent = `${tlang("占比","Prop")}: ${proportion}%`;
+        pElement.gcValue = proportion;
     });
-    var pendingAssignmentList = [];    
+    var pendingAssignmentList = [];  
+    sys_showload(false);  
+    assignmentList.forEach(item => {
+        const categoryHtml = `
+            <div id="${item.evaluationProjectEName}_div" style="font-size:13px; display: flex; align-items: center; justify-content: space-between; padding: 10px; background-color: rgba(255, 246, 203, 0.85); margin-bottom: 3px; margin-top: 3px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer;">
+            <span style="flex: 2; text-align: left;">
+                ${tlang(item.evaluationProjectName, item.evaluationProjectEName)}(${item.proportion}%)
+            </span>
+            <span style="flex: 1; text-align: center;">
+            </span>
+            <span scoreValue="${item.scoreIsNull?null:item.score}" gc_prop=${item.proportion} id="${item.evaluationProjectEName}_score" style="flex: 1; text-align: center;">
+                ${item.scoreIsNull?"-":item.score}% / ${item.scoreIsNull?"-":item.scoreLevel}
+            </span>
+            </div>
+        `;
+        document.getElementById("gb_listbox").insertAdjacentHTML('beforeend', categoryHtml);
 
-    console.log("exl:",existList,existList.length);
-    for(let i=0;i<existList.length;i++){
-        const paddedAssignmentName = padSpaces(existList[i].name.replace("[G]", ""), 30);
-        const paddedAssignmentScore = padSpaces(existList[i].score, 4)+'%';
-        const paddedAssignmentCata = padSpaces(existList[i].cataName, 15);
-        const paddedAssignmentProp = padSpaces('('+existList[i].proportion, 4)+'%)';
-        const itemStr = "&nbsp;" + paddedAssignmentName + "&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[&ensp;&ensp;" + paddedAssignmentScore + "&emsp;-&emsp;" + paddedAssignmentCata + "&ensp;" + paddedAssignmentProp+"&ensp;&ensp;]";
-        listitem_Html = `<div class="added_assignment_showBox" style="display: flex; align-items: center; text-align: center; justify-content: space-between; padding: 10px; background-color: rgba(255,255,255, 0.85); margin-bottom: 3px;margin-top: 3px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); cursor: pointer;"><span>${itemStr}</span></div>`;
-        document.getElementById("gb_listbox").insertAdjacentHTML('beforeend', listitem_Html);
-    }
+        let calcedAvg = 0;
+        let calcedAvgCnt = 0;
+       
+        item.learningTaskAndExamList.forEach(taskitem => {
+            const listItemHtml = `
+                <div class="${item.evaluationProjectEName}" style="display: flex; align-items: center; justify-content: space-between; padding: 10px; background-color: rgba(255, 255, 255, 0.85); margin-bottom: 3px; margin-top: 3px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer;">
+                <span title="${taskitem.name}" style="flex: 2; text-align: left;">
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <img src="https://cdn.schoolis.cn/sis/favicon/sis.ico" style="width:16px; height:16px; vertical-align: middle; margin-right: 6px;" />
+                    &nbsp;&nbsp;${limitBytes(taskitem.name, 70)}
+                </span>
+                <span style="flex: 1; text-align: center;">
+                    
+                </span>
+                <span  title="${tlang("详细","Details")}: ${taskitem.score}/${taskitem.totalScore}"  style="flex: 1; text-align: center;">
+                    ${taskitem.score===null?"-&nbsp;":(taskitem.score/taskitem.totalScore*100).toFixed(1)}% 
+                </span>
+                </div>
+            `;
+            if(taskitem.score!==null){
+                calcedAvg += taskitem.score/taskitem.totalScore*100;
+                calcedAvgCnt++;
+                document.getElementById("gb_listbox").insertAdjacentHTML('beforeend', listItemHtml);
+                let newTarget = document.getElementById("gb_listbox").getElementsByClassName(item.evaluationProjectEName)[(document.getElementById("gb_listbox").getElementsByClassName(item.evaluationProjectEName)).length-1];
+                newTarget.addEventListener("click", function() {
+                    let assignmentScore = taskitem.score/taskitem.totalScore*100;
+                    let assignmentCata = item.evaluationProjectEName;
+                    let insertTarget=document.getElementById("gb_listbox").getElementsByClassName(assignmentCata);
+                    sendtopSeccesstip(tlang("原生项目已移除","Original Assignment Removed"));
+    
+                    let cateScore = document.getElementById(assignmentCata + "_score").getAttribute("scoreValue") ? parseFloat(document.getElementById(assignmentCata + "_score").getAttribute("scoreValue")) : null;
+                
+                    // 修复：如果原来 cateScore 是空，就直接置0。其余情况正常计算
+                    if(insertTarget.length<=1){
+                        document.getElementById(assignmentCata + "_score").textContent = "-% / -";
+                        document.getElementById(assignmentCata + "_score").setAttribute("scoreValue", null);
+                    }else{
+                        let newCateScore = cateScore
+                        ? (cateScore * insertTarget.length - parseFloat(assignmentScore)) / (insertTarget.length - 1)
+                        : -1;
+                        document.getElementById(assignmentCata + "_score").textContent = `${newCateScore.toFixed(1)}% / ${scoreToLevel(newCateScore)}`;
+                        document.getElementById(assignmentCata + "_score").setAttribute("scoreValue", newCateScore);
+                        console.log(newCateScore," is calc:",cateScore,"*",insertTarget.length,"-",parseFloat(assignmentScore),"/",insertTarget.length-1);
+                    }         
+    
+                    if(document.getElementById(assignmentCata + "_score").textContent=="Infinity% / "||document.getElementById(assignmentCata + "_score").textContent=="NaN% / "||document.getElementById(assignmentCata + "_score").textContent.includes("-1")){
+                        document.getElementById(assignmentCata + "_score").textContent = "-% / -";
+                        document.getElementById(assignmentCata + "_score").setAttribute("scoreValue", null);
+                    }
+                    setTimeout(() => {
+                        const newOverall = gb_calcTotalScore();
+                        document.getElementById("SubjectTotal_score").textContent = `${newOverall}% / ${scoreToLevel(newOverall)}`;
+                        document.getElementById("SubjectTotal_score").setAttribute("scoreValue", newOverall);
+                    }, 80);
+                
+                    this.remove();
+                });
+            }
+            
+        });
+        if(calcedAvgCnt>0) document.getElementById(`${item.evaluationProjectEName}_score`).setAttribute("scorevalue", calcedAvg/calcedAvgCnt);
+    });
+    //init overallScore 
+    document.getElementById("SubjectTotal_score").textContent = `${gb_calcTotalScore()}% / ${scoreToLevel(gb_calcTotalScore())}`;
 
     document.getElementById("gb_appendBtn").addEventListener("click", function() {
-        const assignmentName = document.getElementById("gb_aName").value;
+        if(!document.getElementById("gb_aScore").value){
+            sendTopErrortip(tlang("请先填写自定义分数","Please enter the custom score first"));
+            return;
+        }
+        if(document.getElementById("gb_cataSelect").value=="none"){
+            sendTopErrortip(tlang("请先选择任务类别","Please select a category first"));
+            return;
+        }
+
+        const assignmentName = document.getElementById("gb_aName").value==""?`${tlang("用户自定义任务","Custom Assignment")}${(Math.random()*10000).toFixed(0)}`:document.getElementById("gb_aName").value;
         const assignmentScore = document.getElementById("gb_aScore").value;
         const assignmentCata = document.getElementById("gb_cataSelect").value;
-        let assignmentProp=0;
-        switch (assignmentCata) {
-            case "Comprehensive Assessments":
-                assignmentProp = 20;
-                break;
-            case "Continuous Assessments":
-            case "Progressive Assessments":
-                assignmentProp = 30;
-                break;
-            case "Final exam":
-                assignmentProp = 20;
-                break;
-            default:
-                assignmentProp = 30;
+        const assignmentProp = document.getElementById("gb_propDis").gcValue;   
+                        
+        if(assignmentScore<0||assignmentScore>100){
+            sendTopErrortip(tlang("分数必须在0~100之间","Score must be between 0~100"));
+            return;
         }
-                               
         let inputInfo = {
             smsId: smsId,
             subjectId: subjectId,
@@ -1606,26 +2276,165 @@ function showDiyScoresBox(smsId,subjectId,subjectName,model,existList){
             cataname: assignmentCata,
             proportion: assignmentProp
         }
-        pendingAssignmentList.push(inputInfo);                     
-        const paddedAssignmentName = padSpaces(assignmentName, 30);
-        const paddedAssignmentScore = padSpaces(assignmentScore, 4)+'%';
-        const paddedAssignmentCata = padSpaces(assignmentCata, 15);
-        const paddedAssignmentProp = padSpaces('('+assignmentProp, 4)+'%)';
-        const itemStr = "&nbsp;" + paddedAssignmentName + "&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[&ensp;&ensp;" + paddedAssignmentScore + "&emsp;-&emsp;" + paddedAssignmentCata + "&ensp;" + paddedAssignmentProp+"&ensp;&ensp;]";
-        listitem_Html = `<div class="added_assignment_showBox" style="display: flex; align-items: center; text-align: center; justify-content: space-between; padding: 10px; background-color: rgba(255,255,255, 0.85); margin-bottom: 3px;margin-top: 3px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); cursor: pointer;"><span>${itemStr}</span></div>`;
-        document.getElementById("gb_listbox").insertAdjacentHTML('beforeend', listitem_Html);
-        console.log(pendingAssignmentList);
+        const listItemHtml = `
+                <div class="${assignmentCata}" style="display: flex; align-items: center; justify-content: space-between; padding: 10px; background-color: rgba(255, 255, 255, 0.85); margin-bottom: 3px; margin-top: 3px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer;">
+                <span title="${assignmentName}" style="flex: 2; text-align: left;">
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <img src="${chrome.runtime.getURL("icon.png")}" style="width:15.5px; height:15.5px; vertical-align: middle; margin-top:-2px; margin-right: 6px;" />
+                    &nbsp;&nbsp;${limitBytes(assignmentName, 70)}
+                </span>
+                <span style="flex: 1; text-align: center;">
+                    
+                </span>
+                <span title="${tlang("自定义项目","Entered Score")}"  style="flex: 1; text-align: center;">
+                    ${Number(assignmentScore).toFixed(1)}% 
+                </span>
+                </div>
+            `;
+            let insertTarget=document.getElementById("gb_listbox").getElementsByClassName(assignmentCata);
+
+            if(insertTarget.length==0){
+                console.log("no target");
+                insertTarget=[document.getElementById(assignmentCata+"_div")]
+                console.log(insertTarget);
+            }
+            insertTarget[insertTarget.length-1]?.insertAdjacentHTML('afterend', listItemHtml);
+
+            let newTarget = document.getElementById("gb_listbox").getElementsByClassName(assignmentCata)[(document.getElementById("gb_listbox").getElementsByClassName(assignmentCata)).length-1];
+            console.log(newTarget)
+
+            newTarget.addEventListener("click", function() {
+                let insertTarget=document.getElementById("gb_listbox").getElementsByClassName(assignmentCata);
+                sendtopSeccesstip(tlang("自定义项目已移除","Cunstom Assignment Removed"));
+
+                let cateScore = document.getElementById(assignmentCata + "_score").getAttribute("scoreValue") ? parseFloat(document.getElementById(assignmentCata + "_score").getAttribute("scoreValue")) : null;
+            
+                // 修复：如果原来 cateScore 是空，就直接置0。其余情况正常计算
+                let newCateScore = cateScore
+                    ? (cateScore * insertTarget.length - parseFloat(assignmentScore)) / (insertTarget.length - 1)
+                    : -1;
+                console.log(newCateScore," is calc:",cateScore,"*",insertTarget.length,"-",parseFloat(assignmentScore),"/",insertTarget.length-1);
+            
+                document.getElementById(assignmentCata + "_score").textContent = `${newCateScore.toFixed(1)}% / ${scoreToLevel(newCateScore)}`;
+                document.getElementById(assignmentCata + "_score").setAttribute("scoreValue", newCateScore);
+
+                if(document.getElementById(assignmentCata + "_score").textContent=="NaN% / "||document.getElementById(assignmentCata + "_score").textContent.includes("-1")){
+                    document.getElementById(assignmentCata + "_score").textContent = "-% / -";
+                    document.getElementById(assignmentCata + "_score").setAttribute("scoreValue", null);
+                }
+                setTimeout(() => {
+                    const newOverall = gb_calcTotalScore();
+                    document.getElementById("SubjectTotal_score").textContent = `${newOverall}% / ${scoreToLevel(newOverall)}`;
+                    document.getElementById("SubjectTotal_score").setAttribute("scoreValue", newOverall);
+                }, 80);
+            
+                this.remove();
+            });
+            
+
+            let cateScoreDiv = document.getElementById(assignmentCata + "_score").getAttribute("scoreValue");
+            let cateScore = cateScoreDiv ? parseFloat(cateScoreDiv) : null;
+
+
+            
+            let newCateScore = cateScore ? (cateScore*(insertTarget.length-1) + parseFloat(assignmentScore))/(insertTarget.length) : parseFloat(assignmentScore);
+            //Update Score
+            
+            document.getElementById(assignmentCata+"_score").textContent = `${newCateScore.toFixed(1)}% / ${scoreToLevel(newCateScore)}`;
+            document.getElementById(assignmentCata+"_score").setAttribute("scoreValue",newCateScore);
+
+            //ANIMATION
+            let scoreElement = document.getElementById(assignmentCata + "_score");
+            let divElement = document.getElementById(assignmentCata + "_div");
+
+            scoreElement.style.transition = "transform 0.3s ease-in-out";
+            scoreElement.style.transform = "scale(1.5)";
+            setTimeout(() => {
+                scoreElement.style.transform = "scale(1)";
+            }, 300);
+            
+            divElement.style.transition = "background-color 0.5s ease-in-out";
+            divElement.style.backgroundColor = newCateScore>=(cateScore?cateScore:0)?"rgb(30, 244, 137)":"rgba(235, 144, 144, 0.85)"; 
+            setTimeout(() => {
+                divElement.style.backgroundColor = "rgba(255, 246, 203, 0.85)"; 
+            }, 500);
+
+            //Animation:OverallScore
+            let tscateScoreDiv = document.getElementById("SubjectTotal_score").textContent.trim();
+            let tsmatch = tscateScoreDiv.match(/^([\d.]+)% /);
+            tsmatch = tsmatch ? parseFloat(tsmatch[1]) : 0;
+
+
+
+
+            setTimeout(() => {
+                const newOverall = gb_calcTotalScore();
+                document.getElementById("SubjectTotal_score").textContent = `${newOverall}% / ${scoreToLevel(newOverall)}`;
+                document.getElementById("SubjectTotal_score").setAttribute("scoreValue", newOverall);
+                let TscoreElement = document.getElementById("SubjectTotal_score");
+                let TdivElement = document.getElementById("SubjectTotal_div");
+
+                TscoreElement.style.transition = "transform 0.3s ease-in-out";
+                TscoreElement.style.transform = "scale(1.5)";
+                setTimeout(() => {
+                    TscoreElement.style.transform = "scale(1)";
+                }, 300);
+                
+                TdivElement.style.transition = "background-color 0.5s ease-in-out";
+                TdivElement.style.backgroundColor = newCateScore>=(tsmatch)?"rgb(30, 244, 137)":"rgba(235, 144, 144, 0.85)"; 
+                setTimeout(() => {
+                    TdivElement.style.backgroundColor = "rgba(255, 246, 203, 0.85)"; 
+                }, 500);
+            }, 60);
+            
+            
+            
+
+
     });
     document.getElementById("gb_nextStepBtn").addEventListener("click", function() {
-            if(pendingAssignmentList.length==0){
-                alert("请添加至少一个作业");
-            }else{
-                send_comp_msg("gb_addtoUsrList",pendingAssignmentList,oriScore);
-                showState2DiyScoresBox(smsId,subjectId,subjectName,oriScore);
-            }
+        showState2DiyScoresBox(smsId,subjectId,subjectName,oriScore);
     });
 
 }
+    
+function gb_calcTotalScore(){
+    const select=document.getElementById("gb_cataSelect");
+    let totalScore = 0;
+    let totalWeight = 0;
+    Array.from(select.options)
+    .filter(option => option.value !== "none") // 排除"任务类别"提示
+    .forEach(option => {
+        let titleDiv = document.getElementById(option.value + "_score")
+        let match = document.getElementById(option.value + "_score").getAttribute("scoreValue")
+        if (match!==null&&match!==undefined&&match>=0&&match!="null") {
+            let cateScore = match ? parseFloat(match) : null;
+            totalScore += cateScore*parseInt(titleDiv.getAttribute("gc_prop"));
+            totalWeight += parseInt(titleDiv.getAttribute("gc_prop"));
+            
+        }
+
+    });
+    //console.log(totalScore,totalWeight,totalScore/totalWeight);
+    return (totalScore/totalWeight).toFixed(1);
+}
+
+
+
+function limitBytes(str, maxBytes) {
+    let bytes = 0;
+    let result = "";
+    
+    for (let char of str) {
+        let charBytes = encodeURIComponent(char).length > 2 ? 2 : 1; 
+        if (bytes + charBytes > maxBytes) break; 
+        result += char;
+        bytes += charBytes;
+    }
+    
+    return bytes < maxBytes ? result : result + ".."; 
+}
+
 function padSpaces(str, targetLength) {
     //return str.padEnd(6)
     const paddingLength = Math.max(0, targetLength - str.length);
@@ -1634,13 +2443,10 @@ function padSpaces(str, targetLength) {
 
 //addNewUsrAssignment(smsid,subjectid,name, percentageScore,proportion,cataName)
 
-function send_comp_msg(msgtype, data, addData) {
-    chrome.runtime.sendMessage({
-        type: msgtype,
-        data: data,
-        additionalData: addData
-    });
-
+function send_comp_msg(msgtype, data = null, addData = null) {
+    if (chrome.runtime?.id) {
+        chrome.runtime.sendMessage({ type: msgtype, data, additionalData: addData });
+    }
 }
 
 function showState2DiyScoresBox(smsId,subjectId,subjectName,oriScore){
@@ -1691,7 +2497,7 @@ function showState2DiyScoresBox(smsId,subjectId,subjectName,oriScore){
     <button id="gb_finishBtn" style="font-size: 14px;background-color: #4CAF50; color: white; padding: 7px 10px; border: none; border-radius: 4px; position:absolute; bottom:25px; right:31px; cursor: pointer;">确认</button>
 </div>
     `; 
-    document.getElementById("gb-body").remove();
+    document.getElementById("gb-body").style.display = "none";
     document.getElementsByClassName("fe-components-stu-app-realtime-list-__xbDialogModalBox--1hItMXot7XJyswrPjZ2WjQ")[0].insertAdjacentHTML('beforeend', mainHtml);
     document.getElementsByClassName("fe-components-stu-app-realtime-list-__closeIcon--21rEx3pvaQh2o8ssUTWfBv")[0].addEventListener("click", function() {
         closeGcalcBox();
@@ -1729,15 +2535,17 @@ function ribbon_Fireworks(duration_Seconds){
     confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
     }, 250);
 }
+
+
+
 function addSmsCalcState(data){
     let cur = data.cur;
     let oval = data.oval;
     // 悬浮窗更新代码
-    totalUpdates = oval;
     if(cur > currentUpdate){
         upgradeProgress();
         currentUpdate = cur;
-    }
+    };
 
     if(cur == oval){
         //
@@ -1750,7 +2558,7 @@ function addCalcState(data,redotimes){
 
         // 悬浮窗更新代码
         /*
-        totalUpdates = oval;
+        7 = oval;
         if(cur > currentUpdate){
             upgradeProgress();
             currentUpdate = cur;
@@ -1773,7 +2581,7 @@ function addCalcState(data,redotimes){
         if(cur>0 && cur<oval && oval>1){
             setTimeout(() => {
                 resetRing(0); // 重置环
-            }, 500);
+            }, 50);
             document.getElementById("progress-text").innerText=`${cur} / ${oval}`;
             return;
         }
@@ -1783,7 +2591,7 @@ function addCalcState(data,redotimes){
              setTimeout(() => {
                //  targ.remove();
                  resetRing(1);
-             }, oval==1? 500:700);
+             }, oval==1? 50:70);
         }
         
         //targ.innerText = tlang(`计算中 (${cur}/${oval})`,`Processing (${cur} / ${oval})`)
@@ -2025,6 +2833,7 @@ function POP_addPopComponent(){
 
 
 function addSubmitLinkBtn(assignmentId,redotimes){
+    return;//关闭25.2.12
     try{
         let mHtml = `<button sync-click="$ctrl.clickFun()" ng-disabled="$ctrl.isDisabled" ng-class="[$ctrl.styles.cancel,$ctrl.styles[$ctrl.isDisabled?'disabled':'']]" style="height:30px;margin-left: 10px;" title="加入链接" class="ng-binding fe-components-xb-rest-btn-__cancel--GAK6A0SPZh0p3LOnXTukB" id="gcalc_addLink">
         <img ng-if="$ctrl.src" ng-class="$ctrl.styles.img" ng-src="//cdn.schoolis.cn/sis/release/student/fe_stu/fe_build/images/iconUpload.e12a6658cac5bd82cf3279f0edd086da.png" class="ng-scope fe-components-xb-rest-btn-__img--lETa8z2YkhgS2-Jzh69Al" 
@@ -2060,35 +2869,6 @@ function addSubmitLinkBtn(assignmentId,redotimes){
 }
 
 
-const asciiArt = `
-   _____ _                        _       _             
-  / ____(_)                      | |     | |            
- | |  __ _  __ _  ___   ___ _   _| | __ _| |_ ___  _ __ 
- | | |_ | |/ _\` |/ _ \\ / __| | | | |/ _\` | __/ _ \\| '__|
- | |__| | | (_| | (_) | (__| |_| | | (_| | || (_) | |   
-  \\_____|_|\\__,_|\\___/ \\___|\\__,_|_|\\__,_|\\__\\___/|_|   
-                                                        
-==============================================================
-Welcome!
-Feel free to report an issue or submit a suggestion:
-https://jinshuju.net/f/D5NtDf
-
-Creator: Peter Li
-Co-Creator: Leo Huo
-
-Github Homepage: https://github.com/Haoxuan1016/Giaoculator
-==============================================================
-                                                        `;
-
-// 彩色输出函数
-function colorfulConsoleMessage() {
-  console.log(asciiArt);
-}
-
-// 调用函数显示彩色信息和字符画
-setTimeout(() => {
-    colorfulConsoleMessage();    
-}, 1000);
 
 
 function addTeamsAssignmentsBigBtn() {
@@ -2195,4 +2975,259 @@ function insertTeamsLogoLink() {
 
 function showTeamsAssignmentsBox(){
 
+}
+
+
+
+function showFetchedAssignmentData_toPage(score,redotimes){
+    //console.log("AppendHidden",score)
+    try {
+            boxHtml = `<div ng-if="taskDetailInfo.mode==0" class="ng-scope">
+        <!-- 成绩信息 -->
+        <div id="middleItem" style="opacity: 1;" ng-class="styles.scoreInfo" ng-show="taskDetailInfo.isSynchroToMobiled" class="fe-components-stu-app-task-detail-__scoreInfo--34-hc2syVrNGe_yeBKsnL0">
+            <div ng-class="[styles.middleItem,styles.allItem]" class="fe-components-stu-app-task-detail-__middleItem--1DW5FAgpA9y2Sgz8UxIRt8 fe-components-stu-app-task-detail-__allItem--a5TghcQ70cF8KuTHc_wWG">
+                <p ng-class="styles.itemTitle" class="ng-binding fe-components-stu-app-task-detail-__itemTitle--3aPG2yQzSZqW_YgP0JC9bO">任务成绩</p>
+                
+                <!-- ngIf: taskDetailInfo.scoreType==1 --><div style="text-align: center" ng-if="taskDetailInfo.scoreType==1" class="ng-scope">
+                    <div ng-class="[styles.itemScore,taskDetailInfo.score!==null?'':styles.itemScoreNone]" class="ng-binding fe-components-stu-app-task-detail-__itemScore--1nuolF1pAilxxSB6o8b2Rx" style="text-shadow: rgb(187, 255, 187) 0px 0px 10px;">
+                        ${score>-1?score:""}
+                    </div>
+                    <div ng-class="styles.itemClassInfo" class="fe-components-stu-app-task-detail-__itemClassInfo--2Ist05O25K5lXA-9nAmiDO">
+                        <!-- ngIf: taskDetailInfo.displayClassAvgScore -->
+                        <!-- ngIf: taskDetailInfo.displayClassMaxScore -->
+                    <img src="${chrome.runtime.getURL("res/icon.png")}" id="gcalc2ScoresIcon" alt="Ico" style="vertical-align: middle; margin-right: 5px; height: 24px;"><p ng-class="styles.itemClassInfoShow" ng-if="taskDetailInfo.displayClassAvgScore" class="ng-binding ng-scope fe-components-stu-app-task-detail-__itemClassInfoShow--359Ece2CkimkinYlmlxVbP">${score>-1?tlang("&nbsp;&nbsp;Giaoculator 已获取分数","&nbsp;&nbsp;Score Fetched from Server"):tlang("&nbsp;&nbsp;校宝系统暂无该项目数据","&nbsp;&nbsp;No Aviliable Data")}</p></div>
+                </div><!-- end ngIf: taskDetailInfo.scoreType==1 -->
+                <!-- 手动等级 -->
+                <!-- ngIf: taskDetailInfo.scoreType==2 -->
+            </div>
+        </div>
+        <!-- 教师点评 -->
+        <!-- ngIf: taskDetailInfo.comment||(teacherCommentDocuments1.length !=0||teacherCommentDocuments2.length != 0) -->
+    </div>`;
+    document.getElementsByClassName("fe-components-stu-app-task-detail-__scoreInfo--34-hc2syVrNGe_yeBKsnL0")[0].parentElement.innerHTML = boxHtml;
+    } catch (error) {
+        setTimeout(() => {
+            if(redotimes<10){
+                showFetchedAssignmentData_toPage(score,redotimes+1);
+            }
+            
+        }, redotimes*20);
+    }
+   }
+
+function observeUrlChange(callbacks) {
+    let currentUrl = window.location.href;
+    const checkUrl = () => {
+        const newUrl = window.location.href;
+        if (newUrl !== currentUrl) {
+            currentUrl = newUrl;
+            Object.entries(callbacks).forEach(([url, func]) => {
+                if (newUrl.includes(url)) func();
+            });
+        }
+    };
+    const observer = new MutationObserver(checkUrl);
+    observer.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener("popstate", checkUrl);
+    ["pushState", "replaceState"].forEach(type => {
+        const original = history[type];
+        history[type] = function (...args) {
+            original.apply(this, args);
+            checkUrl();
+        };
+    });
+    checkUrl();
+}
+
+function scoreToLevel(score) {
+    const scoreMappingConfigs = [
+        { displayName: "A+", minValue: 97, maxValue: 9999.9, isContainMin: true, isContainMax: true },
+        { displayName: "A", minValue: 93, maxValue: 96.9999, isContainMin: true, isContainMax: true },
+        { displayName: "A-", minValue: 90, maxValue: 92.9999, isContainMin: true, isContainMax: true },
+        { displayName: "B+", minValue: 87, maxValue: 89.9999, isContainMin: true, isContainMax: true },
+        { displayName: "B", minValue: 83, maxValue: 86.9999, isContainMin: true, isContainMax: true },
+        { displayName: "B-", minValue: 80, maxValue: 82.9999, isContainMin: true, isContainMax: true },
+        { displayName: "C+", minValue: 77, maxValue: 79.9999, isContainMin: true, isContainMax: true },
+        { displayName: "C", minValue: 73, maxValue: 76.9999, isContainMin: true, isContainMax: true },
+        { displayName: "C-", minValue: 70, maxValue: 72.9999, isContainMin: true, isContainMax: true },
+        { displayName: "D+", minValue: 67, maxValue: 69.9999, isContainMin: true, isContainMax: true },
+        { displayName: "D", minValue: 63, maxValue: 66.9999, isContainMin: true, isContainMax: true },
+        { displayName: "D-", minValue: 60, maxValue: 62.9999, isContainMin: true, isContainMax: true },
+        { displayName: "F", minValue: 0, maxValue: 59.9999, isContainMin: true, isContainMax: true }
+    ];
+
+    const numericScore = Number(score);
+    
+    for (const config of scoreMappingConfigs) {
+        const { minValue, maxValue, isContainMin, isContainMax, displayName } = config;
+        const lowerBound = isContainMin ? (numericScore >= minValue) : (numericScore > minValue);
+        const upperBound = isContainMax ? (numericScore <= maxValue) : (numericScore < maxValue);
+        
+        if (lowerBound && upperBound) {
+            return displayName;
+        }
+    }
+    
+    return ""; //Nan
+}
+
+function showGPABox_BuildItem(subjectName,subjectWeight,gpa,noweight_gpa,btn){
+    let mainHtml = `<li ng-repeat="items in $ctrl.evaluationProjectList" class="ng-scope">
+						<ul ng-class="commonStyles.clearFix" ng-click="toggleChildItem($index)" class="fe-shared-css-__clearFix--2mg8N64gHXU6X_nBPlhIaB">
+							<li ng-class="[styles.scoreListItemLabel, styles.scoreListItemScoreWeight]" class="ng-binding fe-components-stu-app-realtime-list-__scoreListItemLabel--IDO2v_3UsPFqDDV9iQ2ml">
+								${subjectName}
+							</li>
+							<li ng-class="[styles.scoreListItemWeight, styles.scoreListItemScoreWeight]" class="ng-binding fe-components-stu-app-realtime-list-__scoreListItemWeight--285HojRL7boCDLSqVG3jB-">
+								${subjectWeight}
+							</li>
+							<li ng-class="[styles.scoreListItemScore, styles.scoreListItemScoreWeight]" class="fe-components-stu-app-realtime-list-__scoreListItemScore--1SnqOFUX5PHAR3L-RwXhkl">
+								<span class="ng-binding">${gpa} / ${noweight_gpa}</span>
+								<!-- ngIf: items.evaluationProjectList.length>0 && items.showChild -->
+								<!-- ngIf: items.evaluationProjectList.length>0 && !items.showChild -->
+								<!-- ngIf: items.evaluationProjectList.length==0&&items.learningTaskAndExamList.length --><a ng-click="$ctrl.checkProjectDetail(items)" ng-if="items.evaluationProjectList.length==0&amp;&amp;items.learningTaskAndExamList.length" ng-class="styles.projectDetail" class="ng-binding ng-scope fe-components-stu-app-realtime-list-__projectDetail--2eGVWnK9x_7T4bfK5HFNf2">${btn}</a><!-- end ngIf: items.evaluationProjectList.length==0&&items.learningTaskAndExamList.length -->
+							</li>
+						</ul>
+						<!-- ngRepeat: ele in items.evaluationProjectList -->
+					</li>`
+    return mainHtml;
+}
+
+async function checktitleElementExistence() {
+    return new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+            clearInterval(intervalId);
+            resolve(false); // 5秒超时，仍然放行，但返回 false 表示超时
+        }, 5000); // 5秒超时
+
+        const intervalId = setInterval(() => {
+            let element = document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__modelTitle--8I6j6U9niNNfZsIj8855i")[0];
+            if (element && element.innerText) {
+                clearTimeout(timeoutId);
+                clearInterval(intervalId);
+                resolve(true); // 找到了元素，立即放行并返回 true
+            }
+        }, 10); // 每 100 毫秒检查一次
+    });
+}
+
+
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
+async function showGPABox(){
+    await checktitleElementExistence();
+        
+    const smsId = await getIdBySemester(document.getElementsByClassName("fe-components-xb-pull-btn-__input--3TWoIfVMNo-eszvg3cnXCa")[0].value);
+    chrome.storage.local.get("gpaList"+smsId,function(tmp){
+        let gpaList = tmp["gpaList"+smsId];
+        console.log(gpaList);
+        chrome.storage.local.get("gpa"+smsId,function(data){
+            console.log(data);
+            let gpa = formatNumber(data["gpa"+smsId].gpa,2);
+            let noweight_gpa = formatNumber(data["gpa"+smsId].noweight_gpa,2);
+            let schoolis_gpa = data["gpa"+smsId].schoolisGPA;
+            
+            
+
+            document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__modelTitle--8I6j6U9niNNfZsIj8855i")[0].innerText=tlang("GPA计算详细","GPA Calculation Details");
+            document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__gradeName--2NKfjy7pw11NCA7ZnBb5Fs")[0].innerText=document.getElementsByClassName("fe-components-xb-pull-btn-__input--3TWoIfVMNo-eszvg3cnXCa")[0].value;
+            document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__gradeName--2NKfjy7pw11NCA7ZnBb5Fs")[0].style.paddingBottom="30px";
+
+
+            document.getElementsByClassName("fe-components-stu-app-realtime-list-__scoreListItem--3G2orCiXa-n9QRjw05Ii8f fe-shared-css-__clearFix--2mg8N64gHXU6X_nBPlhIaB")[0].children[0].innerText=tlang("学科","Subject");
+            document.getElementsByClassName("fe-components-stu-app-realtime-list-__scoreListItem--3G2orCiXa-n9QRjw05Ii8f fe-shared-css-__clearFix--2mg8N64gHXU6X_nBPlhIaB")[0].children[2].innerText=tlang("GPA / 未加权GPA","GPA / Unweighted GPA");
+            let sublineA = document.getElementsByClassName("fe-components-stu-app-realtime-list-__basicInfoItem--2mLNqht5xhMaGuOPL1rAei")[0];
+            let sublineB = document.getElementsByClassName("fe-components-stu-app-realtime-list-__basicInfoItem--2mLNqht5xhMaGuOPL1rAei")[1];
+            let bigScore = document.getElementsByClassName("ng-binding fe-components-stu-app-realtime-list-__score--1e6GrTtGfRHkKF-12OE_J3")[0];
+
+            bigScore.innerText=schoolis_gpa?schoolis_gpa:gpa;
+            bigScore.style.marginTop="-12px";
+
+            let bigScoreSubtitle = `<p ng-class="styles.basicInfoItem" class="fe-components-stu-app-realtime-list-__basicInfoItem--2mLNqht5xhMaGuOPL1rAei">
+						<span class="ng-binding"> </span><span ng-class="styles.basicInfoItemValue" id="gcalc_gpaSubtitle" class="ng-binding fe-components-stu-app-realtime-list-__basicInfoItemValue--3Zx2X_CcFbD3XBxLp_NeFt" style="display: block; text-align: center;">${schoolis_gpa?tlang("加权后GPA（校宝）","WeightedGPA"):tlang("加权后GPA（计算）","WeightedGPA(Calced)")}</span>
+					</p>`;
+
+            bigScore.insertAdjacentHTML('afterend', bigScoreSubtitle);
+
+            if(schoolis_gpa){
+                sublineA.children[0].innerText=" ";
+                sublineB.children[0].innerText=" ";
+                sublineA.children[1].innerText=tlang("加权后GPA（计算）：","Calced GPA：")+gpa;
+                sublineB.children[1].innerText=tlang("未加权GPA（计算）：","Calced Unweighted GPA：")+noweight_gpa;
+            }else{
+                sublineA.children[0].innerText=" ";
+                sublineB.children[1].innerText=" ";
+                sublineA.children[1].innerText=tlang("未加权GPA（计算）：","Calced Unweighted GPA：")+noweight_gpa;
+                sublineB.children[0].innerText=tlang("加权后GPA（校宝系统）：无数据","SchoolisGPA：No Data");
+            }
+
+
+            const originalItem = document.getElementsByClassName("fe-components-stu-app-realtime-list-__scoreListItem--3G2orCiXa-n9QRjw05Ii8f fe-shared-css-__clearFix--2mg8N64gHXU6X_nBPlhIaB")[1];
+            if (originalItem) {
+                while (originalItem.firstChild) {
+                    originalItem.removeChild(originalItem.firstChild);
+                }
+            }
+
+            gpaList.sort((a, b) => {
+                if (a.weight !== b.weight) {
+                    return a.weight - b.weight;
+                }
+                if (b.gpa !== a.gpa) {
+                    return b.gpa - a.gpa;
+                }
+                return a.subjectName.localeCompare(b.subjectName); 
+            });
+            
+            
+            gpaList.forEach((item) => {
+                if(item.gpa!=-1){
+                    originalItem.insertAdjacentHTML('beforeend', showGPABox_BuildItem(
+                        item.subjectName,
+                        formatNumber(item.weight, 1),
+                        formatNumber(item.gpa, 2),
+                        formatNumber((item.gpa > 0 ? (item.gpa - (item.isWeighted ? 0.5 : 0)) : (item.gpa)), 2),
+                        tlang("", "")
+                    ));
+                }
+                
+            });
+        
+        
+        
+            //e.g: subline.children[0].innertext  (0:Grey,1:Black)
+        });
+    });
+   
+
+}
+
+function readAndCombineLongStringFromChromeStorage(key) {
+    return new Promise((resolve, reject) => {
+      chrome.storage.local.get(null, (items) => { // 获取所有存储的数据
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError);
+          return;
+        }
+  
+        let longString = "";
+        for (let i = 0; ; i++) {
+          const chunkKey = `${key}_${i}`;
+          const chunk = items[chunkKey];
+          if (chunk === undefined) {
+            break; // 所有分段都已读取完毕
+          }
+          longString += chunk;
+        }
+  
+        resolve(longString);
+      });
+    });
+  }
+
+function formatNumber(number, decimalPlaces) {
+    const formatted = Number(parseFloat(number.toFixed(decimalPlaces)));
+    return String(formatted);
 }
